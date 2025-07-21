@@ -1,0 +1,39 @@
+package com.sparta.spartatigers.domain.user.model;
+
+import com.sparta.spartatigers.domain.common.entity.BaseEntity;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+
+import java.time.LocalDateTime;
+
+@SuperBuilder
+@Entity(name = "users")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+public class User extends BaseEntity {
+
+    @Id
+    @Column(name = "user_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column private String email;
+
+    @Column private String password;
+
+    @Column private String nickname;
+
+    @Column private String profileImageUrl;
+
+    @Enumerated(EnumType.STRING)
+    private UserRole role;
+
+    public void changePassword(final String password) {
+        this.password = password;
+    }
+}

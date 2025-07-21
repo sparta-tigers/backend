@@ -1,0 +1,33 @@
+allprojects {
+    buildscript {
+        repositories {
+            gradlePluginPortal()
+            mavenCentral()
+        }
+
+        dependencies {
+            classpath "com.palantir.javaformat:gradle-palantir-java-format:${palantirJavaFormatVersion}"
+        }
+    }
+
+    apply plugin: 'java'
+    apply plugin: 'com.palantir.java-format'
+    apply plugin: 'com.diffplug.spotless'
+
+    spotless {
+        java {
+            // 아래 순서로 import문 정렬
+            importOrder('java', 'javax', 'jakarta', 'org', 'lombok', 'com.sparta.spartatigers')
+            // 사용하지 않는 import 제거
+            removeUnusedImports()
+            // 각 라인 끝에 있는 공백을 제거
+            trimTrailingWhitespace()
+            // 파일 끝에 새로운 라인 추가
+            endWithNewline()
+        }
+    }
+    // 시작 전에 린트 자동 적용
+    tasks.named('compileJava') {
+        dependsOn 'spotlessApply'
+    }
+}

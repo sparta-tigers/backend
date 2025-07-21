@@ -1,0 +1,25 @@
+spring.profiles.active: local
+
+spring:
+  application:
+    name: sparta-tigers
+
+  config:
+    import:
+      - db.yml
+      - redis.yml
+      - logging.yml
+      - monitoring.yml
+      - jwt.yml
+
+  web:
+    resources:
+      add-mappings: false
+
+
+server:
+  tomcat:
+    max-connections: 20000
+    threads:
+      max: 600
+      min-spare: 100

@@ -15,7 +15,7 @@ services:
   redis:
     image: redis:7.4.1
     restart: unless-stopped
-    command: redis-server --requirepass jungmini
+    command: redis-server --requirepass qwer1234
     ports:
       - "6379:6379"
     volumes:

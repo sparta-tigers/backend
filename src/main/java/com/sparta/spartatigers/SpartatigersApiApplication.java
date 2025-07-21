@@ -2,12 +2,14 @@ package com.sparta.spartatigers;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
+@ConfigurationPropertiesScan
 @SpringBootApplication
-public class BeSpartatigersApplication {
+public class SpartatigersApiApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(BeSpartatigersApplication.class, args);
+        SpringApplication.run(SpartatigersApiApplication.class, args);
     }
 
 }
