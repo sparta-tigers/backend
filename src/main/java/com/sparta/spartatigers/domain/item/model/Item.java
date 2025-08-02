@@ -1,6 +1,7 @@
 package com.sparta.spartatigers.domain.item.model;
 
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
+import com.sparta.spartatigers.domain.item.dto.request.CreateItemRequestDto;
 import com.sparta.spartatigers.domain.user.model.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -55,4 +56,35 @@ public class Item extends BaseEntity {
 
     @Version private Long version;
 
+    public Item(
+        ItemCategory category,
+        String image,
+        String seatInfo,
+        String title,
+        String description,
+        ItemStatus status,
+        User user,
+        LocalDate createdDate) {
+
+        this.category = category;
+        this.image = image;
+        this.seatInfo = seatInfo;
+        this.title = title;
+        this.description = description;
+        this.status = status;
+        this.user = user;
+        this.createdDate = createdDate;
+    }
+
+    public static Item of(CreateItemRequestDto dto, User user, String image) {
+        return new Item(
+            dto.category(),
+            image,
+            dto.seatInfo(),
+            dto.title(),
+            dto.description(),
+            ItemStatus.REGISTERED,
+            user,
+            LocalDate.now());
+    }
 }
