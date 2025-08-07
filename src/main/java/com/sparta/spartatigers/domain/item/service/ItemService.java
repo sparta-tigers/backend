@@ -3,13 +3,17 @@ package com.sparta.spartatigers.domain.item.service;
 import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.domain.item.dto.request.CreateItemRequestDto;
 import com.sparta.spartatigers.domain.item.dto.response.CreateItemResponseDto;
+import com.sparta.spartatigers.domain.item.dto.response.ReadItemResponseDto;
 import com.sparta.spartatigers.domain.item.model.Item;
+import com.sparta.spartatigers.domain.item.model.ItemStatus;
 import com.sparta.spartatigers.domain.item.repository.ItemRepository;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.repository.UserRepository;
 import com.sparta.spartatigers.global.error.CustomException;
 import com.sparta.spartatigers.global.error.ErrorType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,12 +27,25 @@ public class ItemService {
     @Transactional
     public CreateItemResponseDto createItem(CreateItemRequestDto request, TokenClaim tokenClaim) {
 
-        User user = userRepository.findById(tokenClaim.getUserId()).orElseThrow(() -> new CustomException(
-            ErrorType.VALIDATION_ERROR));
+        User user = userRepository.findById(tokenClaim.getUserId())
+            .orElseThrow(() -> new CustomException(
+                ErrorType.VALIDATION_ERROR));
 
         Item item = Item.of(request, user, null);
         itemRepository.save(item);
 
         return CreateItemResponseDto.from(item);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ReadItemResponseDto> findAllItems(TokenClaim tokenClaim, Pageable pageable) {
+
+        User user = userRepository.findById(tokenClaim.getUserId())
+            .orElseThrow(() -> new CustomException(ErrorType.VALIDATION_ERROR));
+
+        Page<Item> itemList = itemRepository.findAllItems(ItemStatus.REGISTERED,
+            pageable);
+
+        return itemList.map(ReadItemResponseDto::from);
     }
 }
