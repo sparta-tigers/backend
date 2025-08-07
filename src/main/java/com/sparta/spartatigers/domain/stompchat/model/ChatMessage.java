@@ -2,9 +2,13 @@ package com.sparta.spartatigers.domain.stompchat.model;
 
 import java.time.LocalDateTime;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class ChatMessage {
 
 	private String roomId;
@@ -12,5 +16,16 @@ public class ChatMessage {
 	private String content;
 	private LocalDateTime sentAt;
 	private ChatDomainType domain;
-	private MessageType type;
+
+	public static ChatMessage ofExchangeRoom (
+		String roomId, Long senderId, String content
+	) {
+		return new ChatMessage(roomId, senderId, content, LocalDateTime.now(), ChatDomainType.EXCHANGE);
+	}
+
+	public static ChatMessage ofLiveBoardRoom (
+		String roomId, Long senderId, String content
+	) {
+		return new ChatMessage(roomId, senderId, content, LocalDateTime.now(), ChatDomainType.LIVEBOARD);
+	}
 }
