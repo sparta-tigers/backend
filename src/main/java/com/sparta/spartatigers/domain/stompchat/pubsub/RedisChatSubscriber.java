@@ -16,8 +16,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RedisChatSubscriber implements MessageListener {
 
-	private final SimpMessagingTemplate messagingTemplate;
 	private final ObjectMapper objectMapper;
+	private final SimpMessagingTemplate messagingTemplate;
 
 	@Override
 	public void onMessage(Message message, byte[] pattern) {

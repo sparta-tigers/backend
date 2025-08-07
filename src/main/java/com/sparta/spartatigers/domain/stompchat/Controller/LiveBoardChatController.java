@@ -5,19 +5,21 @@ import java.security.Principal;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 
-import com.sparta.spartatigers.domain.stompchat.Service.LiveboardChatService;
+import com.sparta.spartatigers.domain.stompchat.Service.ChatService;
 import com.sparta.spartatigers.domain.stompchat.model.ChatMessage;
 
 import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequiredArgsConstructor
-public class StompChatController {
+public class LiveBoardChatController {
 
-	private LiveboardChatService liveboardChatService;
+	private final ChatService chatService;
 
+	// 채팅
 	@MessageMapping("/liveboard/send")
 	public void sendMessage(ChatMessage message, Principal principal) {
-		liveboardChatService.handleMessage(message, principal);
+		chatService.sendGroupMessage(message, principal);
 	}
+
 }
