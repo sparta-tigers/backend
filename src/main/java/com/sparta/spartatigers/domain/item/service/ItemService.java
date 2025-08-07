@@ -3,6 +3,7 @@ package com.sparta.spartatigers.domain.item.service;
 import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.domain.item.dto.request.CreateItemRequestDto;
 import com.sparta.spartatigers.domain.item.dto.response.CreateItemResponseDto;
+import com.sparta.spartatigers.domain.item.dto.response.ReadItemDetailResponseDto;
 import com.sparta.spartatigers.domain.item.dto.response.ReadItemResponseDto;
 import com.sparta.spartatigers.domain.item.model.Item;
 import com.sparta.spartatigers.domain.item.model.ItemStatus;
@@ -47,5 +48,14 @@ public class ItemService {
             pageable);
 
         return itemList.map(ReadItemResponseDto::from);
+    }
+
+    @Transactional(readOnly = true)
+    public ReadItemDetailResponseDto findItemById(Long itemId) {
+
+        Item item = itemRepository.findById(itemId)
+            .orElseThrow(() -> new CustomException(ErrorType.VALIDATION_ERROR));
+
+        return ReadItemDetailResponseDto.from(item);
     }
 }
