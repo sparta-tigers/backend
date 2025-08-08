@@ -2,7 +2,10 @@ package com.sparta.spartatigers.domain.item.model;
 
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
 import com.sparta.spartatigers.domain.item.dto.request.CreateItemRequestDto;
+import com.sparta.spartatigers.domain.item.dto.request.UpdateItemRequestDto;
 import com.sparta.spartatigers.domain.user.model.User;
+import com.sparta.spartatigers.global.error.CustomException;
+import com.sparta.spartatigers.global.error.ErrorType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -86,5 +89,35 @@ public class Item extends BaseEntity {
             ItemStatus.REGISTERED,
             user,
             LocalDate.now());
+    }
+
+    public void validateUserIsOwner(User user) {
+
+        if (!this.user.getId().equals(user.getId())) {
+            throw new CustomException(ErrorType.AUTHORIZATION_ERROR);
+        }
+    }
+
+    public void deleteItem() {
+        this.status = ItemStatus.DELETED;
+    }
+
+    public void updateItem(UpdateItemRequestDto request) {
+
+        if (request.category() != null) {
+            this.category = request.category();
+        }
+
+        if (request.title() != null) {
+            this.title = request.title();
+        }
+
+        if (request.seatInfo() != null) {
+            this.seatInfo = request.seatInfo();
+        }
+
+        if (request.description() != null) {
+            this.description = request.description();
+        }
     }
 }

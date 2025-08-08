@@ -2,7 +2,8 @@ package com.sparta.spartatigers.domain.item.service;
 
 import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.domain.item.dto.request.CreateItemRequestDto;
-import com.sparta.spartatigers.domain.item.dto.response.CreateItemResponseDto;
+import com.sparta.spartatigers.domain.item.dto.request.UpdateItemRequestDto;
+import com.sparta.spartatigers.domain.item.dto.response.ItemResponseDto;
 import com.sparta.spartatigers.domain.item.dto.response.ReadItemDetailResponseDto;
 import com.sparta.spartatigers.domain.item.dto.response.ReadItemResponseDto;
 import com.sparta.spartatigers.domain.item.model.Item;
@@ -26,7 +27,7 @@ public class ItemService {
     private final UserRepository userRepository;
 
     @Transactional
-    public CreateItemResponseDto createItem(CreateItemRequestDto request, TokenClaim tokenClaim) {
+    public ItemResponseDto createItem(CreateItemRequestDto request, TokenClaim tokenClaim) {
 
         User user = userRepository.findById(tokenClaim.getUserId())
             .orElseThrow(() -> new CustomException(
@@ -35,7 +36,7 @@ public class ItemService {
         Item item = Item.of(request, user, null);
         itemRepository.save(item);
 
-        return CreateItemResponseDto.from(item);
+        return ItemResponseDto.from(item);
     }
 
     @Transactional(readOnly = true)
@@ -57,5 +58,31 @@ public class ItemService {
             .orElseThrow(() -> new CustomException(ErrorType.VALIDATION_ERROR));
 
         return ReadItemDetailResponseDto.from(item);
+    }
+
+    @Transactional
+    public void deleteItem(TokenClaim tokenClaim, Long itemId) {
+
+        User user = userRepository.findById(tokenClaim.getUserId())
+            .orElseThrow(() -> new CustomException(ErrorType.VALIDATION_ERROR));
+
+        Item item = itemRepository.findById(itemId)
+            .orElseThrow(() -> new CustomException(ErrorType.VALIDATION_ERROR));
+        item.validateUserIsOwner(user);
+        item.deleteItem();
+    }
+
+    @Transactional
+    public ItemResponseDto updateItem(TokenClaim tokenClaim, Long itemId, UpdateItemRequestDto request) {
+
+        User user = userRepository.findById(tokenClaim.getUserId())
+            .orElseThrow(() -> new CustomException(ErrorType.VALIDATION_ERROR));
+
+        Item item = itemRepository.findById(itemId)
+            .orElseThrow(() -> new CustomException(ErrorType.VALIDATION_ERROR));
+        item.validateUserIsOwner(user);
+        item.updateItem(request);
+
+        return ItemResponseDto.from(item);
     }
 }
