@@ -13,19 +13,20 @@ public class ChatMessage {
 
 	private String roomId;
 	private Long senderId;
+	private String senderNickname;
 	private String content;
 	private LocalDateTime sentAt;
 	private ChatDomainType domain;
 
 	public static ChatMessage ofExchangeRoom (
-		String roomId, Long senderId, String content
+		String roomId, Long senderId, String senderNickname, String content
 	) {
-		return new ChatMessage(roomId, senderId, content, LocalDateTime.now(), ChatDomainType.EXCHANGE);
+		return new ChatMessage(roomId, senderId, senderNickname, content, LocalDateTime.now(), ChatDomainType.EXCHANGE);
 	}
 
 	public static ChatMessage ofLiveBoardRoom (
-		String roomId, Long senderId, String content
+		String roomId, Long senderId,String senderNickname, String content
 	) {
-		return new ChatMessage(roomId, senderId, content, LocalDateTime.now(), ChatDomainType.LIVEBOARD);
+		return new ChatMessage(roomId, senderId, senderNickname, content, LocalDateTime.now(), ChatDomainType.LIVEBOARD);
 	}
 }

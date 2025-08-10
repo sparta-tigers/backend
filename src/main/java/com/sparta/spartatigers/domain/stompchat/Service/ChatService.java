@@ -13,6 +13,8 @@ import com.sparta.spartatigers.domain.directRoom.repository.DirectRoomRepository
 import com.sparta.spartatigers.domain.stompchat.model.ChatMessage;
 import com.sparta.spartatigers.domain.stompchat.pubsub.RedisChatPublisher;
 import com.sparta.spartatigers.domain.stompchat.pubsub.RedisChatSubscriber;
+import com.sparta.spartatigers.domain.user.model.User;
+import com.sparta.spartatigers.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,11 +27,17 @@ public class ChatService {
 	private final RedisMessageListenerContainer redisMessageListener;
 	private final Map<String, ChannelTopic> topics =
 		new ConcurrentHashMap<>(); // 채팅방별 topic
+	private final UserRepository userRepository;
 
 
 	public void sendGroupMessage(ChatMessage message, Principal principal) {
+		User sender = userRepository.findById(message.getSenderId()).orElseThrow();
+
+		ChatMessage sendMessage = ChatMessage.ofLiveBoardRoom(message.getRoomId(),sender.getId(), sender.getNickname(),
+			message.getContent());
+
 		ChannelTopic topic = getOrInitTopic(message.getRoomId());
-		redisChatPublisher.publish(topic,message);
+		redisChatPublisher.publish(topic,sendMessage);
 	}
 
 	public void sendDirectMessage(ChatMessage message, Principal principal) {
