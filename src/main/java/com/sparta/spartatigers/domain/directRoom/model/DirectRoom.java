@@ -1,4 +1,4 @@
-package com.sparta.spartatigers.domain.chatroom.model;
+package com.sparta.spartatigers.domain.directRoom.model;
 
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
 import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeRequest;
