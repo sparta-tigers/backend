@@ -21,11 +21,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class StompInterceptor implements ChannelInterceptor {
 
+	// 1:1채팅만 인터셉터에서 진행하는 추가적인 로직이 있으므로 그거만 처리하면 될듯
 	private static final String CHAT_DOMAIN_TYPE = "ChatDomain";
-	// 채팅 기능별로 헤더에 도메인 넣으려고 했는데 컨트롤러에서 권한 처리가 나을듯,,,
 	private final JwtTokenService jwtTokenService;
 	private final UserRepository userRepository;
-
 
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -53,6 +52,10 @@ public class StompInterceptor implements ChannelInterceptor {
 					// 웹소켓에 사용자 등록
 					StompPrincipal principal = new StompPrincipal(userId, nickname);
 					accessor.setUser(principal);
+
+					if(domain.equals(ChatDomainType.EXCHANGE)){
+						// userSessionRegistry.registerSession(user.getId(), accessor.getSessionId());
+					}
 				}
 			}
 		}
