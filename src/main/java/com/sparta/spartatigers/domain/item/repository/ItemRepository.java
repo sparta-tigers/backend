@@ -8,6 +8,7 @@ import jakarta.persistence.LockModeType;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -15,6 +16,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface ItemRepository extends JpaRepository<Item, Long> {
 
+    @EntityGraph(attributePaths = {"user"})
     @Query("select i from items i where i.status = :itemStatus")
     Page<Item> findAllItems(@Param("itemStatus") ItemStatus itemStatus, Pageable pageable);
 
