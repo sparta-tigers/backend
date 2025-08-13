@@ -2,6 +2,8 @@ package com.sparta.spartatigers.domain.item.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 
+import com.sparta.spartatigers.global.error.CustomException;
+import com.sparta.spartatigers.global.error.ErrorType;
 import java.util.stream.Stream;
 
 public enum ItemCategory {
@@ -13,6 +15,6 @@ public enum ItemCategory {
             return Stream.of(ItemCategory.values())
                     .filter(category -> category.toString().equals(inputValue.toUpperCase()))
                     .findFirst()
-                    .orElse(null);
+                    .orElseThrow(() -> new CustomException(ErrorType.VALIDATION_ERROR));
         }
     }
