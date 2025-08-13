@@ -53,7 +53,7 @@ public class ItemService {
     @Transactional(readOnly = true)
     public ReadItemDetailResponseDto findItemById(Long itemId) {
 
-        Item item = itemRepository.findById(itemId)
+        Item item = itemRepository.findByIdAndStatus(itemId, ItemStatus.REGISTERED)
             .orElseThrow(() -> new CustomException(ErrorType.ITEM_NOT_FOUND));
 
         return ReadItemDetailResponseDto.from(item);
@@ -65,7 +65,7 @@ public class ItemService {
         User user = userRepository.findById(tokenClaim.getUserId())
             .orElseThrow(() -> new CustomException(ErrorType.VALIDATION_ERROR));
 
-        Item item = itemRepository.findById(itemId)
+        Item item = itemRepository.findByIdAndStatus(itemId, ItemStatus.REGISTERED)
             .orElseThrow(() -> new CustomException(ErrorType.ITEM_NOT_FOUND));
         item.validateUserIsOwner(user);
         item.deleteItem();
@@ -77,7 +77,7 @@ public class ItemService {
         User user = userRepository.findById(tokenClaim.getUserId())
             .orElseThrow(() -> new CustomException(ErrorType.VALIDATION_ERROR));
 
-        Item item = itemRepository.findById(itemId)
+        Item item = itemRepository.findByIdAndStatus(itemId, ItemStatus.REGISTERED)
             .orElseThrow(() -> new CustomException(ErrorType.ITEM_NOT_FOUND));
         item.validateUserIsOwner(user);
         item.updateItem(request);

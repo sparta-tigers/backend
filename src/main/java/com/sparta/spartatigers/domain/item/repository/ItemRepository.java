@@ -18,7 +18,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     @Query("select i from items i where i.status = :itemStatus")
     Page<Item> findAllItems(@Param("itemStatus") ItemStatus itemStatus, Pageable pageable);
 
-    Item findByIdAndItemStatus(Long id, ItemStatus itemStatus);
+    Optional<Item> findByIdAndStatus(Long id, ItemStatus itemStatus);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select i from items i where i.id = :id")
