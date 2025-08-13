@@ -16,7 +16,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface ItemRepository extends JpaRepository<Item, Long> {
 
-    @EntityGraph(attributePaths = {"user"})
+    @EntityGraph(attributePaths = "user")
     @Query("select i from items i where i.status = :itemStatus")
     Page<Item> findAllItems(@Param("itemStatus") ItemStatus itemStatus, Pageable pageable);
 
