@@ -23,12 +23,12 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     Optional<Item> findByIdAndStatus(Long id, ItemStatus itemStatus);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select i from items i where i.id = :id")
-    Optional<Item> findByIdWithLock(Long id);
+    @Query("select i from items i where i.id = :id and i.status = :itemStatus")
+    Optional<Item> findByIdWithLock(@Param("id") Long id, @Param("itemStatus") ItemStatus itemStatus);
 
     default Item findByIdWithLockOrElseThrow(Long id) {
 
-        return findByIdWithLock(id)
-            .orElseThrow(() -> new CustomException(ErrorType.VALIDATION_ERROR));
+        return findByIdWithLock(id, ItemStatus.REGISTERED)
+            .orElseThrow(() -> new CustomException(ErrorType.ITEM_NOT_FOUND));
     }
 }
