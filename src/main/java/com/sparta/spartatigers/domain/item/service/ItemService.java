@@ -30,8 +30,7 @@ public class ItemService {
     public ItemResponseDto createItem(CreateItemRequestDto request, TokenClaim tokenClaim) {
 
         User user = userRepository.findById(tokenClaim.getUserId())
-            .orElseThrow(() -> new CustomException(
-                ErrorType.VALIDATION_ERROR));
+            .orElseThrow(() -> new CustomException(ErrorType.VALIDATION_ERROR));
 
         Item item = Item.of(request, user, null);
         itemRepository.save(item);
@@ -55,7 +54,7 @@ public class ItemService {
     public ReadItemDetailResponseDto findItemById(Long itemId) {
 
         Item item = itemRepository.findById(itemId)
-            .orElseThrow(() -> new CustomException(ErrorType.VALIDATION_ERROR));
+            .orElseThrow(() -> new CustomException(ErrorType.ITEM_NOT_FOUND));
 
         return ReadItemDetailResponseDto.from(item);
     }
@@ -67,7 +66,7 @@ public class ItemService {
             .orElseThrow(() -> new CustomException(ErrorType.VALIDATION_ERROR));
 
         Item item = itemRepository.findById(itemId)
-            .orElseThrow(() -> new CustomException(ErrorType.VALIDATION_ERROR));
+            .orElseThrow(() -> new CustomException(ErrorType.ITEM_NOT_FOUND));
         item.validateUserIsOwner(user);
         item.deleteItem();
     }
@@ -79,7 +78,7 @@ public class ItemService {
             .orElseThrow(() -> new CustomException(ErrorType.VALIDATION_ERROR));
 
         Item item = itemRepository.findById(itemId)
-            .orElseThrow(() -> new CustomException(ErrorType.VALIDATION_ERROR));
+            .orElseThrow(() -> new CustomException(ErrorType.ITEM_NOT_FOUND));
         item.validateUserIsOwner(user);
         item.updateItem(request);
 

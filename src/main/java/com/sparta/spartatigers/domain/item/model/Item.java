@@ -94,7 +94,21 @@ public class Item extends BaseEntity {
     public void validateUserIsOwner(User user) {
 
         if (!this.user.getId().equals(user.getId())) {
-            throw new CustomException(ErrorType.AUTHORIZATION_ERROR);
+            throw new CustomException(ErrorType.ITEM_FORBIDDEN);
+        }
+    }
+
+    public void validateSenderIsNotOwner(User sender) {
+
+        if (this.user.getId().equals(sender.getId())) {
+            throw new CustomException(ErrorType.CANNOT_REQUEST_OWN_ITEM);
+        }
+    }
+
+    public void validateReceiverIsOwner(User receiver) {
+
+        if (!this.user.getId().equals(receiver.getId())) {
+            throw new CustomException(ErrorType.RECEIVER_NOT_OWNER);
         }
     }
 
