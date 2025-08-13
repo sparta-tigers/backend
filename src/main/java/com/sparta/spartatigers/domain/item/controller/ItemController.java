@@ -69,7 +69,7 @@ public class ItemController {
 
     @PatchMapping("/{itemId}")
     public ApiResponse<ItemResponseDto> updateItem(@Auth TokenClaim tokenClaim,
-        @PathVariable Long itemId, @Valid @RequestBody UpdateItemRequestDto request) {
+        @PathVariable Long itemId, @RequestBody UpdateItemRequestDto request) {
 
         ItemResponseDto response = itemService.updateItem(tokenClaim, itemId, request);
 
