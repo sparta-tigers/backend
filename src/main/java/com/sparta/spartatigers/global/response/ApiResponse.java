@@ -1,37 +1,44 @@
 package com.sparta.spartatigers.global.response;
 
-import com.sparta.spartatigers.global.error.ErrorMessage;
-import com.sparta.spartatigers.global.error.ErrorType;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.sparta.spartatigers.global.exception.BaseException;
+import com.sparta.spartatigers.global.exception.ExceptionCode;
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.Getter;
+import org.springframework.http.HttpStatus;
 
 @Getter
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> {
 
-    private final ResultType result;
-
+    private final int statusCode;
     private final T data;
+    private final ErrorResponse error;
+    private final LocalDateTime timestamp = LocalDateTime.now();
 
-    private final ErrorMessage error;
-
-    public ApiResponse(ResultType result, T data, ErrorMessage error) {
-        this.result = result;
+    private ApiResponse(int statusCode, T data, ErrorResponse error) {
+        this.statusCode = statusCode;
         this.data = data;
         this.error = error;
     }
 
-    public static ApiResponse<?> success() {
-        return new ApiResponse<>(ResultType.SUCCESS, null, null);
+    public static <T> ApiResponse<T> ok(final T data) {
+        return new ApiResponse<>(HttpStatus.OK.value(), data, null);
     }
 
-    public static <S> ApiResponse<S> success(S data) {
-        return new ApiResponse<>(ResultType.SUCCESS, data, null);
+    public static <T> ApiResponse<T> created(final T data) {
+        return new ApiResponse<>(HttpStatus.CREATED.value(), data, null);
     }
 
-    public static ApiResponse<?> error(ErrorType error) {
-        return new ApiResponse<>(ResultType.ERROR, null, new ErrorMessage(error));
+    public static ApiResponse<Object> fail(final BaseException ex) {
+        return new ApiResponse<>(
+                ex.getStatus().value(), null, ErrorResponse.of(ex.getExceptionCode()));
     }
 
-    public static ApiResponse<?> error(ErrorType error, Object errorData) {
-        return new ApiResponse<>(ResultType.ERROR, null, new ErrorMessage(error, errorData));
+    public static ApiResponse<Object> fail(
+            ExceptionCode code, List<ErrorResponse.FieldErrorDetail> fieldErrors) {
+        return new ApiResponse<>(
+                HttpStatus.BAD_REQUEST.value(), null, ErrorResponse.of(code, fieldErrors));
     }
 }

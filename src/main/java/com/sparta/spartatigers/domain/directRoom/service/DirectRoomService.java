@@ -7,6 +7,8 @@ import com.sparta.spartatigers.domain.directRoom.repository.DirectRoomRepository
 import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeRequest;
 import com.sparta.spartatigers.domain.stompchat.repository.ExchangeChatRepository;
 import com.sparta.spartatigers.domain.user.model.User;
+import com.sparta.spartatigers.global.exception.ExceptionCode;
+import com.sparta.spartatigers.global.exception.InvalidRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
