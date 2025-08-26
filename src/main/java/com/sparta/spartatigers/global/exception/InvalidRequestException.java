@@ -12,7 +12,7 @@ public class InvalidRequestException extends BaseException {
 
     @Override
     public HttpStatus getStatus() {
-        return exceptionCode.getStatus();
+        return exceptionCode.getHttpStatus();
     }
 
     @Override

@@ -34,8 +34,8 @@ public class GlobalExceptionHandler {
                         .toList();
 
         ApiResponse<?> response =
-                ApiResponse.fail(ExceptionCode.NOT_VALID_EXCEPTION, fieldErrorDetails);
-        return ResponseEntity.status(ExceptionCode.NOT_VALID_EXCEPTION.getStatus()).body(response);
+                ApiResponse.fail(ExceptionCode.VALIDATION_ERROR, fieldErrorDetails);
+        return ResponseEntity.status(ExceptionCode.VALIDATION_ERROR.getHttpStatus()).body(response);
     }
 
     // 커스텀 예외 핸들러
@@ -62,7 +62,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest()
                 .body(
                         ApiResponse.fail(
-                                new InvalidRequestException(ExceptionCode.INVALID_TYPE_EXCEPTION)));
+							new InvalidRequestException(ExceptionCode.INVALID_TYPE_EXCEPTION)));
     }
 
     /*

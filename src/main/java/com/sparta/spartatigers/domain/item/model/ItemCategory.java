@@ -16,6 +16,6 @@ public enum ItemCategory {
             return Stream.of(ItemCategory.values())
                     .filter(category -> category.toString().equals(inputValue.toUpperCase()))
                     .findFirst()
-                    .orElseThrow(() -> new InvalidRequestException(ExceptionCode.NOT_VALID_EXCEPTION));
+                    .orElseThrow(() -> new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
         }
     }

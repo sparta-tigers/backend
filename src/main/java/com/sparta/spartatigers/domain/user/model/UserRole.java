@@ -14,6 +14,6 @@ public enum UserRole {
             }
         }
 
-        throw new InvalidRequestException(ExceptionCode.NOT_VALID_EXCEPTION);
+        throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
     }
 }
