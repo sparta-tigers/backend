@@ -2,8 +2,9 @@ package com.sparta.spartatigers.domain.item.repository;
 
 import com.sparta.spartatigers.domain.item.model.Item;
 import com.sparta.spartatigers.domain.item.model.ItemStatus;
-import com.sparta.spartatigers.global.error.CustomException;
-import com.sparta.spartatigers.global.error.ErrorType;
+import com.sparta.spartatigers.global.exception.ExceptionCode;
+import com.sparta.spartatigers.global.exception.InvalidRequestException;
+
 import jakarta.persistence.LockModeType;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -29,6 +30,6 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     default Item findByIdWithLockOrElseThrow(Long id) {
 
         return findByIdWithLock(id, ItemStatus.REGISTERED)
-            .orElseThrow(() -> new CustomException(ErrorType.ITEM_NOT_FOUND));
+            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.ITEM_NOT_FOUND));
     }
 }

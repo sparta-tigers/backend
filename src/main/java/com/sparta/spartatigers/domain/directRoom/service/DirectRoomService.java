@@ -21,47 +21,49 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class DirectRoomService {
 
-    private final ExchangeRequestRepository exchangeRequestRepository;
+    // private final ExchangeRequestRepository exchangeRequestRepository;
     private final DirectRoomRepository directRoomRepository;
     private final ExchangeChatRepository exchangeChatRepository;
     private final UserConnectService userConnectService;
 
+	// TODO : 컴파일에러땜시 주석처리 해뒀어요 ㅠㅠ -수린
     @Transactional
     public DirectRoomCreateResponseDto createRoom(Long exchangeRequestId, Long currentUserId) {
-        log.info(
-            "[createRoom] 교환요청 기반 채팅방 생성 시도 - exchangeRequestId: {}, currentUserId: {}",
-            exchangeRequestId,
-            currentUserId);
-        ExchangeRequest exchangeRequest =
-            exchangeRequestRepository.findByIdOrElseThrow(exchangeRequestId);
-
-        // 권한 확인: 요청한 사람이 교환 요청의 sender 또는 receiver여야 함
-        if (!exchangeRequest.getSender().getId().equals(currentUserId)
-            && !exchangeRequest.getReceiver().getId().equals(currentUserId)) {
-            log.warn(
-                "[createRoom] 권한 없음 - 요청자 ID: {}, 교환요청 sender: {}, receiver: {}",
-                currentUserId,
-                exchangeRequest.getSender().getId(),
-                exchangeRequest.getReceiver().getId());
-            throw new InvalidRequestException(ExceptionCode.UNAUTHORIZED);
-        }
-
-        // sender/receiver는 교환 요청 그대로
-        User sender = exchangeRequest.getSender();
-        User receiver = exchangeRequest.getReceiver();
-
-        DirectRoom room =
-            directRoomRepository
-                .findByExchangeRequest(exchangeRequest)
-                .orElseGet(
-                    () ->
-                        directRoomRepository.save(
-                            DirectRoom.create(
-                                exchangeRequest, sender, receiver)));
-
-        log.info("[createRoom] 채팅방 생성 완료 - roomId: {}", room.getId());
-        return DirectRoomCreateResponseDto.from(room);
-    }
+        // log.info(
+        //     "[createRoom] 교환요청 기반 채팅방 생성 시도 - exchangeRequestId: {}, currentUserId: {}",
+        //     exchangeRequestId,
+        //     currentUserId);
+        // ExchangeRequest exchangeRequest =
+        //     // exchangeRequestRepository.findByIdOrElseThrow(exchangeRequestId);
+		//
+        // // 권한 확인: 요청한 사람이 교환 요청의 sender 또는 receiver여야 함
+        // // if (!exchangeRequest.getSender().getId().equals(currentUserId)
+        // //     && !exchangeRequest.getReceiver().getId().equals(currentUserId)) {
+        //     log.warn(
+        //         "[createRoom] 권한 없음 - 요청자 ID: {}, 교환요청 sender: {}, receiver: {}",
+        //         currentUserId,
+        //         exchangeRequest.getSender().getId(),
+        //         exchangeRequest.getReceiver().getId());
+        //     throw new InvalidRequestException(ExceptionCode.UNAUTHORIZED);
+        // }
+		//
+        // // sender/receiver는 교환 요청 그대로
+        // User sender = exchangeRequest.getSender();
+        // User receiver = exchangeRequest.getReceiver();
+		//
+        // DirectRoom room =
+        //     directRoomRepository
+        //         .findByExchangeRequest(exchangeRequest)
+        //         .orElseGet(
+        //             () ->
+        //                 directRoomRepository.save(
+        //                     DirectRoom.create(
+        //                         exchangeRequest, sender, receiver)));
+		//
+        // log.info("[createRoom] 채팅방 생성 완료 - roomId: {}", room.getId());
+        // return DirectRoomCreateResponseDto.from(room);
+    return null;
+	}
 
     public Page<DirectRoomResponseDto> getRoomsForUser(Long currentUserId, Pageable pageable) {
         log.info("[getRoomsForUser] 채팅방 목록 조회 - 사용자 ID: {}", currentUserId);

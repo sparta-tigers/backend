@@ -12,7 +12,7 @@ public class ServerException extends BaseException {
 
     @Override
     public HttpStatus getStatus() {
-        return exceptionCode.getStatus();
+        return exceptionCode.getHttpStatus();
     }
 
     @Override

@@ -64,7 +64,7 @@ public class ItemController {
 
         itemService.deleteItem(tokenClaim, itemId);
 
-        return ApiResponse.success();
+        return ApiResponse.success("");
     }
 
     @PatchMapping("/{itemId}")

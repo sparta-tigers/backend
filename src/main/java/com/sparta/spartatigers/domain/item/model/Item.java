@@ -4,8 +4,9 @@ import com.sparta.spartatigers.domain.common.entity.BaseEntity;
 import com.sparta.spartatigers.domain.item.dto.request.CreateItemRequestDto;
 import com.sparta.spartatigers.domain.item.dto.request.UpdateItemRequestDto;
 import com.sparta.spartatigers.domain.user.model.User;
-import com.sparta.spartatigers.global.error.CustomException;
-import com.sparta.spartatigers.global.error.ErrorType;
+import com.sparta.spartatigers.global.exception.ExceptionCode;
+import com.sparta.spartatigers.global.exception.InvalidRequestException;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -94,21 +95,21 @@ public class Item extends BaseEntity {
     public void validateUserIsOwner(User user) {
 
         if (!this.user.getId().equals(user.getId())) {
-            throw new CustomException(ErrorType.ITEM_FORBIDDEN);
+            throw new InvalidRequestException(ExceptionCode.ITEM_NOT_FOUND);
         }
     }
 
     public void validateSenderIsNotOwner(User sender) {
 
         if (this.user.getId().equals(sender.getId())) {
-            throw new CustomException(ErrorType.CANNOT_REQUEST_OWN_ITEM);
+            throw new InvalidRequestException(ExceptionCode.CANNOT_REQUEST_OWN_ITEM);
         }
     }
 
     public void validateReceiverIsOwner(User receiver) {
 
         if (!this.user.getId().equals(receiver.getId())) {
-            throw new CustomException(ErrorType.RECEIVER_NOT_OWNER);
+            throw new InvalidRequestException(ExceptionCode.RECEIVER_NOT_OWNER);
         }
     }
 

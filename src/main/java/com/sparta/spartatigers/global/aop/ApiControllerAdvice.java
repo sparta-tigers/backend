@@ -1,7 +1,7 @@
 package com.sparta.spartatigers.global.aop;
 
-import com.sparta.spartatigers.global.error.CustomException;
-import com.sparta.spartatigers.global.error.ErrorType;
+import com.sparta.spartatigers.global.exception.CustomException;
+import com.sparta.spartatigers.global.exception.ExceptionCode;
 import com.sparta.spartatigers.global.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -20,15 +20,15 @@ public class ApiControllerAdvice {
 
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ApiResponse<?>> handleChatCustomException(CustomException exception) {
-        switch (exception.getErrorType().getLogLevel()) {
+        switch (exception.getExceptionCode().getLogLevel()) {
             case ERROR -> log.error("ChatCustomException : {}", exception.getMessage(), exception);
             case WARN -> log.warn("ChatCustomException : {}", exception.getMessage(), exception);
             default -> log.info("ChatCustomException : {}", exception.getMessage(), exception);
         }
 
         return new ResponseEntity<>(
-                ApiResponse.error(exception.getErrorType(), exception.getData()),
-                exception.getErrorType().getHttpStatus());
+                ApiResponse.error(exception.getExceptionCode(), exception.getData()),
+                exception.getExceptionCode().getHttpStatus());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -44,8 +44,8 @@ public class ApiControllerAdvice {
                         ));
 
         return new ResponseEntity<>(
-                ApiResponse.error(ErrorType.VALIDATION_ERROR, validationErrors),
-                ErrorType.VALIDATION_ERROR.getHttpStatus());
+                ApiResponse.error(ExceptionCode.VALIDATION_ERROR, validationErrors),
+                ExceptionCode.VALIDATION_ERROR.getHttpStatus());
     }
 
     @ExceptionHandler(Exception.class)
@@ -53,6 +53,6 @@ public class ApiControllerAdvice {
         log.error("Exception : {}", exception.getMessage(), exception);
 
         return new ResponseEntity<>(
-                ApiResponse.error(ErrorType.INTERNAL_SERVER_ERROR), ErrorType.INTERNAL_SERVER_ERROR.getHttpStatus());
+                ApiResponse.error(ExceptionCode.INTERNAL_SERVER_ERROR), ExceptionCode.INTERNAL_SERVER_ERROR.getHttpStatus());
     }
 }
