@@ -2,8 +2,9 @@ package com.sparta.spartatigers.global.aop;
 
 import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.domain.auth.service.TokenService;
-import com.sparta.spartatigers.global.error.CustomException;
-import com.sparta.spartatigers.global.error.ErrorType;
+import com.sparta.spartatigers.global.exception.ExceptionCode;
+import com.sparta.spartatigers.global.exception.InvalidRequestException;
+
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.MethodParameter;
@@ -36,7 +37,7 @@ public class AuthArgumentResolver implements HandlerMethodArgumentResolver {
         String accessToken = bearerToken.split(" ")[1];
 
         if (accessToken == null) {
-            throw new CustomException(ErrorType.AUTHENTICATION_ERROR, "인증이 필요한 요청입니다.");
+            throw new InvalidRequestException(ExceptionCode.FORBIDDEN_REQUEST);
         }
 
         return tokenService.parseAccessToken(accessToken);

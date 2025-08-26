@@ -11,8 +11,9 @@ import com.sparta.spartatigers.domain.item.model.ItemStatus;
 import com.sparta.spartatigers.domain.item.repository.ItemRepository;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.repository.UserRepository;
-import com.sparta.spartatigers.global.error.CustomException;
-import com.sparta.spartatigers.global.error.ErrorType;
+import com.sparta.spartatigers.global.exception.ExceptionCode;
+import com.sparta.spartatigers.global.exception.InvalidRequestException;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,7 +31,7 @@ public class ItemService {
     public ItemResponseDto createItem(CreateItemRequestDto request, TokenClaim tokenClaim) {
 
         User user = userRepository.findById(tokenClaim.getUserId())
-            .orElseThrow(() -> new CustomException(ErrorType.VALIDATION_ERROR));
+            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.NOT_VALID_EXCEPTION));
 
         Item item = Item.of(request, user, null);
         itemRepository.save(item);
@@ -42,7 +43,7 @@ public class ItemService {
     public Page<ReadItemResponseDto> findAllItems(TokenClaim tokenClaim, Pageable pageable) {
 
         User user = userRepository.findById(tokenClaim.getUserId())
-            .orElseThrow(() -> new CustomException(ErrorType.VALIDATION_ERROR));
+            .orElseThrow(() ->  new InvalidRequestException(ExceptionCode.NOT_VALID_EXCEPTION));
 
         Page<Item> itemList = itemRepository.findAllItems(ItemStatus.REGISTERED,
             pageable);
@@ -54,7 +55,7 @@ public class ItemService {
     public ReadItemDetailResponseDto findItemById(Long itemId) {
 
         Item item = itemRepository.findByIdAndStatus(itemId, ItemStatus.REGISTERED)
-            .orElseThrow(() -> new CustomException(ErrorType.ITEM_NOT_FOUND));
+            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.ITEM_NOT_FOUND));
 
         return ReadItemDetailResponseDto.from(item);
     }
@@ -63,10 +64,10 @@ public class ItemService {
     public void deleteItem(TokenClaim tokenClaim, Long itemId) {
 
         User user = userRepository.findById(tokenClaim.getUserId())
-            .orElseThrow(() -> new CustomException(ErrorType.VALIDATION_ERROR));
+            .orElseThrow(() ->  new InvalidRequestException(ExceptionCode.NOT_VALID_EXCEPTION));
 
         Item item = itemRepository.findByIdAndStatus(itemId, ItemStatus.REGISTERED)
-            .orElseThrow(() -> new CustomException(ErrorType.ITEM_NOT_FOUND));
+            .orElseThrow(() ->  new InvalidRequestException(ExceptionCode.ITEM_NOT_FOUND));
         item.validateUserIsOwner(user);
         item.deleteItem();
     }
@@ -75,10 +76,10 @@ public class ItemService {
     public ItemResponseDto updateItem(TokenClaim tokenClaim, Long itemId, UpdateItemRequestDto request) {
 
         User user = userRepository.findById(tokenClaim.getUserId())
-            .orElseThrow(() -> new CustomException(ErrorType.VALIDATION_ERROR));
+            .orElseThrow(() ->  new InvalidRequestException(ExceptionCode.NOT_VALID_EXCEPTION));
 
         Item item = itemRepository.findByIdAndStatus(itemId, ItemStatus.REGISTERED)
-            .orElseThrow(() -> new CustomException(ErrorType.ITEM_NOT_FOUND));
+            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.ITEM_NOT_FOUND));
         item.validateUserIsOwner(user);
         item.updateItem(request);
 

@@ -3,8 +3,9 @@ package com.sparta.spartatigers.domain.user.service;
 import com.sparta.spartatigers.domain.auth.service.PasswordEncoder;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.repository.UserRepository;
-import com.sparta.spartatigers.global.error.CustomException;
-import com.sparta.spartatigers.global.error.ErrorType;
+import com.sparta.spartatigers.global.exception.ExceptionCode;
+import com.sparta.spartatigers.global.exception.InvalidRequestException;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ public class UserService {
     @Transactional
     public User addUser(User user) {
         if (userRepository.existsByEmail(user.getEmail())) {
-            throw new CustomException(ErrorType.VALIDATION_ERROR, String.format("%s는 중복된 이메일 입니다", user.getEmail()));
+            throw new InvalidRequestException(ExceptionCode.EMAIL_ALREADY_USED);
         }
 
         String hashedPassword = passwordEncoder.hash(user.getPassword());
