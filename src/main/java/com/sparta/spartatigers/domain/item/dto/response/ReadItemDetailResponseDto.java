@@ -3,12 +3,12 @@ package com.sparta.spartatigers.domain.item.dto.response;
 import com.sparta.spartatigers.domain.item.model.Item;
 import com.sparta.spartatigers.domain.item.model.ItemCategory;
 import com.sparta.spartatigers.domain.item.model.ItemStatus;
+import com.sparta.spartatigers.domain.user.dto.UserResponseDto;
 import java.time.LocalDateTime;
 
 public record ReadItemDetailResponseDto(
     Long id,
-    Long userId,
-    String nickname,
+    UserResponseDto user,
     ItemCategory category,
     String image,
     String seatInfo,
@@ -21,8 +21,7 @@ public record ReadItemDetailResponseDto(
 
         return new ReadItemDetailResponseDto(
             item.getId(),
-            item.getUser().getId(),
-            item.getUser().getNickname(),
+            UserResponseDto.from(item.getUser()),
             item.getCategory(),
             item.getImage(),
             item.getSeatInfo(),
