@@ -14,6 +14,7 @@ import com.sparta.spartatigers.domain.user.repository.UserRepository;
 import com.sparta.spartatigers.global.exception.ExceptionCode;
 import com.sparta.spartatigers.global.exception.InvalidRequestException;
 
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -45,8 +46,7 @@ public class ItemService {
         User user = userRepository.findById(tokenClaim.getUserId())
             .orElseThrow(() ->  new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
 
-        Page<Item> itemList = itemRepository.findAllItems(ItemStatus.REGISTERED,
-            pageable);
+        Page<Item> itemList = itemRepository.findAllItems(ItemStatus.REGISTERED, LocalDate.now(), pageable);
 
         return itemList.map(ReadItemResponseDto::from);
     }
@@ -54,8 +54,7 @@ public class ItemService {
     @Transactional(readOnly = true)
     public ReadItemDetailResponseDto findItemById(Long itemId) {
 
-        Item item = itemRepository.findByIdAndStatus(itemId, ItemStatus.REGISTERED)
-            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.ITEM_NOT_FOUND));
+        Item item = itemRepository.findByIdAndStatusAndDateOrElseThrow(itemId);
 
         return ReadItemDetailResponseDto.from(item);
     }
@@ -66,8 +65,7 @@ public class ItemService {
         User user = userRepository.findById(tokenClaim.getUserId())
             .orElseThrow(() ->  new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
 
-        Item item = itemRepository.findByIdAndStatus(itemId, ItemStatus.REGISTERED)
-            .orElseThrow(() ->  new InvalidRequestException(ExceptionCode.ITEM_NOT_FOUND));
+        Item item = itemRepository.findByIdAndStatusAndDateOrElseThrow(itemId);
         item.validateUserIsOwner(user);
         item.deleteItem();
     }
@@ -78,8 +76,7 @@ public class ItemService {
         User user = userRepository.findById(tokenClaim.getUserId())
             .orElseThrow(() ->  new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
 
-        Item item = itemRepository.findByIdAndStatus(itemId, ItemStatus.REGISTERED)
-            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.ITEM_NOT_FOUND));
+        Item item = itemRepository.findByIdAndStatusAndDateOrElseThrow(itemId);
         item.validateUserIsOwner(user);
         item.updateItem(request);
 

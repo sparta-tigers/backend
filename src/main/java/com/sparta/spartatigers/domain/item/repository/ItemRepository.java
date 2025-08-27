@@ -6,6 +6,7 @@ import com.sparta.spartatigers.global.exception.ExceptionCode;
 import com.sparta.spartatigers.global.exception.InvalidRequestException;
 
 import jakarta.persistence.LockModeType;
+import java.time.LocalDate;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,10 +19,10 @@ import org.springframework.data.repository.query.Param;
 public interface ItemRepository extends JpaRepository<Item, Long> {
 
     @EntityGraph(attributePaths = "user")
-    @Query("select i from items i where i.status = :itemStatus")
-    Page<Item> findAllItems(@Param("itemStatus") ItemStatus itemStatus, Pageable pageable);
+    @Query("select i from items i where i.status = :itemStatus and i.createdDate = :createdDate")
+    Page<Item> findAllItems(@Param("itemStatus") ItemStatus itemStatus, @Param("createdDate") LocalDate createdDate, Pageable pageable);
 
-    Optional<Item> findByIdAndStatus(Long id, ItemStatus itemStatus);
+    Optional<Item> findByIdAndStatusAndCreatedDate(Long id, ItemStatus itemStatus, LocalDate createdDate);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select i from items i where i.id = :id and i.status = :itemStatus")
@@ -31,5 +32,12 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
         return findByIdWithLock(id, ItemStatus.REGISTERED)
             .orElseThrow(() -> new InvalidRequestException(ExceptionCode.ITEM_NOT_FOUND));
+    }
+
+    default Item findByIdAndStatusAndDateOrElseThrow(Long id) {
+
+        return findByIdAndStatusAndCreatedDate(id, ItemStatus.REGISTERED,
+            LocalDate.now()).orElseThrow(
+            () -> new InvalidRequestException(ExceptionCode.ITEM_NOT_FOUND));
     }
 }
