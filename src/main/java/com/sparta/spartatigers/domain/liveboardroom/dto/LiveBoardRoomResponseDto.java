@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardRoom;
 import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardStatus;
+import com.sparta.spartatigers.domain.match.model.Match;
 import com.sparta.spartatigers.domain.match.model.MatchResult;
 import com.sparta.spartatigers.domain.team.model.TeamCode;
 
@@ -29,21 +30,62 @@ public class LiveBoardRoomResponseDto {
 	private TeamCode homeTeamCode;
 	private MatchResult matchResult;
 	private String stadium;
-
-	private String position; // TODO : 지워도 되나용? 여쭤보기
-
+	// private String position; // TODO : 지워도 되나용? 여쭤보기
 	private Long connectCount;
 	private boolean isTodayMatch; //-> 경기 당일인지 전후인지만 표현하면됨 취소는 matchresult에서
 
-
-	public static LiveBoardRoomResponseDto of(LiveBoardRoom room, long connectCount) {
-		return builder()
-			.roomId(room.getRoomId())
-			.title(room.getTitle())
-			.matchTime(room.getMatchTime())
-			.connectCount(connectCount)
+	public static LiveBoardRoomResponseDto fromUpcomingMatch(Match match) {
+		return LiveBoardRoomResponseDto.builder()
+			.roomId(null)
+			.matchId(match.getId())
+			.title(match.getAwayTeam().getName()+"VS"+match.getHomeTeam().getName())
+			.matchTime(match.getMatchTime())
+			.liveBoardStatus(LiveBoardStatus.UPCOMING)
+			.awayTeamName(match.getAwayTeam().getName())
+			.awayTeamCode(match.getAwayTeam().getCode())
+			.homeTeamName(match.getHomeTeam().getName())
+			.homeTeamCode(match.getHomeTeam().getCode())
+			.matchResult(match.getMatchResult()) // 없을수있음
+			.stadium(match.getStadium().getName())
+			.connectCount(0L)
+			.isTodayMatch(false)
 			.build();
-		// return new LiveBoardRoomResponseDto(
-		//         room.getRoomId(), room.getTitle(), room.getOpenAt(), connectCount);
 	}
+
+	public static LiveBoardRoomResponseDto fromTodayMatch(Match match, LiveBoardRoom room, long connectCount) {
+		return LiveBoardRoomResponseDto.builder()
+			.roomId(room.getRoomId())
+			.matchId(match.getId())
+			.title(room.getTitle())
+			.matchTime(match.getMatchTime())
+			.liveBoardStatus(LiveBoardStatus.TODAY)
+			.awayTeamName(match.getAwayTeam().getName())
+			.awayTeamCode(match.getAwayTeam().getCode())
+			.homeTeamName(match.getHomeTeam().getName())
+			.homeTeamCode(match.getHomeTeam().getCode())
+			.matchResult(match.getMatchResult()) // 없을수있음
+			.stadium(match.getStadium().getName())
+			.connectCount(connectCount)
+			.isTodayMatch(true)
+			.build();
+	}
+
+	public static LiveBoardRoomResponseDto fromPastMatch(Match match, LiveBoardRoom room) {
+		return LiveBoardRoomResponseDto.builder()
+			.roomId(room.getRoomId())
+			.matchId(match.getId())
+			.title(room.getTitle())
+			.matchTime(match.getMatchTime())
+			.liveBoardStatus(LiveBoardStatus.PAST)
+			.awayTeamName(match.getAwayTeam().getName())
+			.awayTeamCode(match.getAwayTeam().getCode())
+			.homeTeamName(match.getHomeTeam().getName())
+			.homeTeamCode(match.getHomeTeam().getCode())
+			.matchResult(match.getMatchResult()) // 없을수없음
+			.stadium(match.getStadium().getName())
+			.connectCount(0L)
+			.isTodayMatch(false)
+			.build();
+	}
+
 }

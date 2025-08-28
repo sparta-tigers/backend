@@ -7,7 +7,9 @@ import java.time.temporal.TemporalAdjuster;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -19,6 +21,7 @@ import com.sparta.spartatigers.domain.liveboardroom.repository.LiveBoardRoomRepo
 import com.sparta.spartatigers.domain.match.model.Match;
 import com.sparta.spartatigers.domain.match.repository.MatchRepository;
 
+import jakarta.persistence.ManyToOne;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -28,6 +31,24 @@ public class LiveboardRoomService {
 	private final LiveBoardRoomRepository roomRepository;
 	private final LiveBoardConnectionRepository connectionRepository;
 	private final MatchRepository matchRepository;
+
+	private LiveBoardRoom createRoom(Match match) {
+		String roomId = "LIVEBOARD_" + match.getId();
+		String title = match.getAwayTeam().getName() + "VS" + match.getHomeTeam().getName();
+		LocalDateTime matchTime = match.getMatchTime();
+		LiveBoardRoom newRoom = LiveBoardRoom.of(roomId, match.getId(), title, matchTime);
+		roomRepository.saveRoom(newRoom);
+		return newRoom;
+	}
+
+	public String deleteRoom(String roomId) {
+		LiveBoardRoom room = roomRepository.findRoomById(roomId);
+		if (room == null) {
+			return "ALREADY_DELETED";
+		}
+		roomRepository.deleteRoom(roomId);
+		return "DELETED"; // TODO: 날짜별로 지워지게
+	}
 
 	public void createRoomsForWeek(LocalDate anyday) {
 		// 1. 이번주 월요일 자정, 일요일 자정 지정찾아서 이번주 경기들 찾기
@@ -40,39 +61,60 @@ public class LiveboardRoomService {
 			return;
 		}
 
-		// 3. 매치 ID들을 모아서 room레파지토리에 기존재하는지 찾기
-		Set<Long> matchIds = weekOfMatches.stream().map(Match::getId).collect(Collectors.toSet());
-		Set<Long> alreadyCreated = roomRepository.findAllByMatchIdIn(matchIds).stream().map(LiveBoardRoom::getMatchId).collect(Collectors.toSet());
+		// 3. 매치ID들을 모아서 room 레파지토리에 기존재하는지 찾기
+		Set<Long> matchIds
+			= weekOfMatches.stream().map(Match::getId).collect(Collectors.toSet());
+		Set<Long> alreadyCreated
+			= roomRepository.findAllByMatchIdIn(matchIds).stream().map(LiveBoardRoom::getMatchId).collect(Collectors.toSet());
 
 		for(Match match : weekOfMatches) {
 			// 4-1. 매치ID에 대해 룸이 이미 생성되어 있다면 SKIP
 			if(alreadyCreated.contains(match.getId())) continue;
-
 			// 4-2.룸이 존재하지 않는 경우에 실행
-			String roomId = "LIVEBOARD_"+ match.getId();
-			String title = match.getAwayTeam().getName() + "VS" + match.getHomeTeam().getName();
-			LocalDateTime matchTime = match.getMatchTime();
-
-			LiveBoardRoom weekOfRooms = LiveBoardRoom.of(roomId, match.getId(), title, matchTime);
-			roomRepository.saveRoom(weekOfRooms);
+			createRoom(match);
 		}
 	}
 
+	public void refreshRoomsForWeek() {
+		LocalDate today = LocalDate.now();
+		LocalDateTime monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).atStartOfDay();
+		LocalDateTime sunday = monday.plusDays(7).toLocalDate().atStartOfDay();
+		List<Match> weekOfMatches = matchRepository.findAllByMatchTimeBetween(monday,sunday);
 
+		// 매치id - 룸이랑 매핑하기 <-- 필터로 하는것보다 효율적임
+		Map<Long,LiveBoardRoom> roomMap = roomRepository.findAllRoom().stream().collect(Collectors.toMap(LiveBoardRoom::getMatchId, Function.identity()));
 
+		for(Match match : weekOfMatches) {
+			Long matchId = match.getId();
+			LiveBoardRoom room = roomMap.get(matchId);
+
+			// 특이상황 - 추가경기의 경우
+			if(room == null) {
+				room = createRoom(match);
+			}
+
+			LocalDate matchDate = match.getMatchTime().toLocalDate();
+			// 당일 경기 - TODAY로
+			if(matchDate.isEqual(today)) {
+				room.updateStatusToToday();
+			} else if (matchDate.isBefore(today)) { // 지난 경기 - PAST로
+				room.updateStatusToPast();
+			} else { // 나머지 - UPCOMING으로
+				room.updateStatusToUpcoming();
+			} roomRepository.saveRoom(room);
+		}
+	}
 
 	// 라이브 보드룸 생성
 	public String createTodayRoom() {
-
 		// 오늘 경기 일정 찾기
 		LocalDateTime start = LocalDate.now().atStartOfDay();
 		LocalDateTime end = start.plusDays(1);
 		List<Match> matches = matchRepository.findAllByMatchTimeBetween(start, end);
 
-		if (matches.isEmpty()) {
+		if(matches.isEmpty()) {
 			return "NO_MATCH_TODAY"; // 야구 없는 날
 		}
-
 		boolean alreadyCreated = false;
 
 		// 라이브 보드룸 생성 후 저장
@@ -86,7 +128,6 @@ public class LiveboardRoomService {
 			LiveBoardRoom room = LiveBoardRoom.of(roomId, match.getId(), title, matchTime);
 			roomRepository.saveRoom(room);
 		}
-
 		return alreadyCreated ? "ALREADY_CREATED" : "CREATED";
 	}
 
@@ -196,13 +237,5 @@ public class LiveboardRoomService {
 		return liveBoardRoomResponseDtos;
 	}
 
-	public String deleteRoom(String roomId) {
-		LiveBoardRoom room = roomRepository.findRoomById(roomId);
 
-		if (room == null) {
-			return "ALREADY_DELETED";
-		}
-		roomRepository.deleteRoom(roomId);
-		return "DELETED";
-	}
 }
