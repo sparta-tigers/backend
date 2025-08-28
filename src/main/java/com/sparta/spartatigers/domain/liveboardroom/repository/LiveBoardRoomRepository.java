@@ -2,6 +2,7 @@ package com.sparta.spartatigers.domain.liveboardroom.repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -35,6 +36,13 @@ public class LiveBoardRoomRepository {
 		Object object = opsHash.get(LIVEBOARD_ROOMS, roomId);
 		LiveBoardRoom room = objectMapper.convertValue(object, LiveBoardRoom.class);
 		return room;
+	}
+
+	// 매치아이디로 라이브보드룸찾기
+	public List<LiveBoardRoom> findAllByMatchIdIn(Set<Long> matchIds) {
+		List<LiveBoardRoom> all = findAllRoom();
+
+		return all.stream().filter(room -> matchIds.contains(room.getMatchId())).toList();
 	}
 
 	public List<LiveBoardRoom> findAllRoom() {

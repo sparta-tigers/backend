@@ -26,8 +26,8 @@ public class LiveBoardRoomController {
 	private final LiveboardRoomService liveboardRoomService;
 
 	@PostMapping
-	public String createTodayRoom() {
-		return liveboardRoomService.createTodayRoom();
+	public ApiResponse<String> createTodayRoom() {
+		return ApiResponse.created(liveboardRoomService.createTodayRoom());
 	}
 
 	@GetMapping("/all")

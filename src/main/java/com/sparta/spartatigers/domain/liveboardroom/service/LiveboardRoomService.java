@@ -1,9 +1,13 @@
 package com.sparta.spartatigers.domain.liveboardroom.service;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.TemporalAdjuster;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -25,6 +29,38 @@ public class LiveboardRoomService {
 	private final LiveBoardConnectionRepository connectionRepository;
 	private final MatchRepository matchRepository;
 
+	public void createRoomsForWeek(LocalDate anyday) {
+		// 1. 이번주 월요일 자정, 일요일 자정 지정찾아서 이번주 경기들 찾기
+		LocalDateTime monday = anyday.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).atStartOfDay();
+		LocalDateTime sunday = monday.plusDays(7).toLocalDate().atStartOfDay();
+		List<Match> weekOfMatches = matchRepository.findAllByMatchTimeBetween(monday,sunday);
+
+		// 2. 이번주 경기가 없다면 return
+		if(weekOfMatches.isEmpty()) {
+			return;
+		}
+
+		// 3. 매치 ID들을 모아서 room레파지토리에 기존재하는지 찾기
+		Set<Long> matchIds = weekOfMatches.stream().map(Match::getId).collect(Collectors.toSet());
+		Set<Long> alreadyCreated = roomRepository.findAllByMatchIdIn(matchIds).stream().map(LiveBoardRoom::getMatchId).collect(Collectors.toSet());
+
+		for(Match match : weekOfMatches) {
+			// 4-1. 매치ID에 대해 룸이 이미 생성되어 있다면 SKIP
+			if(alreadyCreated.contains(match.getId())) continue;
+
+			// 4-2.룸이 존재하지 않는 경우에 실행
+			String roomId = "LIVEBOARD_"+ match.getId();
+			String title = match.getAwayTeam().getName() + "VS" + match.getHomeTeam().getName();
+			LocalDateTime matchTime = match.getMatchTime();
+
+			LiveBoardRoom weekOfRooms = LiveBoardRoom.of(roomId, match.getId(), title, matchTime);
+			roomRepository.saveRoom(weekOfRooms);
+		}
+	}
+
+
+
+
 	// 라이브 보드룸 생성
 	public String createTodayRoom() {
 
@@ -33,36 +69,25 @@ public class LiveboardRoomService {
 		LocalDateTime end = start.plusDays(1);
 		List<Match> matches = matchRepository.findAllByMatchTimeBetween(start, end);
 
+		if (matches.isEmpty()) {
+			return "NO_MATCH_TODAY"; // 야구 없는 날
+		}
+
 		boolean alreadyCreated = false;
 
 		// 라이브 보드룸 생성 후 저장
 		for (Match match : matches) {
-			String roomId = "ROOM_" + match.getId();
-
+			String roomId = "LIVEBOARD_" + match.getId();
 			if (roomRepository.existsById(roomId)) { // 중복 여부 확인 (생성 막지는 않음)
 				alreadyCreated = true;
 			}
-
 			String title = match.getAwayTeam().getName() + "VS" + match.getHomeTeam().getName();
 			LocalDateTime matchTime = match.getMatchTime();
-
 			LiveBoardRoom room = LiveBoardRoom.of(roomId, match.getId(), title, matchTime);
-
 			roomRepository.saveRoom(room);
 		}
 
 		return alreadyCreated ? "ALREADY_CREATED" : "CREATED";
-	}
-
-	// 라이브 보드룸 전체 조회
-	public List<LiveBoardRoomResponseDto> findAllRooms() {
-		return roomRepository.findAllRoom().stream()
-			.map(
-				room -> {
-					Long count = connectionRepository.getConnectionCount(room.getRoomId());
-					return LiveBoardRoomResponseDto.of(room, count);
-				})
-			.collect((Collectors.toList()));
 	}
 
 	// 오늘의 라이브 보드룸 조회
@@ -74,8 +99,8 @@ public class LiveboardRoomService {
 			roomRepository.findAllRoom().stream()
 				.filter(
 					room ->
-						!room.getOpenAt().isBefore(start)
-							&& room.getOpenAt().isBefore(end))
+						!room.getMatchTime().isBefore(start)
+							&& room.getMatchTime().isBefore(end))
 				.map(
 					room -> {
 						Long count =
@@ -96,8 +121,8 @@ public class LiveboardRoomService {
 			roomRepository.findAllRoom().stream()
 				.filter(
 					room ->
-						!room.getOpenAt().isBefore(start.atStartOfDay())
-							&& room.getOpenAt().isBefore(end))
+						!room.getMatchTime().isBefore(start.atStartOfDay())
+							&& room.getMatchTime().isBefore(end))
 				.map(
 					room -> {
 						Long count =
@@ -133,7 +158,7 @@ public class LiveboardRoomService {
 									+ matches.get(i).getHomeTeam().getName())
 							.roomId(rooms.get(j).getRoomId())
 							.connectCount(rooms.get(j).getConnectCount())
-							.startedAt(matches.get(i).getMatchTime())
+							.matchTime(matches.get(i).getMatchTime())
 							.awayTeamCode(matches.get(i).getAwayTeam().getCode())
 							.homeTeamCode(matches.get(i).getHomeTeam().getCode())
 							.awayTeamName(matches.get(i).getAwayTeam().getName())
@@ -155,7 +180,7 @@ public class LiveboardRoomService {
 								+ "VS"
 								+ matches.get(i).getHomeTeam().getName())
 						.connectCount(0L)
-						.startedAt(matches.get(i).getMatchTime())
+						.matchTime(matches.get(i).getMatchTime())
 						.awayTeamCode(matches.get(i).getAwayTeam().getCode())
 						.homeTeamCode(matches.get(i).getHomeTeam().getCode())
 						.awayTeamName(matches.get(i).getAwayTeam().getName())

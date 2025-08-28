@@ -14,7 +14,7 @@ public class LiveBoardRoom {
 	private String roomId;
 	private Long matchId;
 	private String title;
-	private LocalDateTime openAt;
+	private LocalDateTime matchTime;
 
 	public static LiveBoardRoom of (
 		String roomId, Long matchId, String title, LocalDateTime openAt) {
