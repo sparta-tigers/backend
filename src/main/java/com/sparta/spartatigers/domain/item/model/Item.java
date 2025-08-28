@@ -135,4 +135,9 @@ public class Item extends BaseEntity {
             this.description = request.description();
         }
     }
+
+    public void complete() {
+        this.status = ItemStatus.COMPLETED;
+        this.createdDate = null;
+    }
 }
