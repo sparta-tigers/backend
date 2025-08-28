@@ -5,8 +5,9 @@ import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.domain.user.model.LoginUser;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.repository.UserRepository;
-import com.sparta.spartatigers.global.error.CustomException;
-import com.sparta.spartatigers.global.error.ErrorType;
+import com.sparta.spartatigers.global.exception.ExceptionCode;
+import com.sparta.spartatigers.global.exception.InvalidRequestException;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,10 +23,10 @@ public class AuthService {
         User user = userRepository
                 .findByEmail(email)
                 .orElseThrow(() ->
-                        new CustomException(ErrorType.VALIDATION_ERROR, String.format("이미 존재하는 유저입니다. [%s]", email)));
+                        new InvalidRequestException(ExceptionCode.EMAIL_ALREADY_USED));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new CustomException(ErrorType.AUTHENTICATION_ERROR, "이메일과 비밀번호를 다시 확인 해주세요");
+            throw new InvalidRequestException(ExceptionCode.INVALID_PASSWORD);
         }
 
 

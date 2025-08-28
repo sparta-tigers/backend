@@ -26,7 +26,7 @@ public class UserRestController {
         User user = request.toDomain();
         userService.addUser(user);
 
-        return ApiResponse.success();
+        return ApiResponse.ok(user);
     }
 
     @GetMapping("/api/v1/users/me")

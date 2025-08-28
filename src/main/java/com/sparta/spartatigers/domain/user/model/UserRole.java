@@ -1,7 +1,7 @@
 package com.sparta.spartatigers.domain.user.model;
 
-import com.sparta.spartatigers.global.error.CustomException;
-import com.sparta.spartatigers.global.error.ErrorType;
+import com.sparta.spartatigers.global.exception.ExceptionCode;
+import com.sparta.spartatigers.global.exception.InvalidRequestException;
 
 public enum UserRole {
     ROLE_USER,
@@ -14,6 +14,6 @@ public enum UserRole {
             }
         }
 
-        throw new CustomException(ErrorType.VALIDATION_ERROR, "Un Supported Enum Type");
+        throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
     }
 }

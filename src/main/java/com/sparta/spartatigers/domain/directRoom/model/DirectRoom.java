@@ -38,4 +38,17 @@ public class DirectRoom extends BaseEntity {
     private boolean isCompleted = false;
 
     private LocalDateTime completedAt;
+
+    public static DirectRoom create(ExchangeRequest exchangeRequest, User sender, User receiver) {
+        DirectRoom room = new DirectRoom();
+        room.exchangeRequest = exchangeRequest;
+        room.sender = sender;
+        room.receiver = receiver;
+        return room;
+    }
+
+    public void complete() {
+        this.isCompleted = true;
+        this.completedAt = LocalDateTime.now();
+    }
 }
