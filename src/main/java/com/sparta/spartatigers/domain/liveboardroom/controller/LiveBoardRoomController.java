@@ -26,26 +26,14 @@ public class LiveBoardRoomController {
 	private final LiveboardRoomService liveboardRoomService;
 
 	@PostMapping
-	public ApiResponse<String> createTodayRoom() {
-		return ApiResponse.created(liveboardRoomService.createTodayRoom());
-	}
-
-	@GetMapping("/all")
-	public List<LiveBoardRoomResponseDto> getAllRooms() {
-		return liveboardRoomService.findAllRooms();
-	}
-
-	@GetMapping("/today")
-	public List<LiveBoardRoomResponseDto> getRoomsByDate(
-		@RequestParam @DateTimeFormat(pattern = "yyyyMMdd") LocalDate date) {
-		if (date == null) {
-			date = LocalDate.now();
+	public void createRoomsForWeek(
+		@RequestParam @DateTimeFormat(pattern = "yyyyMMdd") LocalDate anyday) {
+		if (anyday == null) {
+			anyday = LocalDate.now();
 		}
-		return liveboardRoomService.findRoomsByDate(date);
+		liveboardRoomService.createRoomsForWeek(anyday);
 	}
 
-	@DeleteMapping("/{roomId}")
-	public String deleteRoom(@PathVariable String roomId) {
-		return liveboardRoomService.deleteRoom(roomId);
-	}
+
+
 }

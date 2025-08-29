@@ -3,6 +3,7 @@ package com.sparta.spartatigers.domain.liveboardroom.service;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjuster;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import com.sparta.spartatigers.domain.liveboardroom.dto.LiveBoardRoomResponseDto;
 import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardRoom;
+import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardStatus;
 import com.sparta.spartatigers.domain.liveboardroom.repository.LiveBoardConnectionRepository;
 import com.sparta.spartatigers.domain.liveboardroom.repository.LiveBoardRoomRepository;
 import com.sparta.spartatigers.domain.match.model.Match;
@@ -32,24 +34,7 @@ public class LiveboardRoomService {
 	private final LiveBoardConnectionRepository connectionRepository;
 	private final MatchRepository matchRepository;
 
-	private LiveBoardRoom createRoom(Match match) {
-		String roomId = "LIVEBOARD_" + match.getId();
-		String title = match.getAwayTeam().getName() + "VS" + match.getHomeTeam().getName();
-		LocalDateTime matchTime = match.getMatchTime();
-		LiveBoardRoom newRoom = LiveBoardRoom.of(roomId, match.getId(), title, matchTime);
-		roomRepository.saveRoom(newRoom);
-		return newRoom;
-	}
-
-	public String deleteRoom(String roomId) {
-		LiveBoardRoom room = roomRepository.findRoomById(roomId);
-		if (room == null) {
-			return "ALREADY_DELETED";
-		}
-		roomRepository.deleteRoom(roomId);
-		return "DELETED"; // TODO: 날짜별로 지워지게
-	}
-
+	// 🌟생성 - 이번주 매치데이터를 보고 라이브보드룸 전부 만들기
 	public void createRoomsForWeek(LocalDate anyday) {
 		// 1. 이번주 월요일 자정, 일요일 자정 지정찾아서 이번주 경기들 찾기
 		LocalDateTime monday = anyday.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).atStartOfDay();
@@ -75,8 +60,35 @@ public class LiveboardRoomService {
 		}
 	}
 
-	public void refreshRoomsForWeek() {
-		LocalDate today = LocalDate.now();
+	// 🌟조회 - 이번주 라이브보드룸 전부 DTO로 조회하기
+	private List<LiveBoardRoomResponseDto> getRoomsForWeek(LocalDate anyday) {
+
+		LocalDateTime monday = anyday.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).atStartOfDay();
+		LocalDateTime sunday = monday.plusDays(7).toLocalDate().atStartOfDay();
+		List<Match> weekOfMatches = matchRepository.findAllByMatchTimeBetween(monday,sunday);
+
+		Map<Long, LiveBoardRoom> roomMap = roomRepository.findAllRoom().stream()
+			.filter(room -> {
+				LocalDate matchDate = room.getMatchTime().toLocalDate();
+				return !matchDate.isBefore(monday.toLocalDate()) && matchDate.isBefore(sunday.toLocalDate());
+			})
+			.collect(Collectors.toMap(LiveBoardRoom::getMatchId, Function.identity()));
+
+		List<LiveBoardRoomResponseDto> roomDtosForWeek =
+			weekOfMatches.stream().map(match -> {
+				LiveBoardRoom room = roomMap.get(match.getId());
+				long connectCount = 0L;
+				if(room.getStatus()== LiveBoardStatus.TODAY) {
+					connectCount = connectionRepository.getConnectionCount(room.getRoomId());
+				}
+				return LiveBoardRoomResponseDto.of(match, room, connectCount);
+			}).toList();
+
+		return roomDtosForWeek;
+	}
+
+	// 🌟수정 - 이번주 추가 경기 룸 생성, 상태 세팅
+	public void refreshRoomsForWeek(LocalDate today) {
 		LocalDateTime monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).atStartOfDay();
 		LocalDateTime sunday = monday.plusDays(7).toLocalDate().atStartOfDay();
 		List<Match> weekOfMatches = matchRepository.findAllByMatchTimeBetween(monday,sunday);
@@ -105,137 +117,64 @@ public class LiveboardRoomService {
 		}
 	}
 
-	// 라이브 보드룸 생성
-	public String createTodayRoom() {
-		// 오늘 경기 일정 찾기
-		LocalDateTime start = LocalDate.now().atStartOfDay();
+	// 🌟삭제 - 일주일치 룸 삭제
+	public String deleteRoomsForWeek (LocalDate anyday) {
+		LocalDateTime monday = anyday.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).atStartOfDay();
+		LocalDateTime sunday = monday.plusDays(7).toLocalDate().atStartOfDay();
+		List<LiveBoardRoom> roomsToDelete = roomRepository.findAllRoom().stream().filter(room -> {
+			LocalDateTime matchTime = room.getMatchTime();
+			return !matchTime.isBefore(monday) && matchTime.isBefore(sunday);
+		}).toList();
+
+		for(LiveBoardRoom room : roomsToDelete) {
+			roomRepository.deleteRoom(room.getRoomId());
+			connectionRepository.deleteAllConnections(room.getRoomId());
+		}
+
+		String startDay = monday.format(DateTimeFormatter.ofPattern("MM/dd"));
+		String endDay = sunday.format(DateTimeFormatter.ofPattern("MM/dd"));
+		int count = roomsToDelete.size();
+
+		return "[LIVEBOARD/ROOM]" + startDay + " ~ " + endDay + count + "개 룸 삭제 완료";
+	}
+
+	// 🌟삭제 - 날짜별 룸 삭제
+	public String deleteRoomsByDate(LocalDate anyday) {
+		LocalDateTime start = anyday.atStartOfDay();
 		LocalDateTime end = start.plusDays(1);
-		List<Match> matches = matchRepository.findAllByMatchTimeBetween(start, end);
+		List<LiveBoardRoom> roomsToDelete = roomRepository.findAllRoom().stream().filter(room -> {
+			LocalDateTime matchTime = room.getMatchTime();
+			return !matchTime.isBefore(start) && matchTime.isBefore(end);
+		}).toList();
 
-		if(matches.isEmpty()) {
-			return "NO_MATCH_TODAY"; // 야구 없는 날
-		}
-		boolean alreadyCreated = false;
-
-		// 라이브 보드룸 생성 후 저장
-		for (Match match : matches) {
-			String roomId = "LIVEBOARD_" + match.getId();
-			if (roomRepository.existsById(roomId)) { // 중복 여부 확인 (생성 막지는 않음)
-				alreadyCreated = true;
-			}
-			String title = match.getAwayTeam().getName() + "VS" + match.getHomeTeam().getName();
-			LocalDateTime matchTime = match.getMatchTime();
-			LiveBoardRoom room = LiveBoardRoom.of(roomId, match.getId(), title, matchTime);
-			roomRepository.saveRoom(room);
-		}
-		return alreadyCreated ? "ALREADY_CREATED" : "CREATED";
-	}
-
-	// 오늘의 라이브 보드룸 조회
-	public List<LiveBoardRoomResponseDto> findTodayRooms() {
-		LocalDateTime start = LocalDate.now().atStartOfDay();
-		LocalDateTime end = start.plusDays(1);
-		List<Match> matches = matchRepository.findAllByMatchTimeBetween(start, end);
-		List<LiveBoardRoomResponseDto> rooms =
-			roomRepository.findAllRoom().stream()
-				.filter(
-					room ->
-						!room.getMatchTime().isBefore(start)
-							&& room.getMatchTime().isBefore(end))
-				.map(
-					room -> {
-						Long count =
-							connectionRepository.getConnectionCount(
-								room.getRoomId());
-						return LiveBoardRoomResponseDto.of(room, count);
-					})
-				.toList();
-
-		return rooms;
-	}
-
-	// 경기 방이 안생기면 데이터를 제대로 못가지고 옴
-	public List<LiveBoardRoomResponseDto> findRoomsByDate(LocalDate start) {
-		LocalDateTime end = start.plusDays(1).atStartOfDay();
-		List<Match> matches = matchRepository.findAllByMatchTimeBetween(start.atStartOfDay(), end);
-		List<LiveBoardRoomResponseDto> rooms =
-			roomRepository.findAllRoom().stream()
-				.filter(
-					room ->
-						!room.getMatchTime().isBefore(start.atStartOfDay())
-							&& room.getMatchTime().isBefore(end))
-				.map(
-					room -> {
-						Long count =
-							connectionRepository.getConnectionCount(
-								room.getRoomId());
-						return LiveBoardRoomResponseDto.of(room, count);
-					})
-				.toList();
-
-		List<LiveBoardRoomResponseDto> liveBoardRoomResponseDtos = new ArrayList<>();
-		// 리스트로 제목이 같으면 합친다
-		// match.getAwayTeam().getName() + "VS" + match.getHomeTeam().getName()
-		// TODO 이거도 매치별로 룸을 넣어주기, 룸이 없을 수도 있겠다.
-		for (int i = 0; i < matches.size(); i++) {
-			LiveBoardRoomResponseDto dto = null;
-
-			boolean findRooms = false;
-			for (int j = 0; j < rooms.size(); j++) {
-				if (rooms.get(j)
-					.getTitle()
-					.equals(
-						matches.get(i).getAwayTeam().getName()
-							+ "VS"
-							+ matches.get(i).getHomeTeam().getName())) {
-					findRooms = true;
-
-					dto =
-						LiveBoardRoomResponseDto.builder()
-							.matchId(matches.get(i).getId())
-							.title(
-								matches.get(i).getAwayTeam().getName()
-									+ "VS"
-									+ matches.get(i).getHomeTeam().getName())
-							.roomId(rooms.get(j).getRoomId())
-							.connectCount(rooms.get(j).getConnectCount())
-							.matchTime(matches.get(i).getMatchTime())
-							.awayTeamCode(matches.get(i).getAwayTeam().getCode())
-							.homeTeamCode(matches.get(i).getHomeTeam().getCode())
-							.awayTeamName(matches.get(i).getAwayTeam().getName())
-							.homeTeamName(matches.get(i).getHomeTeam().getName())
-							.matchResult(matches.get(i).getMatchResult())
-							.position(matches.get(i).getStadium().getName())
-							.build();
-
-					break;
-				}
-			}
-
-			if (findRooms == false) {
-				dto =
-					LiveBoardRoomResponseDto.builder()
-						.matchId(matches.get(i).getId())
-						.title(
-							matches.get(i).getAwayTeam().getName()
-								+ "VS"
-								+ matches.get(i).getHomeTeam().getName())
-						.connectCount(0L)
-						.matchTime(matches.get(i).getMatchTime())
-						.awayTeamCode(matches.get(i).getAwayTeam().getCode())
-						.homeTeamCode(matches.get(i).getHomeTeam().getCode())
-						.awayTeamName(matches.get(i).getAwayTeam().getName())
-						.homeTeamName(matches.get(i).getHomeTeam().getName())
-						.matchResult(matches.get(i).getMatchResult())
-						.position(matches.get(i).getStadium().getName())
-						.build();
-			}
-
-			liveBoardRoomResponseDtos.add(dto);
+		for(LiveBoardRoom room : roomsToDelete) {
+			roomRepository.deleteRoom(room.getRoomId());
+			connectionRepository.deleteAllConnections(room.getRoomId());
 		}
 
-		return liveBoardRoomResponseDtos;
+		String day = anyday.format(DateTimeFormatter.ofPattern("MM/dd"));
+		int count = roomsToDelete.size();
+
+		return "[LIVEBOARD/ROOM]" + day + "의 " + count + "개 룸 삭제 완료";
 	}
 
+	// ✅분리 메서드 - 경기별로 룸 하나씩 생성
+	private LiveBoardRoom createRoom(Match match) {
+		String roomId = "LIVEBOARD_" + match.getId();
+		String title = match.getAwayTeam().getName() + "VS" + match.getHomeTeam().getName();
+		LocalDateTime matchTime = match.getMatchTime();
+		LiveBoardRoom newRoom = LiveBoardRoom.of(roomId, match.getId(), title, matchTime);
+		roomRepository.saveRoom(newRoom);
+		return newRoom;
+	}
 
+	// ✅분리 메서드 - 룸 아이디별로 개별 삭제
+	public String deleteRoom(String roomId) {
+		LiveBoardRoom room = roomRepository.findRoomById(roomId);
+		if (room == null) {
+			return "ALREADY_DELETED";
+		}
+		roomRepository.deleteRoom(roomId);
+		return "DELETED"; // TODO: 날짜별로 지워지게
+	}
 }

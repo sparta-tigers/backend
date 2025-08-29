@@ -27,6 +27,10 @@ public class LiveBoardConnectionRepository {
 		redisTemplate.opsForHash().delete(PREFIX + roomId, sessionId);
 	}
 
+	public void deleteAllConnections(String roomId) {
+		redisTemplate.delete(PREFIX + roomId);
+	}
+
 	public Long getConnectionCount(String roomId) {
 		return redisTemplate.opsForHash().size(PREFIX + roomId);
 	}

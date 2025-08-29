@@ -30,9 +30,26 @@ public class LiveBoardRoomResponseDto {
 	private TeamCode homeTeamCode;
 	private MatchResult matchResult;
 	private String stadium;
-	// private String position; // TODO : 지워도 되나용? 여쭤보기
 	private Long connectCount;
-	private boolean isTodayMatch; //-> 경기 당일인지 전후인지만 표현하면됨 취소는 matchresult에서
+	private boolean isTodayMatch; // TODO : 지울까?
+
+	public static LiveBoardRoomResponseDto of (Match match, LiveBoardRoom room, long connectCount) {
+		return LiveBoardRoomResponseDto.builder()
+			.roomId(room.getRoomId())
+			.matchId(room.getMatchId())
+			.title(room.getTitle())
+			.matchTime(room.getMatchTime())
+			.liveBoardStatus(room.getStatus())
+			.awayTeamName(match.getAwayTeam().getName())
+			.awayTeamCode(match.getAwayTeam().getCode())
+			.homeTeamName(match.getHomeTeam().getName())
+			.homeTeamCode(match.getHomeTeam().getCode())
+			.matchResult(match.getMatchResult())
+			.stadium(match.getStadium().getName())
+			.connectCount(connectCount)
+			.isTodayMatch(false)
+			.build();
+	}
 
 	public static LiveBoardRoomResponseDto fromUpcomingMatch(Match match) {
 		return LiveBoardRoomResponseDto.builder()
