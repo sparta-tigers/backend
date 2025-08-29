@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class RedisDirectMessagePublisher {
 
+    // TODO: pub/sub합체오줌
     private final StringRedisTemplate redisStringTemplate;
     private final ObjectMapper objectMapper;
 

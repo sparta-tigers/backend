@@ -34,6 +34,7 @@ public class ExchangeChatService {
     private final RedisDirectMessagePublisher redisPublisher;
     private final RedisRateLimiter redisRateLimiter;
 
+    // TODO: 서비스 합체오줌
     @Transactional
     public void sendMessage(Long senderId, ChatMessageRequest request) {
         log.info(
