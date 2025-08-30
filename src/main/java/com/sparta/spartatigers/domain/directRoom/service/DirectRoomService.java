@@ -3,10 +3,10 @@ package com.sparta.spartatigers.domain.directRoom.service;
 import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomCreateResponseDto;
 import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomResponseDto;
 import com.sparta.spartatigers.domain.directRoom.model.DirectRoom;
+import com.sparta.spartatigers.domain.directRoom.repository.DirectMessageRepository;
 import com.sparta.spartatigers.domain.directRoom.repository.DirectRoomRepository;
 import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeRequest;
 import com.sparta.spartatigers.domain.exchangerequest.repository.ExchangeRequestRepository;
-import com.sparta.spartatigers.domain.stompchat.repository.ExchangeChatRepository;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.global.exception.ExceptionCode;
 import com.sparta.spartatigers.global.exception.InvalidRequestException;
@@ -24,7 +24,7 @@ public class DirectRoomService {
 
      private final ExchangeRequestRepository exchangeRequestRepository;
     private final DirectRoomRepository directRoomRepository;
-    private final ExchangeChatRepository exchangeChatRepository;
+    private final DirectMessageRepository directMessageRepository;
     private final UserConnectService userConnectService;
 
     @Transactional
@@ -112,7 +112,7 @@ public class DirectRoomService {
             throw new InvalidRequestException(ExceptionCode.FORBIDDEN_REQUEST);
         }
 
-        exchangeChatRepository.deleteAllByDirectRoomId(room.getId());
+        directMessageRepository.deleteAllByDirectRoomId(room.getId());
         directRoomRepository.delete(room);
         log.info("[deleteRoom] 채팅방 삭제 완료 - roomId: {}", directRoomId);
     }
@@ -135,7 +135,7 @@ public class DirectRoomService {
                             ExceptionCode.CHATROOM_NOT_FOUND);
                     });
 
-        exchangeChatRepository.deleteAllByDirectRoomId(room.getId());
+        directMessageRepository.deleteAllByDirectRoomId(room.getId());
         directRoomRepository.delete(room);
         log.info("[deleteRoomByExchangeRequestId] 채팅방 삭제 완료 - roomId: {}", room.getId());
     }
