@@ -17,7 +17,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class LiveBoardRoomResponseDto {
 
-	private String roomId;
+	private String roomId; // null일수 있음
 	private Long matchId;
 	private String title;
 	private LocalDateTime matchTime;
@@ -31,7 +31,7 @@ public class LiveBoardRoomResponseDto {
 	private MatchResult matchResult;
 	private String stadium;
 	private Long connectCount;
-	private boolean isTodayMatch; // TODO : 지울까?
+	private boolean isTodayMatch; // TODO : 룸이 있는지 없는지 검증용?
 
 	public static LiveBoardRoomResponseDto of (Match match, LiveBoardRoom room, long connectCount) {
 		return LiveBoardRoomResponseDto.builder()

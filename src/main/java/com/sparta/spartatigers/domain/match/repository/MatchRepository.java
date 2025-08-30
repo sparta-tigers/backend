@@ -2,6 +2,7 @@ package com.sparta.spartatigers.domain.match.repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -22,4 +23,14 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
 		""")
 	List<Match> findAllByMatchTimeBetween(LocalDateTime start, LocalDateTime end);
 
+	@Query(
+		"""
+		SELECT m
+		FROM matches m
+		JOIN FETCH m.homeTeam
+		JOIN FETCH m.awayTeam
+		JOIN FETCH m.stadium
+		WHERE m.id = :matchId
+		""")
+	Optional<Match> findByMatchId(Long matchId);
 }
