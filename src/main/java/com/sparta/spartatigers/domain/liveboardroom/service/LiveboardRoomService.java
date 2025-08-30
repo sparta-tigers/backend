@@ -93,6 +93,11 @@ public class LiveboardRoomService {
 			dayOfMatches.stream()
 				.map(match -> {
 				LiveBoardRoom room = roomMap.get(match.getId());
+
+				if(room == null) {
+					return LiveBoardRoomResponseDto.fromUpcomingMatch(match);
+				}
+
 				LocalDate matchDate = room.getMatchTime().toLocalDate();
 
 				if(matchDate.isEqual(anyday)) { // 당일 경기
@@ -104,6 +109,7 @@ public class LiveboardRoomService {
 					return LiveBoardRoomResponseDto.fromUpcomingMatch(match);
 				}
 			}).toList();
+
 		return roomDtosForDay;
 	}
 
