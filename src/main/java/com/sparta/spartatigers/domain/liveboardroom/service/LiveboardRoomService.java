@@ -108,25 +108,23 @@ public class LiveboardRoomService {
 	}
 
 	public String deleteRoomsForDay(LocalDate anyday) {
+		// 1. 삭제할 날짜의 Room 선택
 		String day = anyday.format(DateTimeFormatter.ofPattern("MM/dd"));
-		LocalDateTime start = anyday.atStartOfDay();
-		LocalDateTime end = start.plusDays(1);
-		List<LiveBoardRoom> roomsToDelete = roomRepository.findAllRoom().stream().filter(room -> {
-			LocalDateTime matchTime = room.getMatchTime();
-			return !matchTime.isBefore(start) && matchTime.isBefore(end);
-		}).toList();
-
+		List<LiveBoardRoom> roomsToDelete = roomRepository.findAllByDate(anyday);
 		if(roomsToDelete.isEmpty()) {
 			return "[LIVEBOARD/ROOM] " + day + " | NO_ROOMS_FOUND";
 		}
 
 		int deletedCount = 0;
 
-		for(LiveBoardRoom room : roomsToDelete) {
-			Optional<Match> matchOptional = matchRepository.findByMatchId(room.getMatchId());
-			if(matchOptional.isEmpty()) continue;
+		// 2. Room들의 MatchResult 확인을 위해 Match에 접근 필요, NOT PLAYED 확인후 삭제
+		Set<Long> matchIds = roomsToDelete.stream().map(LiveBoardRoom::getMatchId).collect(Collectors.toSet());
+		List<Match> matches = matchRepository.findAllByIdIn(matchIds);
+		Map<Long, Match> matchMap = matches.stream().collect(Collectors.toMap(Match::getId, Function.identity()));
 
-			Match match = matchOptional.get();
+		for(LiveBoardRoom room : roomsToDelete) {
+			Match match = matchMap.get(room.getMatchId());
+			if(match == null) continue;
 
 			if(!MatchResult.NOT_PLAYED.equals(match.getMatchResult())) {
 				roomRepository.deleteRoom(room.getRoomId());
