@@ -132,11 +132,11 @@ public class LiveboardRoomService {
 			Match match = matchMap.get(room.getMatchId());
 			if(match == null) continue;
 
-			if(!MatchResult.NOT_PLAYED.equals(match.getMatchResult())) {
-				roomRepository.deleteRoom(room.getRoomId());
-				connectionRepository.deleteAllConnections(room.getRoomId());
-				deletedCount ++;
-			}
+			if(MatchResult.NOT_PLAYED.equals(match.getMatchResult())) continue;
+
+			roomRepository.deleteRoom(room.getRoomId());
+			connectionRepository.deleteAllConnections(room.getRoomId());
+			deletedCount ++;
 		}
 		long totalRoomsLeft = roomRepository.findAllByDate(anyday).size();
 

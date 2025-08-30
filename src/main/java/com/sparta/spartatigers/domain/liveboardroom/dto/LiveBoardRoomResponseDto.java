@@ -33,23 +33,6 @@ public class LiveBoardRoomResponseDto {
 	private Long connectCount;
 	private boolean isTodayMatch; // TODO : 룸이 있는지 없는지 검증용?
 
-	public static LiveBoardRoomResponseDto of (Match match, LiveBoardRoom room, long connectCount) {
-		return LiveBoardRoomResponseDto.builder()
-			.roomId(room.getRoomId())
-			.matchId(room.getMatchId())
-			.title(room.getTitle())
-			.matchTime(room.getMatchTime())
-			.liveBoardStatus(room.getStatus())
-			.awayTeamName(match.getAwayTeam().getName())
-			.awayTeamCode(match.getAwayTeam().getCode())
-			.homeTeamName(match.getHomeTeam().getName())
-			.homeTeamCode(match.getHomeTeam().getCode())
-			.matchResult(match.getMatchResult())
-			.stadium(match.getStadium().getName())
-			.connectCount(connectCount)
-			.isTodayMatch(false)
-			.build();
-	}
 
 	public static LiveBoardRoomResponseDto fromUpcomingMatch(Match match) {
 		return LiveBoardRoomResponseDto.builder()
