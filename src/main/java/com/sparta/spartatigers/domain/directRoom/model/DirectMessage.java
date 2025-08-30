@@ -38,4 +38,12 @@ public class DirectMessage extends BaseEntity {
     protected void onPersist() {
         this.sentAt = LocalDateTime.now();
     }
+
+    public DirectMessage(DirectRoom directRoom, User sender, String message, LocalDateTime sentAt) {
+        this.directRoom = directRoom;
+        this.sender = sender;
+        this.message = message;
+        this.sentAt = sentAt;
+    }
+
 }

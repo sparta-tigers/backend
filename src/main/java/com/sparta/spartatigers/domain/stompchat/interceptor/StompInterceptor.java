@@ -1,6 +1,7 @@
 package com.sparta.spartatigers.domain.stompchat.interceptor;
 
 
+import com.sparta.spartatigers.domain.directRoom.registry.RedisUserSessionRegistry;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -25,6 +26,7 @@ public class StompInterceptor implements ChannelInterceptor {
 	private static final String CHAT_DOMAIN_TYPE = "ChatDomain";
 	private final JwtTokenService jwtTokenService;
 	private final UserRepository userRepository;
+	private final RedisUserSessionRegistry userSessionRegistry;
 
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -54,7 +56,7 @@ public class StompInterceptor implements ChannelInterceptor {
 					accessor.setUser(principal);
 
 					if(domain.equals(ChatDomainType.EXCHANGE)){
-						// userSessionRegistry.registerSession(user.getId(), accessor.getSessionId());
+						userSessionRegistry.registerSession(user.getId(), accessor.getSessionId());
 					}
 				}
 			}

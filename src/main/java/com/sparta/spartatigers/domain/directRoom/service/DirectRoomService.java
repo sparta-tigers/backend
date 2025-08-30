@@ -3,9 +3,10 @@ package com.sparta.spartatigers.domain.directRoom.service;
 import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomCreateResponseDto;
 import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomResponseDto;
 import com.sparta.spartatigers.domain.directRoom.model.DirectRoom;
+import com.sparta.spartatigers.domain.directRoom.repository.DirectMessageRepository;
 import com.sparta.spartatigers.domain.directRoom.repository.DirectRoomRepository;
 import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeRequest;
-import com.sparta.spartatigers.domain.stompchat.repository.ExchangeChatRepository;
+import com.sparta.spartatigers.domain.exchangerequest.repository.ExchangeRequestRepository;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.global.exception.ExceptionCode;
 import com.sparta.spartatigers.global.exception.InvalidRequestException;
@@ -21,49 +22,47 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class DirectRoomService {
 
-    // private final ExchangeRequestRepository exchangeRequestRepository;
+     private final ExchangeRequestRepository exchangeRequestRepository;
     private final DirectRoomRepository directRoomRepository;
-    private final ExchangeChatRepository exchangeChatRepository;
+    private final DirectMessageRepository directMessageRepository;
     private final UserConnectService userConnectService;
 
-	// TODO : 컴파일에러땜시 주석처리 해뒀어요 ㅠㅠ -수린
     @Transactional
     public DirectRoomCreateResponseDto createRoom(Long exchangeRequestId, Long currentUserId) {
-        // log.info(
-        //     "[createRoom] 교환요청 기반 채팅방 생성 시도 - exchangeRequestId: {}, currentUserId: {}",
-        //     exchangeRequestId,
-        //     currentUserId);
-        // ExchangeRequest exchangeRequest =
-        //     // exchangeRequestRepository.findByIdOrElseThrow(exchangeRequestId);
-		//
-        // // 권한 확인: 요청한 사람이 교환 요청의 sender 또는 receiver여야 함
-        // // if (!exchangeRequest.getSender().getId().equals(currentUserId)
-        // //     && !exchangeRequest.getReceiver().getId().equals(currentUserId)) {
-        //     log.warn(
-        //         "[createRoom] 권한 없음 - 요청자 ID: {}, 교환요청 sender: {}, receiver: {}",
-        //         currentUserId,
-        //         exchangeRequest.getSender().getId(),
-        //         exchangeRequest.getReceiver().getId());
-        //     throw new InvalidRequestException(ExceptionCode.UNAUTHORIZED);
-        // }
-		//
-        // // sender/receiver는 교환 요청 그대로
-        // User sender = exchangeRequest.getSender();
-        // User receiver = exchangeRequest.getReceiver();
-		//
-        // DirectRoom room =
-        //     directRoomRepository
-        //         .findByExchangeRequest(exchangeRequest)
-        //         .orElseGet(
-        //             () ->
-        //                 directRoomRepository.save(
-        //                     DirectRoom.create(
-        //                         exchangeRequest, sender, receiver)));
-		//
-        // log.info("[createRoom] 채팅방 생성 완료 - roomId: {}", room.getId());
-        // return DirectRoomCreateResponseDto.from(room);
-    return null;
-	}
+        log.info(
+            "[createRoom] 교환요청 기반 채팅방 생성 시도 - exchangeRequestId: {}, currentUserId: {}",
+            exchangeRequestId,
+            currentUserId);
+        ExchangeRequest exchangeRequest =
+            exchangeRequestRepository.findByIdOrElseThrow(exchangeRequestId);
+
+        // 권한 확인: 요청한 사람이 교환 요청의 sender 또는 receiver여야 함
+        if (!exchangeRequest.getSender().getId().equals(currentUserId)
+            && !exchangeRequest.getReceiver().getId().equals(currentUserId)) {
+            log.warn(
+                "[createRoom] 권한 없음 - 요청자 ID: {}, 교환요청 sender: {}, receiver: {}",
+                currentUserId,
+                exchangeRequest.getSender().getId(),
+                exchangeRequest.getReceiver().getId());
+            throw new InvalidRequestException(ExceptionCode.UNAUTHORIZED);
+        }
+
+        // sender/receiver는 교환 요청 그대로
+        User sender = exchangeRequest.getSender();
+        User receiver = exchangeRequest.getReceiver();
+
+        DirectRoom room =
+            directRoomRepository
+                .findByExchangeRequest(exchangeRequest)
+                .orElseGet(
+                    () ->
+                        directRoomRepository.save(
+                            DirectRoom.create(
+                                exchangeRequest, sender, receiver)));
+
+        log.info("[createRoom] 채팅방 생성 완료 - roomId: {}", room.getId());
+        return DirectRoomCreateResponseDto.from(room);
+    }
 
     public Page<DirectRoomResponseDto> getRoomsForUser(Long currentUserId, Pageable pageable) {
         log.info("[getRoomsForUser] 채팅방 목록 조회 - 사용자 ID: {}", currentUserId);
@@ -113,7 +112,7 @@ public class DirectRoomService {
             throw new InvalidRequestException(ExceptionCode.FORBIDDEN_REQUEST);
         }
 
-        exchangeChatRepository.deleteAllByDirectRoomId(room.getId());
+        directMessageRepository.deleteAllByDirectRoomId(room.getId());
         directRoomRepository.delete(room);
         log.info("[deleteRoom] 채팅방 삭제 완료 - roomId: {}", directRoomId);
     }
@@ -136,7 +135,7 @@ public class DirectRoomService {
                             ExceptionCode.CHATROOM_NOT_FOUND);
                     });
 
-        exchangeChatRepository.deleteAllByDirectRoomId(room.getId());
+        directMessageRepository.deleteAllByDirectRoomId(room.getId());
         directRoomRepository.delete(room);
         log.info("[deleteRoomByExchangeRequestId] 채팅방 삭제 완료 - roomId: {}", room.getId());
     }
