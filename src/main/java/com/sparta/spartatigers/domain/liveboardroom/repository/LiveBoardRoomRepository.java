@@ -1,9 +1,11 @@
 package com.sparta.spartatigers.domain.liveboardroom.repository;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.cglib.core.Local;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -38,6 +40,12 @@ public class LiveBoardRoomRepository {
 		return room;
 	}
 
+	public List<LiveBoardRoom> findAllByDate(LocalDate date) {
+		return findAllRoom().stream()
+			.filter(room -> room.getMatchTime().toLocalDate().equals(date))
+			.toList();
+	}
+
 	// 매치아이디로 라이브보드룸찾기
 	public List<LiveBoardRoom> findAllByMatchIdIn(Set<Long> matchIds) {
 		List<LiveBoardRoom> all = findAllRoom();
@@ -50,7 +58,6 @@ public class LiveBoardRoomRepository {
 		for (Object room : opsHash.values(LIVEBOARD_ROOMS)) {
 			rooms.add(objectMapper.convertValue(room, LiveBoardRoom.class));
 		}
-
 		return rooms;
 	}
 

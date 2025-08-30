@@ -67,9 +67,7 @@ public class LiveboardRoomService {
 		}
 
 		// 5. string으로 응답
-		long totalRoomsToday = roomRepository.findAllRoom().stream()
-			.filter(room -> room.getMatchTime().toLocalDate().equals(anyday))
-			.count();
+		long totalRoomsToday = roomRepository.findAllByDate(anyday).size();
 		long creatableCount = dayOfMatches.stream()
 			.filter(match -> MatchResult.NOT_PLAYED.equals(match.getMatchResult()))
 			.count();
@@ -88,11 +86,7 @@ public class LiveboardRoomService {
 		LocalDateTime end = start.plusDays(1);
 		List<Match> dayOfMatches = matchRepository.findAllByMatchTimeBetween(start, end);
 
-		Map<Long, LiveBoardRoom> roomMap = roomRepository.findAllRoom().stream()
-			.filter(room -> {
-				LocalDate matchDate = room.getMatchTime().toLocalDate();
-				return matchDate.equals(anyday);
-			})
+		Map<Long, LiveBoardRoom> roomMap = roomRepository.findAllByDate(anyday).stream()
 			.collect(Collectors.toMap(LiveBoardRoom::getMatchId, Function.identity()));
 
 		List<LiveBoardRoomResponseDto> roomDtosForDay =
@@ -140,9 +134,7 @@ public class LiveboardRoomService {
 				deletedCount ++;
 			}
 		}
-		long totalRoomsLeft = roomRepository.findAllRoom().stream()
-			.filter(room -> room.getMatchTime().toLocalDate().equals(anyday))
-			.count(); // 이걸 계속 해야할까..?
+		long totalRoomsLeft = roomRepository.findAllByDate(anyday).size();
 
 		if (deletedCount == 0) {
 			return "[LIVEBOARD/ROOM] " + day + " | NO_DELETABLE_ROOMS | TOTAL : " + totalRoomsLeft;
