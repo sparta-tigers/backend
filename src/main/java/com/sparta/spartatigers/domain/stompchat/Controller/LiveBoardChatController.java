@@ -19,6 +19,8 @@ public class LiveBoardChatController {
 	// 채팅
 	@MessageMapping("/liveboard/send")
 	public void sendMessage(ChatMessage message, Principal principal) {
+
+
 		chatService.sendGroupMessage(message, principal);
 	}
 

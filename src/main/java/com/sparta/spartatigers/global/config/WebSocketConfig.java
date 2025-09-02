@@ -9,10 +9,16 @@ import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+import com.sparta.spartatigers.domain.stompchat.interceptor.StompInterceptor;
+
+import lombok.RequiredArgsConstructor;
+
 @Configuration
 @EnableWebSocketMessageBroker
+@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
+	private final StompInterceptor stompInterceptor;
 	// stomp 연결을 위한 앤드포인트 등록
 	@Override
 	public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -32,7 +38,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 	@Override
 	public void configureClientInboundChannel(ChannelRegistration registration) {
 		registration.interceptors(
-
+			stompInterceptor
 		);
 	}
 }
