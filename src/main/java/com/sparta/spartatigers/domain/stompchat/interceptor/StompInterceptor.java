@@ -67,6 +67,7 @@ public class StompInterceptor implements ChannelInterceptor {
 	private ChatDomainType resolveDomain(String domainRaw) {
 		if ("liveboard".equalsIgnoreCase(domainRaw)) return ChatDomainType.LIVEBOARD;
 		if ("directroom".equalsIgnoreCase(domainRaw)) return ChatDomainType.EXCHANGE;
+		if ("location".equalsIgnoreCase(domainRaw)) return ChatDomainType.LOCATION;
 		throw new RuntimeException("ChatDomain 헤더가 올바르지 않습니다.");
 	}
 
