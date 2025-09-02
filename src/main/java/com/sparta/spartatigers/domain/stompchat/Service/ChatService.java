@@ -1,20 +1,28 @@
 package com.sparta.spartatigers.domain.stompchat.Service;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Service;
 
 import com.sparta.spartatigers.domain.directRoom.model.DirectRoom;
 import com.sparta.spartatigers.domain.directRoom.repository.DirectRoomRepository;
+import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardConnection;
+import com.sparta.spartatigers.domain.liveboardroom.repository.LiveBoardConnectionRepository;
+import com.sparta.spartatigers.domain.stompchat.interceptor.StompPrincipal;
 import com.sparta.spartatigers.domain.stompchat.model.ChatMessage;
 import com.sparta.spartatigers.domain.stompchat.pubsub.RedisChatPublisher;
 import com.sparta.spartatigers.domain.stompchat.pubsub.RedisChatSubscriber;
-import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.repository.UserRepository;
+import com.sparta.spartatigers.global.exception.ExceptionCode;
+import com.sparta.spartatigers.global.exception.InvalidRequestException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,20 +36,50 @@ public class ChatService {
 	private final Map<String, ChannelTopic> topics =
 		new ConcurrentHashMap<>(); // 채팅방별 topic
 	private final UserRepository userRepository;
-
+	private final LiveBoardConnectionRepository liveBoardConnectionRepository;
 
 	public void sendGroupMessage(ChatMessage message, Principal principal) {
-		User sender = userRepository.findById(message.getSenderId()).orElseThrow();
+		if (!(principal instanceof StompPrincipal stompPrincipal)) {
+			throw new InvalidRequestException(ExceptionCode.WEBSOCKET_UNAUTHORIZED);
+		}
 
-		ChatMessage sendMessage = ChatMessage.ofLiveBoardRoom(message.getRoomId(),sender.getId(), sender.getNickname(),
-			message.getContent());
+		Long senderId = Long.parseLong(stompPrincipal.getName());
+		String nickname = userRepository.findNicknameById(senderId).orElse("비회원");
+
+		ChatMessage sendMessage = ChatMessage.ofLiveBoardRoom(
+			message.getRoomId(),
+			senderId,
+			nickname,
+			message.getContent()
+		);
 
 		ChannelTopic topic = getOrInitTopic(message.getRoomId());
-		redisChatPublisher.publish(topic,sendMessage);
+		redisChatPublisher.publish(topic, sendMessage);
 	}
 
-	public void sendDirectMessage(ChatMessage message, Principal principal) {
+	public void enterRoom(Message<ChatMessage> message, Principal principal) {
+		// 기본값..
+		Long senderId = null;
+		String nickname = "비회원";
+		if (principal instanceof StompPrincipal stompPrincipal) {
+			senderId = getSenderId(principal);
+			nickname = userRepository.findNicknameById(senderId).orElse("비회원");
+		}
 
+		String globalSessionId = getGlobalSessionId(message);
+		String roomId = message.getPayload().getRoomId();
+
+		LiveBoardConnection connection = LiveBoardConnection.of(
+			globalSessionId, senderId, nickname, roomId, LocalDateTime.now()
+		);
+		liveBoardConnectionRepository.saveConnection(roomId,globalSessionId, connection);
+	}
+
+	public void exitRoom(Message<ChatMessage> message) {
+		String roomId = message.getPayload().getRoomId();
+		String globalSessionId = getGlobalSessionId(message);
+
+		liveBoardConnectionRepository.deleteConnection(roomId,globalSessionId);
 	}
 
 	private ChannelTopic getOrInitTopic(String roomId) {
@@ -55,6 +93,29 @@ public class ChatService {
 	}
 
 	private Long getSenderId(Principal principal){
-		return Long.valueOf(principal.getName());
+		Long senderId;
+		if(principal instanceof StompPrincipal stompPrincipal) {
+			return senderId = Long.parseLong(stompPrincipal.getName());
+		}
+		// TODO : 나중에 소셜 로그인 추가되면 추가하기
+		return null;
 	}
+
+	private String getGlobalSessionId(Message<ChatMessage> message) {
+		SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.wrap(message);
+		return accessor.getSessionId();
+	}
+
+	public void handleDisconnect(String globalSessionId) {
+		List<String> roomIds = liveBoardConnectionRepository.findAllRoomIds();
+
+		for (String roomId : roomIds) {
+			Map<Object, Object> connections = liveBoardConnectionRepository.findAllConnections(roomId);
+			if (connections.containsKey(globalSessionId)) {
+				liveBoardConnectionRepository.deleteConnection(roomId, globalSessionId);
+			}
+		}
+	}
+
+
 }
