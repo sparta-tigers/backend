@@ -70,6 +70,7 @@ public class LiveboardRoomService {
 		long totalRoomsToday = roomRepository.findAllByDate(anyday).size();
 		long creatableCount = dayOfMatches.stream()
 			.filter(match -> MatchResult.NOT_PLAYED.equals(match.getMatchResult()))
+			.filter(m -> !alreadyCreated.contains(m.getId()))
 			.count();
 
 		if(createdCount == 0) {
@@ -98,7 +99,7 @@ public class LiveboardRoomService {
 					return LiveBoardRoomResponseDto.fromUpcomingMatch(match);
 				}
 
-				LocalDate matchDate = room.getMatchTime().toLocalDate();
+				LocalDate matchDate = match.getMatchTime().toLocalDate();
 
 				if(matchDate.isEqual(anyday)) { // 당일 경기
 					long connectCount = connectionRepository.getConnectionCount(room.getRoomId());
