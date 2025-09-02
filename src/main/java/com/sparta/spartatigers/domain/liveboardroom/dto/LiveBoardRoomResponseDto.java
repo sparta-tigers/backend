@@ -2,6 +2,7 @@ package com.sparta.spartatigers.domain.liveboardroom.dto;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardRoom;
 import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardStatus;
 import com.sparta.spartatigers.domain.match.model.Match;
@@ -31,6 +32,7 @@ public class LiveBoardRoomResponseDto {
 	private MatchResult matchResult;
 	private String stadium;
 	private Long connectCount;
+	@JsonProperty("isTodayMatch")
 	private boolean isTodayMatch; // TODO : 룸이 있는지 없는지 검증용?
 
 
@@ -46,7 +48,7 @@ public class LiveBoardRoomResponseDto {
 			.homeTeamName(match.getHomeTeam().getName())
 			.homeTeamCode(match.getHomeTeam().getCode())
 			.matchResult(match.getMatchResult()) // 없을수있음
-			.stadium(match.getStadium().getName())
+			.stadium(match.getStadium() != null ? match.getStadium().getName() : null)
 			.connectCount(0L)
 			.isTodayMatch(false)
 			.build();
@@ -64,7 +66,7 @@ public class LiveBoardRoomResponseDto {
 			.homeTeamName(match.getHomeTeam().getName())
 			.homeTeamCode(match.getHomeTeam().getCode())
 			.matchResult(match.getMatchResult()) // 없을수있음
-			.stadium(match.getStadium().getName())
+			.stadium(match.getStadium() != null ? match.getStadium().getName() : null)
 			.connectCount(connectCount)
 			.isTodayMatch(true)
 			.build();
@@ -82,7 +84,7 @@ public class LiveBoardRoomResponseDto {
 			.homeTeamName(match.getHomeTeam().getName())
 			.homeTeamCode(match.getHomeTeam().getCode())
 			.matchResult(match.getMatchResult()) // 없을수없음
-			.stadium(match.getStadium().getName())
+			.stadium(match.getStadium() != null ? match.getStadium().getName() : null)
 			.connectCount(0L)
 			.isTodayMatch(false)
 			.build();

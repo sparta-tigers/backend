@@ -19,8 +19,8 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
 		FROM matches m
 		JOIN FETCH m.homeTeam
 		JOIN FETCH m.awayTeam
-		JOIN FETCH m.stadium
-		WHERE m.matchTime BETWEEN :start AND :end
+		LEFT JOIN FETCH m.stadium
+		WHERE m.matchTime >= :start AND m.matchTime < :end
 		""")
 	List<Match> findAllByMatchTimeBetween(LocalDateTime start, LocalDateTime end);
 
@@ -32,7 +32,7 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
 		FROM matches m
 		JOIN FETCH m.homeTeam
 		JOIN FETCH m.awayTeam
-		JOIN FETCH m.stadium
+		LEFT JOIN FETCH m.stadium
 		WHERE m.id = :matchId
 		""")
 	Optional<Match> findByMatchId(Long matchId);

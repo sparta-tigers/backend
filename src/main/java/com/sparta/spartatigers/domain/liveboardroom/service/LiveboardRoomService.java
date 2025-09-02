@@ -165,6 +165,7 @@ public class LiveboardRoomService {
 			return "ALREADY_DELETED";
 		}
 		roomRepository.deleteRoom(roomId);
+		connectionRepository.deleteAllConnections(room.getRoomId());
 		return "DELETED"; // TODO: 날짜별로 지워지게
 	}
 }

@@ -27,7 +27,8 @@ public class LiveBoardRoomController {
 
 	@PostMapping
 	public ApiResponse<String> createRoomsForDay(
-		@RequestParam @DateTimeFormat(pattern = "yyyyMMdd") LocalDate anyday) {
+		@RequestParam (required = false)
+		@DateTimeFormat(pattern = "yyyyMMdd") LocalDate anyday) {
 		if (anyday == null) {
 			anyday = LocalDate.now();
 		}
@@ -36,7 +37,8 @@ public class LiveBoardRoomController {
 
 	@GetMapping
 	public List<LiveBoardRoomResponseDto> getRoomsForDay(
-		@RequestParam @DateTimeFormat(pattern = "yyyyMMdd") LocalDate anyday) {
+		@RequestParam (required = false)
+		@DateTimeFormat(pattern = "yyyyMMdd") LocalDate anyday) {
 		if (anyday == null) {
 			anyday = LocalDate.now();
 		}
@@ -45,7 +47,8 @@ public class LiveBoardRoomController {
 
 	@DeleteMapping
 	public ApiResponse<String> deleteRoomsForDay(
-		@RequestParam @DateTimeFormat(pattern = "yyyyMMdd") LocalDate anyday) {
+		@RequestParam (required = false)
+		@DateTimeFormat(pattern = "yyyyMMdd") LocalDate anyday) {
 		if (anyday == null) {
 			anyday = LocalDate.now();
 		}
