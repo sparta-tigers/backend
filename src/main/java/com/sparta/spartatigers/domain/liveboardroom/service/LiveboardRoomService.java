@@ -100,11 +100,12 @@ public class LiveboardRoomService {
 				}
 
 				LocalDate matchDate = match.getMatchTime().toLocalDate();
+				LocalDate realToday = LocalDateTime.now().toLocalDate();
 
-				if(matchDate.isEqual(anyday)) { // 당일 경기
+				if(matchDate.isEqual(realToday)) { // 당일 경기
 					long connectCount = connectionRepository.getConnectionCount(room.getRoomId());
 					return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount);
-				} else if (matchDate.isBefore(anyday)) { // 지난 경기
+				} else if (matchDate.isBefore(realToday)) { // 지난 경기
 					return LiveBoardRoomResponseDto.fromPastMatch(match, room);
 				} else { // 그외의 예정 경기
 					return LiveBoardRoomResponseDto.fromUpcomingMatch(match);
