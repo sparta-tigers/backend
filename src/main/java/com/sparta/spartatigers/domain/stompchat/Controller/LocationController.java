@@ -1,0 +1,30 @@
+package com.sparta.spartatigers.domain.stompchat.Controller;
+
+import com.sparta.spartatigers.domain.stompchat.Service.LocationService;
+import com.sparta.spartatigers.domain.stompchat.dto.request.LocationRequestDto;
+import com.sparta.spartatigers.domain.stompchat.interceptor.StompPrincipal;
+import java.security.Principal;
+import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.stereotype.Controller;
+
+@Controller
+@RequiredArgsConstructor
+public class LocationController {
+
+    private final LocationService locationService;
+
+    @MessageMapping("/location.update")
+    public void updateLocation(@Payload LocationRequestDto request, Principal principal) {
+        Long userId;
+
+        if (principal instanceof StompPrincipal stompPrincipal) {
+            userId = Long.parseLong(stompPrincipal.getName());
+        } else {
+            throw new IllegalStateException("지원하지 않는 principal 타입");
+        }
+
+        locationService.updateLocation(request, userId);
+    }
+}
