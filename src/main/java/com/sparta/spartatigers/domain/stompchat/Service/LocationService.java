@@ -8,6 +8,7 @@ import jakarta.annotation.PostConstruct;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metrics;
@@ -26,7 +27,6 @@ public class LocationService {
     private static final String USER_LOCATION_KEY = "user:locations";
     private static final String STADIUM_CHANNEL_KEY = "location:stadium:";
     private static final String STADIUM_LOCATION_KEY = "stadiums:";
-    private static final double SEARCH_RADIUS_KM = 0.05;
     private static final double NEAR_STADIUM_KM = 1.0;
     private static final double CLOSEST_STADIUM_KM = 100;
     private final RedisTemplate<String, String> redisTemplate;
@@ -84,5 +84,20 @@ public class LocationService {
 
         String stadium = results.getContent().getFirst().getContent().getName();
         return Long.valueOf(stadium);
+    }
+
+    public boolean isNearStadium(double longitude, double latitude) {
+        try {
+            Point point = new Point(longitude, latitude);
+            Distance distance = new Distance(NEAR_STADIUM_KM, Metrics.KILOMETERS);
+            Circle circle = new Circle(point, distance);
+            GeoResults<RedisGeoCommands.GeoLocation<String>> results = redisTemplate.opsForGeo()
+                .radius(STADIUM_LOCATION_KEY, circle);
+
+            return results != null && !results.getContent().isEmpty();
+        } catch (Exception e) {
+            log.error("[isNearStadium] 야구장 인근 확인 중 예외 발생", e);
+            return false;
+        }
     }
 }
