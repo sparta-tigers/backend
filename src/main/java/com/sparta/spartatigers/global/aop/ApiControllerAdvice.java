@@ -1,5 +1,6 @@
 package com.sparta.spartatigers.global.aop;
 
+import com.sparta.spartatigers.global.exception.BaseException;
 import com.sparta.spartatigers.global.exception.CustomException;
 import com.sparta.spartatigers.global.exception.ExceptionCode;
 import com.sparta.spartatigers.global.response.ApiResponse;
@@ -29,6 +30,12 @@ public class ApiControllerAdvice {
         return new ResponseEntity<>(
                 ApiResponse.error(exception.getExceptionCode(), exception.getData()),
                 exception.getExceptionCode().getHttpStatus());
+    }
+
+    @ExceptionHandler(BaseException.class)
+    public ResponseEntity<ApiResponse<?>> handleBaseException(BaseException ex) {
+        log.error("Catch Business Exception : ", ex);
+        return ResponseEntity.status(ex.getStatus()).body(ApiResponse.fail(ex));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
