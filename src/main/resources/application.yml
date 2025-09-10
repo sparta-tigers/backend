@@ -11,6 +11,7 @@ spring:
       - logging.yml
       - monitoring.yml
       - jwt.yml
+      - firebase.yml
 
   web:
     resources:

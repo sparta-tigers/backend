@@ -5,6 +5,7 @@ import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 import com.sparta.spartatigers.global.exception.ExceptionCode;
+import com.sparta.spartatigers.global.exception.FirebaseException;
 import com.sparta.spartatigers.global.exception.ServerException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,11 +30,10 @@ public class FCMService {
             .build();
 
         try {
-            // 메시지 전송
             return firebaseMessaging.send(message);
         } catch (FirebaseMessagingException e) {
-            log.error("Failed to send FCM message: {}", e.getMessage());
-            throw new ServerException(ExceptionCode.FCM_MESSAGE_NOT_SENDED);
+            log.error("FCM 메세지 송신에 실패했습니다.: {}", e.getMessage());
+            throw new FirebaseException(ExceptionCode.FCM_MESSAGE_NOT_SENT);
         }
     }
 }
