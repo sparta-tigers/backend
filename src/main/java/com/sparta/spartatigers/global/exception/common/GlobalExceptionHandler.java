@@ -44,7 +44,7 @@ public class GlobalExceptionHandler {
                         .toList();
 
         ApiResponse<?> response =
-                ApiResponse.fail(ExceptionCode.VALIDATION_ERROR, fieldErrorDetails);
+                ApiResponse.error(ExceptionCode.VALIDATION_ERROR, fieldErrorDetails);
         return ResponseEntity.status(ExceptionCode.VALIDATION_ERROR.getHttpStatus()).body(response);
     }
 
@@ -54,7 +54,7 @@ public class GlobalExceptionHandler {
         log.warn("요청 데이터 형식 오류: {}", ex.getMessage());
 
         return ResponseEntity.badRequest()
-            .body(ApiResponse.fail(ExceptionCode.INVALID_TYPE_EXCEPTION));
+            .body(ApiResponse.error(ExceptionCode.INVALID_TYPE_EXCEPTION));
     }
 
     /**
@@ -68,14 +68,14 @@ public class GlobalExceptionHandler {
         // TODO: 디코 등 운영팀 알림 로직 추가
 
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-            .body(ApiResponse.fail(ex.getExceptionCode()));
+            .body(ApiResponse.error(ex.getExceptionCode()));
     }
 
     // 내부 예외 핸들러
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<ApiResponse<?>> handleBaseException(BaseException ex) {
         log.warn("내부 비즈니스 로직 예외 발생: {}", ex.getMessage());
-        return ResponseEntity.status(ex.getStatus()).body(ApiResponse.fail(ex.getExceptionCode()));
+        return ResponseEntity.status(ex.getStatus()).body(ApiResponse.error(ex.getExceptionCode()));
     }
 
     /**
@@ -109,6 +109,6 @@ public class GlobalExceptionHandler {
         ServerException serverException = new ServerException(ExceptionCode.INTERNAL_SERVER_ERROR);
 
         return ResponseEntity.status(serverException.getStatus())
-            .body(ApiResponse.fail(serverException.getExceptionCode()));
+            .body(ApiResponse.error(serverException.getExceptionCode()));
     }
 }

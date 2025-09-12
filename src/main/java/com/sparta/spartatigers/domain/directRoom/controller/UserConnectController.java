@@ -31,6 +31,6 @@ public class UserConnectController {
                 "roomId", roomId,
                 "isOpponentOnline", isOpponentOnline);
 
-        return ApiResponse.ok(response);
+        return ApiResponse.success(response);
     }
 }

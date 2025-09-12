@@ -24,6 +24,6 @@ public class AuthController {
     public ApiResponse<Token> login(@Valid @RequestBody UserLoginRequest request, HttpSession session) {
         Token token = authService.login(request.email(), request.password());
 
-        return ApiResponse.ok(token);
+        return ApiResponse.success(token);
     }
 }
