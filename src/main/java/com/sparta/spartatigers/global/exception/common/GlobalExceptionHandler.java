@@ -3,7 +3,6 @@ package com.sparta.spartatigers.global.exception.common;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.external.ExternalServiceException;
 import com.sparta.spartatigers.global.exception.internal.BaseException;
-import com.sparta.spartatigers.global.exception.internal.CustomException;
 import com.sparta.spartatigers.global.response.ApiResponse;
 import com.sparta.spartatigers.global.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -70,19 +69,6 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.badRequest()
             .body(ApiResponse.error(ExceptionCode.INVALID_TYPE_EXCEPTION));
-    }
-
-    @ExceptionHandler(CustomException.class)
-    public ResponseEntity<ApiResponse<?>> handleChatCustomException(CustomException exception) {
-        switch (exception.getExceptionCode().getLogLevel()) {
-            case ERROR -> log.error("ChatCustomException : {}", exception.getMessage(), exception);
-            case WARN -> log.warn("ChatCustomException : {}", exception.getMessage(), exception);
-            default -> log.info("ChatCustomException : {}", exception.getMessage(), exception);
-        }
-
-        return new ResponseEntity<>(
-            ApiResponse.error(exception.getExceptionCode(), exception.getData()),
-            exception.getExceptionCode().getHttpStatus());
     }
 
     /**
