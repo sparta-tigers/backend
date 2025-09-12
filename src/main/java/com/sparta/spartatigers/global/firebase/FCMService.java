@@ -6,6 +6,7 @@ import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.external.FirebaseException;
+import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,10 @@ public class FCMService {
     private final FirebaseMessaging firebaseMessaging;
 
     public String sendMessageToToken(String token, String title, String body) {
+        if (token == null || token.isBlank() || title == null || body == null) {
+            throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
+        }
+
         Notification notification = Notification.builder()
             .setTitle(title)
             .setBody(body)

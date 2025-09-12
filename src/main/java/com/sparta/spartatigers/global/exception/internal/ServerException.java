@@ -11,7 +11,7 @@ public class ServerException extends BaseException {
 
     private final ExceptionCode exceptionCode;
 
-    public ServerException(ExceptionCode code, Throwable cause){
+    public ServerException(ExceptionCode code, Throwable cause) {
         super(cause);
         this.exceptionCode = code;
     }
