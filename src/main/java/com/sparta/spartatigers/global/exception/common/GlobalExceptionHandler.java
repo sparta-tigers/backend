@@ -9,6 +9,7 @@ import com.sparta.spartatigers.global.response.ApiResponse;
 import com.sparta.spartatigers.global.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,23 @@ import org.springframework.web.context.request.async.AsyncRequestTimeoutExceptio
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    // 민감 정보 필드명 관리하는 Set
+    private static final Set<String> SENSITIVE_FIELDS =
+        Set.of("password","pwd","pass","token","authorization","auth","secret","apiKey","api_key");
+
+    /**
+     * 값 마스킹 헬퍼 메서드
+     */
+    private static Object maskIfSensitive(String field, Object value) {
+        String fieldName = (field != null) ? field.toLowerCase() : "";
+
+        // Set에 포함된 키워드 중 하나라도 필드명에 포함되면 마스킹 처리
+        if (SENSITIVE_FIELDS.stream().anyMatch(fieldName::contains)) {
+            return "******";
+        }
+        return value;
+    }
 
     /**
      * 구체적인 예외
@@ -38,7 +56,7 @@ public class GlobalExceptionHandler {
                                 error ->
                                         ErrorResponse.FieldErrorDetail.of(
                                                 error.getField(),
-                                                error.getRejectedValue(),
+                                                maskIfSensitive(error.getField(), error.getRejectedValue()),
                                                 error.getDefaultMessage()))
                         .toList();
 
