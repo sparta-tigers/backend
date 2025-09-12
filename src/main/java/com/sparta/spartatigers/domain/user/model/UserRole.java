@@ -1,7 +1,7 @@
 package com.sparta.spartatigers.domain.user.model;
 
-import com.sparta.spartatigers.global.exception.ExceptionCode;
-import com.sparta.spartatigers.global.exception.InvalidRequestException;
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 
 public enum UserRole {
     ROLE_USER,

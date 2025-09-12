@@ -45,7 +45,7 @@ public class DirectRoomController {
         Long currentUserId = tokenClaim.getUserId();
         Page<DirectRoomResponseDto> rooms =
             directRoomService.getRoomsForUser(currentUserId, pageable);
-        return ApiResponse.ok(rooms);
+        return ApiResponse.success(rooms);
     }
 
     @DeleteMapping("/{directRoomId}")
@@ -54,6 +54,6 @@ public class DirectRoomController {
         @Auth TokenClaim tokenClaim) {
         Long currentUserId = tokenClaim.getUserId();
         directRoomService.deleteRoom(directRoomId, currentUserId);
-        return ApiResponse.ok("채팅방이 정상적으로 삭제되었습니다!");
+        return ApiResponse.success("채팅방이 정상적으로 삭제되었습니다!");
     }
 }

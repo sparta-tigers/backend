@@ -3,7 +3,6 @@ package com.sparta.spartatigers.domain.auth.controller;
 import com.sparta.spartatigers.domain.auth.dto.UserLoginRequest;
 import com.sparta.spartatigers.domain.auth.model.Token;
 import com.sparta.spartatigers.domain.auth.service.AuthService;
-import com.sparta.spartatigers.domain.user.model.LoginUser;
 import com.sparta.spartatigers.global.response.ApiResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -24,6 +23,6 @@ public class AuthController {
     public ApiResponse<Token> login(@Valid @RequestBody UserLoginRequest request) {
         Token token = authService.login(request.email(), request.password());
 
-        return ApiResponse.ok(token);
+        return ApiResponse.success(token);
     }
 }
