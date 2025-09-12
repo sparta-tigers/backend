@@ -1,4 +1,4 @@
-package com.sparta.spartatigers.global.exception;
+package com.sparta.spartatigers.global.exception.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

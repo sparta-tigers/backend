@@ -1,12 +1,9 @@
 package com.sparta.spartatigers.global.response;
 
-import com.sparta.spartatigers.global.exception.BaseException;
-import com.sparta.spartatigers.global.exception.ErrorCode;
-import com.sparta.spartatigers.global.exception.ExceptionCode;
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
 public class ErrorResponse {

@@ -1,7 +1,7 @@
 package com.sparta.spartatigers.global.aop;
 
-import com.sparta.spartatigers.global.exception.CustomException;
-import com.sparta.spartatigers.global.exception.ExceptionCode;
+import com.sparta.spartatigers.global.exception.internal.CustomException;
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;

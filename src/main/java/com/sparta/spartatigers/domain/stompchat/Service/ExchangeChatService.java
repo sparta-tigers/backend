@@ -9,8 +9,8 @@ import com.sparta.spartatigers.domain.directRoom.repository.DirectRoomRepository
 import com.sparta.spartatigers.domain.stompchat.pubsub.RedisDirectMessagePublisher;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.repository.UserRepository;
-import com.sparta.spartatigers.global.exception.ExceptionCode;
-import com.sparta.spartatigers.global.exception.InvalidRequestException;
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 import com.sparta.spartatigers.global.util.RedisRateLimiter;
 import java.time.Duration;
 import java.time.LocalDateTime;

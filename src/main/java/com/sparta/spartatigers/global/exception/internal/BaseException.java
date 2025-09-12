@@ -1,5 +1,6 @@
-package com.sparta.spartatigers.global.exception;
+package com.sparta.spartatigers.global.exception.internal;
 
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import org.springframework.http.HttpStatus;
 
 public abstract class BaseException extends RuntimeException {

@@ -1,10 +1,16 @@
-package com.sparta.spartatigers.global.exception;
+package com.sparta.spartatigers.global.exception.common;
 
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+import com.sparta.spartatigers.global.exception.external.FirebaseException;
+import com.sparta.spartatigers.global.exception.internal.BaseException;
+import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
+import com.sparta.spartatigers.global.exception.internal.ServerException;
 import com.sparta.spartatigers.global.response.ApiResponse;
 import com.sparta.spartatigers.global.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
@@ -81,5 +87,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AsyncRequestTimeoutException.class)
     public void handleAsyncRequestTimeoutException() {
         log.info("SSE 재연결 중 ");
+    }
+
+    @ExceptionHandler(FirebaseException.class)
+    public ResponseEntity<ApiResponse<?>> handleFirebaseException(FirebaseException ex) {
+        log.error("Firebase 예외 발생", ex);
+
+        // TODO: 디코 등 운영팀 알림 로직 추가
+
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+            .body(ApiResponse.fail(ex.getExceptionCode()));
     }
 }

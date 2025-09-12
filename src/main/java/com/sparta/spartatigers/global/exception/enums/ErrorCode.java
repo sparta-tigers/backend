@@ -1,4 +1,4 @@
-package com.sparta.spartatigers.global.exception;
+package com.sparta.spartatigers.global.exception.enums;
 
 public enum ErrorCode {
 	E400,
