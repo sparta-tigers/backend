@@ -26,14 +26,14 @@ public class FirebaseConfig {
         GoogleCredentials credentials;
         try {
             credentials = GoogleCredentials.getApplicationDefault();
-            log.info("기본 자격증명으로 구글 애플리케이션을 불러왔습니다. 자격증명: {}", credentials);
+            log.info("기본 자격증명으로 구글 애플리케이션을 불러왔습니다.");
         } catch (IOException e) {
             log.error("기본 자격증명으로 구글 애플리케이션을 불러오는 데 실패했습니다: {}", e.getMessage());
             throw e;
         }
 
         FirebaseOptions options = FirebaseOptions.builder()
-            .setCredentials(GoogleCredentials.getApplicationDefault())
+            .setCredentials(credentials)
             .setProjectId(projectId)
             .build();
 
