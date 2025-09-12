@@ -11,6 +11,11 @@ public class FirebaseException extends ExternalServiceException {
 
     private final ExceptionCode exceptionCode;
 
+    public FirebaseException(ExceptionCode code, Throwable cause) {
+        super(cause);
+        this.exceptionCode = code;
+    }
+
     @Override
     public HttpStatus getStatus() {
         return exceptionCode.getHttpStatus();

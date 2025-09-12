@@ -31,8 +31,8 @@ public class FCMService {
         try {
             return firebaseMessaging.send(message);
         } catch (FirebaseMessagingException e) {
-            log.error("FCM 메세지 송신에 실패했습니다.: {}", e.getMessage());
-            throw new FirebaseException(ExceptionCode.FCM_MESSAGE_NOT_SENT);
+            log.error("FCM 메세지 송신에 실패했습니다.: {}", e.getMessage(), e);
+            throw new FirebaseException(ExceptionCode.FCM_MESSAGE_NOT_SENT, e);
         }
     }
 }
