@@ -34,9 +34,9 @@ public class ApiResponse<T> {
         return new ApiResponse<>(ResultType.SUCCESS, data, null);
     }
 
-    public static ApiResponse<Object> fail(final BaseException ex) {
+    public static ApiResponse<Object> fail(final ExceptionCode code) {
         return new ApiResponse<>(
-            ResultType.ERROR, null, ErrorResponse.of(ex.getExceptionCode()));
+            ResultType.ERROR, null, ErrorResponse.of(code));
     }
 
     public static ApiResponse<Object> fail(

@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<?>> handleValidationException(
             MethodArgumentNotValidException ex) {
-        log.error("Catch Validation Exception: {}", ex.getMessage());
+        log.error("Validation 예외 발생: {}", ex.getMessage());
 
         List<ErrorResponse.FieldErrorDetail> fieldErrorDetails =
                 ex.getBindingResult().getFieldErrors().stream()
@@ -47,17 +47,18 @@ public class GlobalExceptionHandler {
     // 커스텀 예외 핸들러
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<ApiResponse<?>> handleBaseException(BaseException ex) {
-        log.error("Catch Business Exception : ", ex);
-        return ResponseEntity.status(ex.getStatus()).body(ApiResponse.fail(ex));
+        log.error("내부 비즈니스 로직 예외 발생: {}", ex.getMessage());
+        return ResponseEntity.status(ex.getStatus()).body(ApiResponse.fail(ex.getExceptionCode()));
     }
 
     // 예상치 못한 예외 핸들러
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<?>> handleGeneralException(Exception e) {
-        log.error("Catch General Exception : ", e);
+        log.error("예상치 못한 예외 발생: {}", e.getMessage());
         ServerException serverException = new ServerException(ExceptionCode.INTERNAL_SERVER_ERROR);
+
         return ResponseEntity.status(serverException.getStatus())
-                .body(ApiResponse.fail(serverException));
+                .body(ApiResponse.fail(serverException.getExceptionCode()));
     }
 
     // Valid에서 못거르는 타입 불일치 메소외드 예외
@@ -66,9 +67,7 @@ public class GlobalExceptionHandler {
         log.warn("요청 데이터 형식 오류: {}", ex.getMessage());
 
         return ResponseEntity.badRequest()
-                .body(
-                        ApiResponse.fail(
-							new InvalidRequestException(ExceptionCode.INVALID_TYPE_EXCEPTION)));
+                .body(ApiResponse.fail(ExceptionCode.INVALID_TYPE_EXCEPTION));
     }
 
     /*
