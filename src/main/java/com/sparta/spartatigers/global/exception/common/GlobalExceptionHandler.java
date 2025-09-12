@@ -4,14 +4,12 @@ import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.external.ExternalServiceException;
 import com.sparta.spartatigers.global.exception.internal.BaseException;
 import com.sparta.spartatigers.global.exception.internal.CustomException;
-import com.sparta.spartatigers.global.exception.internal.ServerException;
 import com.sparta.spartatigers.global.response.ApiResponse;
 import com.sparta.spartatigers.global.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
@@ -93,11 +91,11 @@ public class GlobalExceptionHandler {
     // 외부 예외 핸들러
     @ExceptionHandler(ExternalServiceException.class)
     public ResponseEntity<ApiResponse<?>> handleExternalServiceException(ExternalServiceException ex) {
-        log.error("Firebase 예외 발생", ex);
+        log.error("외부 서비스 예외 발생 [{}]: {}", ex.getClass().getSimpleName(), ex.getMessage(), ex);
 
         // TODO: 디코 등 운영팀 알림 로직 추가
 
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+        return ResponseEntity.status(ex.getStatus())
             .body(ApiResponse.error(ex.getExceptionCode()));
     }
 
@@ -136,9 +134,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<?>> handleGeneralException(Exception e) {
         log.error("예상치 못한 예외 발생: {}", e.getMessage());
-        ServerException serverException = new ServerException(ExceptionCode.INTERNAL_SERVER_ERROR);
 
-        return ResponseEntity.status(serverException.getStatus())
-            .body(ApiResponse.error(serverException.getExceptionCode()));
+        // TODO: 디코 등 운영팀 알림 로직 추가
+
+        return ResponseEntity.status(ExceptionCode.INTERNAL_SERVER_ERROR.getHttpStatus())
+            .body(ApiResponse.error(ExceptionCode.INTERNAL_SERVER_ERROR));
     }
 }
