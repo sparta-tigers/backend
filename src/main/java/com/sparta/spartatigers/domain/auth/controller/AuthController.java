@@ -20,7 +20,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/api/v1/auth/login")
-    public ApiResponse<Token> login(@Valid @RequestBody UserLoginRequest request, HttpSession session) {
+    public ApiResponse<Token> login(@Valid @RequestBody UserLoginRequest request) {
         Token token = authService.login(request.email(), request.password());
 
         return ApiResponse.success(token);
