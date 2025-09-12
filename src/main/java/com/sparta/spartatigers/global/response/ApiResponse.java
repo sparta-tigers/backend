@@ -1,10 +1,8 @@
 package com.sparta.spartatigers.global.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.sparta.spartatigers.global.exception.internal.BaseException;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import java.time.LocalDateTime;
-import java.util.List;
 import lombok.Getter;
 
 @Getter

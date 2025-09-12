@@ -2,10 +2,8 @@ package com.sparta.spartatigers.global.exception.common;
 
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.external.ExternalServiceException;
-import com.sparta.spartatigers.global.exception.external.FirebaseException;
 import com.sparta.spartatigers.global.exception.internal.BaseException;
 import com.sparta.spartatigers.global.exception.internal.CustomException;
-import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 import com.sparta.spartatigers.global.exception.internal.ServerException;
 import com.sparta.spartatigers.global.response.ApiResponse;
 import com.sparta.spartatigers.global.response.ErrorResponse;

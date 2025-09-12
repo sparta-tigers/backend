@@ -1,6 +1,5 @@
 package com.sparta.spartatigers.domain.auth.service;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
