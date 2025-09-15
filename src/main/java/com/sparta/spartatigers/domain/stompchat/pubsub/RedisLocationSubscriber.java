@@ -1,8 +1,12 @@
 package com.sparta.spartatigers.domain.stompchat.pubsub;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sparta.spartatigers.domain.stompchat.dto.response.LocationUpdateDto;
+import com.sparta.spartatigers.domain.stompchat.Service.LocationService;
+import com.sparta.spartatigers.domain.stompchat.dto.response.RedisUpdateDto;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
@@ -13,33 +17,31 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class RedisLocationSubscriber implements MessageListener {
 
+    private static final double NEARBY_RADIUS_KM = 0.05;
     private final ObjectMapper objectMapper;
     private final SimpMessagingTemplate messagingTemplate;
+    private final LocationService locationService;
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
+        String json = new String(message.getBody(), StandardCharsets.UTF_8);
         try {
-            String json = new String(message.getBody(), StandardCharsets.UTF_8);
-            LocationUpdateDto location = objectMapper.readValue(json, LocationUpdateDto.class);
+            RedisUpdateDto location = objectMapper.readValue(json, RedisUpdateDto.class);
+            Long userId = location.getUserId();
 
-            String redisChannel = new String(message.getChannel(), StandardCharsets.UTF_8);
-            String stadiumId = extractStadiumId(redisChannel);
-
-            if (stadiumId != null) {
-                String destination = "/server/location/stadium/" + stadiumId;
-                messagingTemplate.convertAndSend(destination, location);
-            } else {
-                throw new IllegalArgumentException("유효하지 않은 채널");
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("RedisLocationSubscriber 오류 발생", e);
+            List<Long> nearByUserIds = locationService.findUsersNearBy(userId, NEARBY_RADIUS_KM);
+            nearByUserIds.forEach(
+                targetUserId -> {
+                    String destination = "/server/items/user/" + targetUserId;
+                    messagingTemplate.convertAndSend(destination,
+                        Map.of("type", "USER_LOCATION_UPDATE", "data", location));
+                }
+            );
+            String myDestination = "/server/items/user/" + userId;
+            messagingTemplate.convertAndSend(myDestination, Map.of("type", "REFRESH_ITEMS"));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Redis 메시지 역직렬화 실패", e);
         }
-    }
 
-    private String extractStadiumId(String redisChannel) {
-        if (redisChannel.startsWith("location:stadium:")) {
-            return redisChannel.substring("location:stadium:".length());
-        }
-        return null;
     }
 }

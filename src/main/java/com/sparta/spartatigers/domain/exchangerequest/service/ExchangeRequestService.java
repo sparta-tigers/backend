@@ -10,10 +10,12 @@ import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeStatus;
 import com.sparta.spartatigers.domain.exchangerequest.repository.ExchangeRequestRepository;
 import com.sparta.spartatigers.domain.item.model.Item;
 import com.sparta.spartatigers.domain.item.repository.ItemRepository;
+import com.sparta.spartatigers.domain.stompchat.Service.LocationService;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.repository.UserRepository;
 import com.sparta.spartatigers.global.exception.ExceptionCode;
 import com.sparta.spartatigers.global.exception.InvalidRequestException;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +29,7 @@ public class ExchangeRequestService {
     private final ExchangeRequestRepository exchangeRequestRepository;
     private final DirectRoomService directRoomService;
     private final UserRepository userRepository;
+    private final LocationService locationService;
     private final ItemRepository itemRepository;
 
     @Transactional
@@ -86,6 +89,9 @@ public class ExchangeRequestService {
         item.complete();
 
         exchangeRequest.complete();
+
+        Map<String, Object> data = Map.of("itemId", item.getId(), "userId", item.getUser().getId());
+        locationService.notifyUsersNearBy(item.getUser().getId(), "REMOVE_ITEM", data);
     }
 
     private User getUser(Long userId) {

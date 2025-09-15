@@ -7,6 +7,7 @@ import com.sparta.spartatigers.global.exception.InvalidRequestException;
 
 import jakarta.persistence.LockModeType;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,8 +20,8 @@ import org.springframework.data.repository.query.Param;
 public interface ItemRepository extends JpaRepository<Item, Long> {
 
     @EntityGraph(attributePaths = "user")
-    @Query("select i from items i where i.status = :itemStatus and i.createdDate = :createdDate")
-    Page<Item> findAllItems(@Param("itemStatus") ItemStatus itemStatus, @Param("createdDate") LocalDate createdDate, Pageable pageable);
+    @Query("select i from items i where i.status = :itemStatus and i.createdDate = :createdDate and i.user.id in :nearByUserIds")
+    Page<Item> findAllItems(@Param("itemStatus") ItemStatus itemStatus, @Param("createdDate") LocalDate createdDate, @Param("nearByUserIds") List<Long> nearByUserIds, Pageable pageable);
 
     Optional<Item> findByIdAndStatusAndCreatedDate(Long id, ItemStatus itemStatus, LocalDate createdDate);
 

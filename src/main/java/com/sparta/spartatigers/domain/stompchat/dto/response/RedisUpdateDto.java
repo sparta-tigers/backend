@@ -8,15 +8,13 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class LocationUpdateDto {
+public class RedisUpdateDto {
 
     private Long userId;
     private double latitude;
     private double longitude;
-    private Long stadiumId;
 
-    public static LocationUpdateDto of(Long userId, LocationRequestDto location, Long stadiumId) {
-        return new LocationUpdateDto(userId, location.getLatitude(), location.getLongitude(),
-            stadiumId);
+    public static RedisUpdateDto of(Long userId, LocationRequestDto location) {
+        return new RedisUpdateDto(userId, location.getLatitude(), location.getLongitude());
     }
 }
