@@ -1,11 +1,10 @@
 package com.sparta.spartatigers.domain.item.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
+import java.util.stream.Stream;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
-
-import java.util.stream.Stream;
 
 public enum ItemCategory {
         GOODS,

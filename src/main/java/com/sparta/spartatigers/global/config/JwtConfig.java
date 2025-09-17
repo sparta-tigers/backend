@@ -1,8 +1,9 @@
 package com.sparta.spartatigers.global.config;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Getter
 @AllArgsConstructor

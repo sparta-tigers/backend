@@ -1,15 +1,10 @@
 package com.sparta.spartatigers.domain.liveboardroom.service;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAdjuster;
-import java.time.temporal.TemporalAdjusters;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -18,14 +13,12 @@ import org.springframework.stereotype.Service;
 
 import com.sparta.spartatigers.domain.liveboardroom.dto.LiveBoardRoomResponseDto;
 import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardRoom;
-import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardStatus;
 import com.sparta.spartatigers.domain.liveboardroom.repository.LiveBoardConnectionRepository;
 import com.sparta.spartatigers.domain.liveboardroom.repository.LiveBoardRoomRepository;
 import com.sparta.spartatigers.domain.match.model.Match;
 import com.sparta.spartatigers.domain.match.model.MatchResult;
 import com.sparta.spartatigers.domain.match.repository.MatchRepository;
 
-import jakarta.persistence.ManyToOne;
 import lombok.RequiredArgsConstructor;
 
 @Service

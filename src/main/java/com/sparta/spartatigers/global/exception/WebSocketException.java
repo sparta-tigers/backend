@@ -1,5 +1,7 @@
 package com.sparta.spartatigers.global.exception;
 
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+
 public class WebSocketException extends RuntimeException {
 
 	private final ExceptionCode code;

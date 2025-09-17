@@ -1,7 +1,5 @@
 package com.sparta.spartatigers.domain.stompchat.interceptor;
 
-
-import com.sparta.spartatigers.domain.directRoom.registry.RedisUserSessionRegistry;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -12,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.domain.auth.service.JwtTokenService;
+import com.sparta.spartatigers.domain.directRoom.registry.RedisUserSessionRegistry;
 import com.sparta.spartatigers.domain.stompchat.model.ChatDomainType;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.repository.UserRepository;

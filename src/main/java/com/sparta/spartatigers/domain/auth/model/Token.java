@@ -1,10 +1,10 @@
 package com.sparta.spartatigers.domain.auth.model;
 
+import java.util.Date;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-
-import java.util.Date;
 
 @Builder
 @Getter

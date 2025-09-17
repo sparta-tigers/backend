@@ -30,9 +30,4 @@ public interface FavTeamRepository extends JpaRepository<FavoriteTeam, Long> {
 			);
 	}
 
-	Long user(User user);
-
-	Long user(User user);
-
-	Long user(User user);
 }

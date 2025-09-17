@@ -1,13 +1,13 @@
 package com.sparta.spartatigers.domain.user.repository;
 
-import com.sparta.spartatigers.domain.user.model.User;
-import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
-import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import java.util.Optional;
+import com.sparta.spartatigers.domain.user.model.User;
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 

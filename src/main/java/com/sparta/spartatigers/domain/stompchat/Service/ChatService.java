@@ -12,7 +12,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Service;
 
-
 import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardConnection;
 import com.sparta.spartatigers.domain.liveboardroom.repository.LiveBoardConnectionRepository;
 import com.sparta.spartatigers.domain.stompchat.interceptor.StompPrincipal;

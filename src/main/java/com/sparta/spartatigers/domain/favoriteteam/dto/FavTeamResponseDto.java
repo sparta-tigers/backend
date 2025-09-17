@@ -1,6 +1,5 @@
 package com.sparta.spartatigers.domain.favoriteteam.dto;
 
-import com.sparta.spartatigers.domain.favoriteteam.QFavoriteTeam;
 import com.sparta.spartatigers.domain.favoriteteam.model.entity.FavoriteTeam;
 import com.sparta.spartatigers.domain.team.model.TeamCode;
 

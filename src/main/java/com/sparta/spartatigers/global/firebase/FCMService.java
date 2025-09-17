@@ -1,5 +1,7 @@
 package com.sparta.spartatigers.global.firebase;
 
+import org.springframework.stereotype.Service;
+
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
@@ -7,9 +9,9 @@ import com.google.firebase.messaging.Notification;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.external.FirebaseException;
 import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
