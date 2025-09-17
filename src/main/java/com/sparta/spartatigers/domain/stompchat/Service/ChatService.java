@@ -12,6 +12,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Service;
 
+import com.sparta.spartatigers.domain.favoriteteam.repository.FavTeamRepository;
 import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardConnection;
 import com.sparta.spartatigers.domain.liveboardroom.repository.LiveBoardConnectionRepository;
 import com.sparta.spartatigers.domain.stompchat.interceptor.StompPrincipal;
@@ -35,6 +36,7 @@ public class ChatService {
 		new ConcurrentHashMap<>(); // 채팅방별 topic
 	private final UserRepository userRepository;
 	private final LiveBoardConnectionRepository liveBoardConnectionRepository;
+	private final FavTeamRepository favTeamRepository;
 
 	public void sendGroupMessage(ChatMessage message, Principal principal) {
 		if (!(principal instanceof StompPrincipal stompPrincipal)) {
@@ -48,7 +50,8 @@ public class ChatService {
 			message.getRoomId(),
 			senderId,
 			nickname,
-			message.getContent()
+			message.getContent(),
+			null
 		);
 
 		ChannelTopic topic = getOrInitTopic(message.getRoomId());
