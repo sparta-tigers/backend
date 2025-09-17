@@ -37,6 +37,6 @@ public class DirectMessageController {
         Page<DirectRoomMessageResponse> messages =
                 directMessageService.getMessages(roomId, currentUserId, pageable);
 
-        return ApiResponse.ok(messages);
+        return ApiResponse.success(messages);
     }
 }

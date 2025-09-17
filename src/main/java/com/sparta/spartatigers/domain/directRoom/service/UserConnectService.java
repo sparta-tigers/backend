@@ -3,8 +3,8 @@ package com.sparta.spartatigers.domain.directRoom.service;
 import com.sparta.spartatigers.domain.directRoom.model.DirectRoom;
 import com.sparta.spartatigers.domain.directRoom.registry.RedisUserSessionRegistry;
 import com.sparta.spartatigers.domain.directRoom.repository.DirectRoomRepository;
-import com.sparta.spartatigers.global.exception.ExceptionCode;
-import com.sparta.spartatigers.global.exception.InvalidRequestException;
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.cglib.core.Local;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -36,8 +35,7 @@ public class LiveBoardRoomRepository {
 
 	public LiveBoardRoom findRoomById(String roomId) {
 		Object object = opsHash.get(LIVEBOARD_ROOMS, roomId);
-		LiveBoardRoom room = objectMapper.convertValue(object, LiveBoardRoom.class);
-		return room;
+        return objectMapper.convertValue(object, LiveBoardRoom.class);
 	}
 
 	public List<LiveBoardRoom> findAllByDate(LocalDate date) {
