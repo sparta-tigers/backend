@@ -1,4 +1,4 @@
-package com.sparta.spartatigers.domain.favoriteteam;
+package com.sparta.spartatigers.domain.favoriteteam.model.entity;
 
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
 import com.sparta.spartatigers.domain.team.model.Team;
@@ -18,15 +18,27 @@ import lombok.NoArgsConstructor;
 public class FavoriteTeam extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "match_id")
+    @Column(name = "user_id")
     private Long id;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @MapsId // 대리키 필요없으므로 userid를 PK로
     @JoinColumn(name = "user_id")
-    @ManyToOne(fetch = FetchType.LAZY)
     private User user;
 
     @JoinColumn(name = "team_id")
     @ManyToOne(fetch = FetchType.LAZY)
     private Team team;
+
+    public static FavoriteTeam of(FavoriteTeam favoriteTeam) {
+        return new FavoriteTeam(favoriteTeam.getUser().getId(), favoriteTeam.getUser(), favoriteTeam.getTeam());
+    }
+
+    public static FavoriteTeam from(User user, Team team) {
+        return new FavoriteTeam(user.getId(), user, team);
+    }
+
+    public void update(Team team) {
+        this.team = team;
+    }
 }

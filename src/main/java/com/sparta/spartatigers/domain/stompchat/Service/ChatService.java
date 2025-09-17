@@ -12,8 +12,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Service;
 
-import com.sparta.spartatigers.domain.directRoom.model.DirectRoom;
-import com.sparta.spartatigers.domain.directRoom.repository.DirectRoomRepository;
+
 import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardConnection;
 import com.sparta.spartatigers.domain.liveboardroom.repository.LiveBoardConnectionRepository;
 import com.sparta.spartatigers.domain.stompchat.interceptor.StompPrincipal;
@@ -21,8 +20,8 @@ import com.sparta.spartatigers.domain.stompchat.model.ChatMessage;
 import com.sparta.spartatigers.domain.stompchat.pubsub.RedisChatPublisher;
 import com.sparta.spartatigers.domain.stompchat.pubsub.RedisChatSubscriber;
 import com.sparta.spartatigers.domain.user.repository.UserRepository;
-import com.sparta.spartatigers.global.exception.ExceptionCode;
-import com.sparta.spartatigers.global.exception.InvalidRequestException;
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 
 import lombok.RequiredArgsConstructor;
 

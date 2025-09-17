@@ -1,6 +1,6 @@
 package com.sparta.spartatigers.global.response;
 
-import com.sparta.spartatigers.global.exception.ExceptionCode;
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
