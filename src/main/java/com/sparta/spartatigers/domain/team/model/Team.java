@@ -33,5 +33,6 @@ public class Team extends BaseEntity {
     @Enumerated(value = EnumType.STRING)
     private TeamCode code;
 
-    @Column private String path;
+    @Column(name = "symbol_url")
+    private String symbolUrl;
 }

@@ -12,6 +12,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Service;
 
+import com.sparta.spartatigers.domain.favoriteteam.model.entity.FavoriteTeam;
 import com.sparta.spartatigers.domain.favoriteteam.repository.FavTeamRepository;
 import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardConnection;
 import com.sparta.spartatigers.domain.liveboardroom.repository.LiveBoardConnectionRepository;
@@ -44,14 +45,18 @@ public class ChatService {
 		}
 
 		Long senderId = Long.parseLong(stompPrincipal.getName());
-		String nickname = userRepository.findNicknameById(senderId).orElse("비회원");
+		String nickname = userRepository.findNicknameById(senderId).orElse("회원");
+
+		String symbolUrl = favTeamRepository.findByUserId(senderId)
+			.map(favoriteTeam -> favoriteTeam.getTeam().getSymbolUrl())
+			.orElse(null);
 
 		ChatMessage sendMessage = ChatMessage.ofLiveBoardRoom(
 			message.getRoomId(),
 			senderId,
 			nickname,
 			message.getContent(),
-			null
+			symbolUrl
 		);
 
 		ChannelTopic topic = getOrInitTopic(message.getRoomId());
