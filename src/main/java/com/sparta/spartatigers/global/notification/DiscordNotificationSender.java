@@ -1,5 +1,6 @@
 package com.sparta.spartatigers.global.notification;
 
+import com.sparta.spartatigers.global.notification.dto.MessagePayload;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -19,13 +20,13 @@ public class DiscordNotificationSender implements NotificationSender {
     private final RestClient restClient;
 
     @Override
-    public void send(String subject, String content) {
+    public void send(MessagePayload payload) {
         if (discordWebhookUrl == null || discordWebhookUrl.isEmpty()) {
             return;
         }
 
         Map<String, String> message = new HashMap<>();
-        message.put("content", "## " + subject + "\n" + "```\n" + content + "\n```");
+        message.put("content", "## " + payload.getSubject() + "\n" + "```\n" + payload.getMessage() + "\n```");
 
         try {
             restClient.post()
