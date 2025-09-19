@@ -69,7 +69,8 @@ public class Item extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column private LocalDate createdDate;
+    @Column (name = "created_date")
+    private LocalDate createdDate;
 
     @Version private Long version;
 

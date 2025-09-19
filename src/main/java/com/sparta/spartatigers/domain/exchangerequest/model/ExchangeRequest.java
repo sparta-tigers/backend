@@ -29,7 +29,7 @@ public class ExchangeRequest extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "match_id")
+    @Column(name = "exchange_request_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
