@@ -1,15 +1,10 @@
 package com.sparta.spartatigers.domain.liveboardroom.service;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAdjuster;
-import java.time.temporal.TemporalAdjusters;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -18,14 +13,12 @@ import org.springframework.stereotype.Service;
 
 import com.sparta.spartatigers.domain.liveboardroom.dto.LiveBoardRoomResponseDto;
 import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardRoom;
-import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardStatus;
 import com.sparta.spartatigers.domain.liveboardroom.repository.LiveBoardConnectionRepository;
 import com.sparta.spartatigers.domain.liveboardroom.repository.LiveBoardRoomRepository;
 import com.sparta.spartatigers.domain.match.model.Match;
 import com.sparta.spartatigers.domain.match.model.MatchResult;
 import com.sparta.spartatigers.domain.match.repository.MatchRepository;
 
-import jakarta.persistence.ManyToOne;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -100,11 +93,12 @@ public class LiveboardRoomService {
 				}
 
 				LocalDate matchDate = match.getMatchTime().toLocalDate();
+				LocalDate realToday = LocalDateTime.now().toLocalDate();
 
-				if(matchDate.isEqual(anyday)) { // 당일 경기
+				if(matchDate.isEqual(realToday)) { // 당일 경기
 					long connectCount = connectionRepository.getConnectionCount(room.getRoomId());
 					return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount);
-				} else if (matchDate.isBefore(anyday)) { // 지난 경기
+				} else if (matchDate.isBefore(realToday)) { // 지난 경기
 					return LiveBoardRoomResponseDto.fromPastMatch(match, room);
 				} else { // 그외의 예정 경기
 					return LiveBoardRoomResponseDto.fromUpcomingMatch(match);

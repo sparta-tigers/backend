@@ -2,9 +2,11 @@ package com.sparta.spartatigers.domain.directRoom.registry;
 
 import java.time.Duration;
 import java.util.Set;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
+
+import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor

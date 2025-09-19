@@ -1,11 +1,7 @@
 package com.sparta.spartatigers.global.config;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
-import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
-import com.sparta.spartatigers.global.exception.external.FirebaseException;
-import com.sparta.spartatigers.global.firebase.FCMService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,6 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+import com.sparta.spartatigers.global.exception.external.FirebaseException;
+import com.sparta.spartatigers.global.firebase.FCMService;
 
 @SpringBootTest(classes = {FCMService.class, FirebaseConfig.class})
 class FCMServiceIntegrationTest {

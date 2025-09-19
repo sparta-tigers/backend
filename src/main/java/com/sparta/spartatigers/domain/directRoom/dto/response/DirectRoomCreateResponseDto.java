@@ -1,7 +1,9 @@
 package com.sparta.spartatigers.domain.directRoom.dto.response;
 
-import com.sparta.spartatigers.domain.directRoom.model.DirectRoom;
 import java.time.LocalDateTime;
+
+import com.sparta.spartatigers.domain.directRoom.model.DirectRoom;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

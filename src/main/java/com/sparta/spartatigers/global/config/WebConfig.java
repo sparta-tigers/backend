@@ -1,15 +1,17 @@
 package com.sparta.spartatigers.global.config;
 
-import com.sparta.spartatigers.global.aop.AuthArgumentResolver;
-import com.sparta.spartatigers.global.aop.OauthProviderConverter;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.util.List;
+import com.sparta.spartatigers.global.aop.AuthArgumentResolver;
+import com.sparta.spartatigers.global.aop.OauthProviderConverter;
+
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @RequiredArgsConstructor
