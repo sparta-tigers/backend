@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 @Slf4j
 @Service
@@ -16,7 +16,7 @@ public class DiscordNotificationSender implements NotificationSender {
     @Value("${notification.discord.webhook-url}")
     private String discordWebhookUrl;
 
-    private final RestTemplate restTemplate;
+    private final RestClient restClient;
 
     @Override
     public void send(String subject, String content) {
@@ -28,7 +28,11 @@ public class DiscordNotificationSender implements NotificationSender {
         message.put("content", "## " + subject + "\n" + "```\n" + content + "\n```");
 
         try {
-            restTemplate.postForObject(discordWebhookUrl, message, String.class);
+            restClient.post()
+                .uri(discordWebhookUrl)
+                .body(message)
+                .retrieve()
+                .toBodilessEntity();
         } catch (Exception e) {
             log.error("디스코드 알림 전송에 실패했습니다.", e);
         }
