@@ -31,7 +31,7 @@ public class FavTeamService {
 		FavoriteTeam favoriteTeam = FavoriteTeam.from(user, team);
 
 		try{
-			favTeamRepository.save(favoriteTeam);
+			favTeamRepository.saveAndFlush(favoriteTeam);
 		} catch (DataIntegrityViolationException e) {
 			throw new InvalidRequestException(ExceptionCode.ALREADY_EXISTS_FAVORITE_TEAM);
 		}
