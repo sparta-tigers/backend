@@ -1,5 +1,6 @@
 package com.sparta.spartatigers.domain.favoriteteam.service;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,13 +27,15 @@ public class FavTeamService {
 	@Transactional
 	public FavTeamResponseDto add (FavTeamRequestDto request, Long userId) {
 		User user = userRepository.findByIdOrElseThrow(userId);
-		boolean alreadyRegistered = favTeamRepository.existsByUser(user);
-		if(alreadyRegistered) {
-			throw new InvalidRequestException(ExceptionCode.ALREADY_EXISTS_FAVORITE_TEAM);
-		}
 		Team team = teamRepository.findByIdOrElseThrow(request.getTeamId());
 		FavoriteTeam favoriteTeam = FavoriteTeam.from(user, team);
-		favTeamRepository.save(favoriteTeam);
+
+		try{
+			favTeamRepository.save(favoriteTeam);
+		} catch (DataIntegrityViolationException e) {
+			throw new InvalidRequestException(ExceptionCode.ALREADY_EXISTS_FAVORITE_TEAM);
+		}
+
 		return FavTeamResponseDto.of(favoriteTeam);
 	}
 

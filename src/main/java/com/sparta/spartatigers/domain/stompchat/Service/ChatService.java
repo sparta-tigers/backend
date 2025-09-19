@@ -99,9 +99,8 @@ public class ChatService {
 	}
 
 	private Long getSenderId(Principal principal){
-		Long senderId;
 		if(principal instanceof StompPrincipal stompPrincipal) {
-			return senderId = Long.parseLong(stompPrincipal.getName());
+			return Long.parseLong(stompPrincipal.getName());
 		}
 		// TODO : 나중에 소셜 로그인 추가되면 추가하기
 		return null;

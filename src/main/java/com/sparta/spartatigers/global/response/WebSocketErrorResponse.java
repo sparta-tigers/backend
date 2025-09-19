@@ -9,10 +9,10 @@ import lombok.Getter;
 @AllArgsConstructor(staticName = "of")
 public class WebSocketErrorResponse {
 
-	private final String errorType;
+	private final String code;
 	private final String message;
 
 	public static WebSocketErrorResponse from(ExceptionCode code) {
-		return WebSocketErrorResponse.of(code.name(), code.getMessage());
+		return WebSocketErrorResponse.of(code.getCode().name(), code.getMessage());
 	}
 }
