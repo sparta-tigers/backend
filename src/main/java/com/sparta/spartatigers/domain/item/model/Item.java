@@ -40,8 +40,8 @@ import lombok.NoArgsConstructor;
         indexes = {
             @Index(
                     name = "idx_item_user_status_created",
-                    columnList = "user_id, status, createdAt DESC"),
-            @Index(name = "idx_item_status_created_date", columnList = "status, createdDate")
+                    columnList = "user_id, status, created_at DESC"),
+            @Index(name = "idx_item_status_created_date", columnList = "status, created_date")
         })
 public class Item extends BaseEntity {
 
