@@ -1,8 +1,14 @@
 package com.sparta.spartatigers.global.exception.common;
 
+import com.sparta.spartatigers.global.notification.NotificationSender;
+import com.sparta.spartatigers.global.notification.dto.AlertLevel;
+import com.sparta.spartatigers.global.notification.dto.MessagePayload;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
@@ -22,7 +28,10 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
+    private final NotificationSender notificationSender;
 
     // 민감 정보 필드명 관리하는 Set
     private static final Set<String> SENSITIVE_FIELDS =
@@ -82,7 +91,17 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<?>> handleExternalServiceException(ExternalServiceException ex) {
         log.error("외부 서비스 예외 발생 [{}]: {}", ex.getClass().getSimpleName(), ex.getMessage(), ex);
 
-        // TODO: 디코 등 운영팀 알림 로직 추가
+        MessagePayload payload = MessagePayload.builder()
+            .level(AlertLevel.CRITICAL)
+            .subject("외부 서비스 오류 발생")
+            .message(ex.getExceptionCode().getMessage())
+            .metadata(Map.of(
+                "에러 원인", ex.getCause().getMessage(),
+                "Timestamp", LocalDateTime.now().toString()
+            ))
+            .build();
+
+        notificationSender.send(payload);
 
         return ResponseEntity.status(ex.getStatus())
             .body(ApiResponse.error(ex.getExceptionCode()));

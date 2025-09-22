@@ -1,11 +1,11 @@
 package com.sparta.spartatigers.global.notification.dto;
 
 import java.util.Map;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 @Getter
-@RequiredArgsConstructor
+@Builder
 public class MessagePayload {
 
     private final AlertLevel level;                 // 심각도
