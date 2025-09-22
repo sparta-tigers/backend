@@ -10,7 +10,7 @@ import org.springframework.stereotype.Controller;
 
 import com.sparta.spartatigers.domain.stompchat.Service.ChatService;
 import com.sparta.spartatigers.domain.stompchat.model.ChatMessage;
-import com.sparta.spartatigers.global.exception.WebSocketException;
+import com.sparta.spartatigers.global.exception.internal.WebSocketException;
 import com.sparta.spartatigers.global.response.WebSocketErrorResponse;
 
 import lombok.RequiredArgsConstructor;
