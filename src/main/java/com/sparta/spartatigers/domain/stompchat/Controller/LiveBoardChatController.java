@@ -43,7 +43,7 @@ public class LiveBoardChatController {
 	@MessageExceptionHandler(WebSocketException.class)
 	@SendToUser("/liveboard/errors")
 	public WebSocketErrorResponse handleWebSocketError(WebSocketException e) {
-		return WebSocketErrorResponse.from(e.getCode());
+		return WebSocketErrorResponse.from(e.getExceptionCode());
 	}
 
 }

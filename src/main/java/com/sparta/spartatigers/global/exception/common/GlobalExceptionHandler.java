@@ -99,7 +99,7 @@ public class GlobalExceptionHandler {
             .subject(String.format("외부 서비스(%s) 오류 발생", errorSource))
             .message(ex.getExceptionCode().getMessage())
             .metadata(Map.of(
-                "에러 원인", ex.getCause().getMessage(),
+                "에러 원인", ex.getCause() != null ? ex.getCause().getMessage() : "원인 정보 없음",
                 "Error Code", ex.getExceptionCode().getCode().name(),
                 "StackTrace", stackTrace,
                 "Timestamp", LocalDateTime.now().toString()
