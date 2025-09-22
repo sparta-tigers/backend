@@ -32,4 +32,6 @@ public abstract class ExternalServiceException extends RuntimeException {
     public abstract String getMessage();
 
     public abstract ExceptionCode getExceptionCode();
+
+    public abstract String getSource();
 }

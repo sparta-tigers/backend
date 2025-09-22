@@ -32,4 +32,9 @@ public class FirebaseException extends ExternalServiceException {
     public ExceptionCode getExceptionCode() {
         return exceptionCode;
     }
+
+    @Override
+    public String getSource() {
+        return "Firebase";
+    }
 }
