@@ -89,11 +89,13 @@ public class GlobalExceptionHandler {
     // 외부 예외 핸들러
     @ExceptionHandler(ExternalServiceException.class)
     public ResponseEntity<ApiResponse<?>> handleExternalServiceException(ExternalServiceException ex) {
-        log.error("외부 서비스 예외 발생 [{}]: {}", ex.getClass().getSimpleName(), ex.getMessage(), ex);
+        String errorSource = ex.getSource();
+
+        log.error("외부 서비스({}) 예외 발생 [{}]: {}", errorSource, ex.getClass().getSimpleName(), ex.getMessage(), ex);
 
         MessagePayload payload = MessagePayload.builder()
             .level(AlertLevel.CRITICAL)
-            .subject("외부 서비스 오류 발생")
+            .subject(String.format("외부 서비스(%s) 오류 발생", errorSource))
             .message(ex.getExceptionCode().getMessage())
             .metadata(Map.of(
                 "에러 원인", ex.getCause().getMessage(),
