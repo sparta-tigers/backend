@@ -1,7 +1,5 @@
 package com.sparta.spartatigers.domain.stompchat.pubsub;
 
-import com.sparta.spartatigers.global.exception.ExceptionCode;
-import com.sparta.spartatigers.global.exception.InvalidRequestException;
 import java.nio.charset.StandardCharsets;
 
 import org.springframework.data.redis.connection.Message;
@@ -32,7 +30,7 @@ public class RedisChatSubscriber implements MessageListener {
 			String path = switch (chatMessage.getDomain()) {
 				case EXCHANGE -> "/server/directRoom/"+chatMessage.getRoomId();
 				case LIVEBOARD -> "/server/liveboard/room/"+chatMessage.getRoomId();
-				default -> throw new InvalidRequestException(ExceptionCode.INVALID_TYPE_EXCEPTION);
+				default -> null;
 			};
 
 			// 메세지 전송
