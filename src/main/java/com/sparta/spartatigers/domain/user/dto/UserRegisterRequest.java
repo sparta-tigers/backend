@@ -2,11 +2,10 @@ package com.sparta.spartatigers.domain.user.dto;
 
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.model.UserRole;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-
-import java.time.LocalDateTime;
 
 public record UserRegisterRequest(
         @NotBlank(message = "이메일은 필수입니다") @Email(message = "유효한 이메일 형식이어야 합니다") String email,

@@ -1,5 +1,11 @@
 package com.sparta.spartatigers.domain.stompchat.Service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.sparta.spartatigers.domain.directRoom.dto.request.ChatMessageRequest;
 import com.sparta.spartatigers.domain.directRoom.dto.response.RedisMessage;
 import com.sparta.spartatigers.domain.directRoom.model.DirectMessage;
@@ -9,15 +15,12 @@ import com.sparta.spartatigers.domain.directRoom.repository.DirectRoomRepository
 import com.sparta.spartatigers.domain.stompchat.pubsub.RedisDirectMessagePublisher;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.repository.UserRepository;
-import com.sparta.spartatigers.global.exception.ExceptionCode;
-import com.sparta.spartatigers.global.exception.InvalidRequestException;
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 import com.sparta.spartatigers.global.util.RedisRateLimiter;
-import java.time.Duration;
-import java.time.LocalDateTime;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor

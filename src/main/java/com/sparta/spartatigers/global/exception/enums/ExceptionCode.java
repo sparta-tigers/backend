@@ -1,10 +1,10 @@
-package com.sparta.spartatigers.global.exception;
-
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+package com.sparta.spartatigers.global.exception.enums;
 
 import org.springframework.boot.logging.LogLevel;
 import org.springframework.http.HttpStatus;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
@@ -78,6 +78,9 @@ public enum ExceptionCode {
 
     // 라이브 보드
     WEBSOCKET_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, ErrorCode.E401, "비회원은 라이브보드 메세지를 보낼 수 없습니다", LogLevel.DEBUG),
+
+    // FCM
+    FCM_MESSAGE_NOT_SENT(HttpStatus.SERVICE_UNAVAILABLE, ErrorCode.E503, "FCM 메세지 송신에 실패했습니다.", LogLevel.ERROR),
 
     // 공통
     INVALID_TYPE_EXCEPTION(HttpStatus.BAD_REQUEST, ErrorCode.E400, "잘못된 데이터 타입입니다.", LogLevel.DEBUG),

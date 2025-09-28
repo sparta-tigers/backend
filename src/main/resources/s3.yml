@@ -1,0 +1,19 @@
+cloud:
+  aws:
+    credentials:
+      access-key : ${S3access_key}
+      secret-key : ${S3secret_key}
+    region:
+      static: ${S3region}
+    s3:
+      bucket: ${bucket_name}
+      folders:
+        team-symbol: team-symbols/
+      upload:
+        max-size: 5242880
+        allowed-extensions:
+          - jpg
+          - jpeg
+          - png
+    stack:
+      auto: false

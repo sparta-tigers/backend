@@ -1,14 +1,22 @@
-package com.sparta.spartatigers.global.exception;
+package com.sparta.spartatigers.global.exception.internal;
+
+import org.springframework.http.HttpStatus;
+
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
 public class InvalidRequestException extends BaseException {
 
     private final ExceptionCode exceptionCode;
+
+    public InvalidRequestException(ExceptionCode code, Throwable cause) {
+        super(cause);
+        this.exceptionCode = code;
+    }
 
     @Override
     public HttpStatus getStatus() {
