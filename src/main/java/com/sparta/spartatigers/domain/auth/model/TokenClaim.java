@@ -2,7 +2,12 @@ package com.sparta.spartatigers.domain.auth.model;
 
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.model.UserRole;
-import lombok.*;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 
 @ToString

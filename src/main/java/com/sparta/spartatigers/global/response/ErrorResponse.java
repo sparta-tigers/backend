@@ -3,6 +3,7 @@ package com.sparta.spartatigers.global.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

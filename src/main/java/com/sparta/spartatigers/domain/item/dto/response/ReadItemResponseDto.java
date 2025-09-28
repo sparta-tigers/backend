@@ -1,10 +1,11 @@
 package com.sparta.spartatigers.domain.item.dto.response;
 
+import java.time.LocalDateTime;
+
 import com.sparta.spartatigers.domain.item.model.Item;
 import com.sparta.spartatigers.domain.item.model.ItemCategory;
 import com.sparta.spartatigers.domain.item.model.ItemStatus;
 import com.sparta.spartatigers.domain.user.dto.UserResponseDto;
-import java.time.LocalDateTime;
 
 public record ReadItemResponseDto(
     Long id,

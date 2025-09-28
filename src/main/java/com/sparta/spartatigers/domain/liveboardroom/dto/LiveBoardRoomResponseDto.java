@@ -26,9 +26,9 @@ public class LiveBoardRoomResponseDto {
 	private LiveBoardStatus liveBoardStatus;
 
 	private String awayTeamName;
-	private TeamCode awayTeamCode;
+	private TeamCode awayTeamCode; // 이미지
 	private String homeTeamName;
-	private TeamCode homeTeamCode;
+	private TeamCode homeTeamCode; // 이미지
 	private MatchResult matchResult;
 	private String stadium;
 	private Long connectCount;

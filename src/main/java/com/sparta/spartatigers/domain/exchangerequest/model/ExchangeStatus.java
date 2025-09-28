@@ -1,8 +1,8 @@
 package com.sparta.spartatigers.domain.exchangerequest.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-
 import java.util.stream.Stream;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
 
 public enum ExchangeStatus {
         PENDING,

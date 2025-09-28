@@ -2,6 +2,7 @@ package com.sparta.spartatigers.domain.user.dto;
 
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.model.UserRole;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

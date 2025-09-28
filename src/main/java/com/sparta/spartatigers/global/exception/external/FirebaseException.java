@@ -1,9 +1,11 @@
 package com.sparta.spartatigers.global.exception.external;
 
+import org.springframework.http.HttpStatus;
+
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
@@ -29,5 +31,10 @@ public class FirebaseException extends ExternalServiceException {
     @Override
     public ExceptionCode getExceptionCode() {
         return exceptionCode;
+    }
+
+    @Override
+    public String getSource() {
+        return "Firebase";
     }
 }

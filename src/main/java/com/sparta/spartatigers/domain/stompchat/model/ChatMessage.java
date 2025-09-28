@@ -17,16 +17,11 @@ public class ChatMessage {
 	private String content;
 	private LocalDateTime sentAt;
 	private ChatDomainType domain;
-
-	public static ChatMessage ofExchangeRoom (
-		String roomId, Long senderId, String senderNickname, String content
-	) {
-		return new ChatMessage(roomId, senderId, senderNickname, content, LocalDateTime.now(), ChatDomainType.EXCHANGE);
-	}
+	private String favTeamSymbolUrl;
 
 	public static ChatMessage ofLiveBoardRoom (
-		String roomId, Long senderId,String senderNickname, String content
+		String roomId, Long senderId,String senderNickname, String content, String favTeamSymbolUrl
 	) {
-		return new ChatMessage(roomId, senderId, senderNickname, content, LocalDateTime.now(), ChatDomainType.LIVEBOARD);
+		return new ChatMessage(roomId, senderId, senderNickname, content, LocalDateTime.now(), ChatDomainType.LIVEBOARD, favTeamSymbolUrl);
 	}
 }

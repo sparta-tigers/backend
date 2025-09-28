@@ -1,15 +1,18 @@
 package com.sparta.spartatigers.domain.directRoom.controller;
 
-import com.sparta.spartatigers.domain.auth.model.TokenClaim;
-import com.sparta.spartatigers.domain.directRoom.service.UserConnectService;
-import com.sparta.spartatigers.global.aop.Auth;
-import com.sparta.spartatigers.global.response.ApiResponse;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.sparta.spartatigers.domain.auth.model.TokenClaim;
+import com.sparta.spartatigers.domain.directRoom.service.UserConnectService;
+import com.sparta.spartatigers.global.aop.Auth;
+import com.sparta.spartatigers.global.response.ApiResponse;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor

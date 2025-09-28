@@ -1,8 +1,10 @@
 package com.sparta.spartatigers.global.exception.external;
 
-import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import java.io.Serial;
+
 import org.springframework.http.HttpStatus;
+
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 
 public abstract class ExternalServiceException extends RuntimeException {
 
@@ -30,4 +32,6 @@ public abstract class ExternalServiceException extends RuntimeException {
     public abstract String getMessage();
 
     public abstract ExceptionCode getExceptionCode();
+
+    public abstract String getSource();
 }
