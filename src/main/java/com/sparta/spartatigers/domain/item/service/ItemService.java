@@ -51,6 +51,10 @@ public class ItemService {
         Item item = Item.of(request.getItemDto(), user, null);
         itemRepository.save(item);
 
+        if (request.getLocationDto() != null) {
+            locationService.updateLocation(request.getLocationDto(), user.getId());
+        }
+
         ReadItemResponseDto newItemDto = ReadItemResponseDto.from(item);
         locationService.notifyUsersNearBy(user.getId(), "ADD_ITEM", newItemDto);
 
