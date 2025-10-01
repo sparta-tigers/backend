@@ -92,8 +92,6 @@ public class GlobalExceptionHandler {
         String errorSource = ex.getSource();
         log.error("외부 서비스({}) 예외 발생 [{}]: {}", errorSource, ex.getClass().getSimpleName(), ex.getMessage(), ex);
 
-        String stackTrace = getStackTrace(ex, 5);
-
         MessagePayload payload = MessagePayload.builder()
             .level(AlertLevel.CRITICAL)
             .subject(String.format("외부 서비스(%s) 오류 발생", errorSource))
@@ -101,7 +99,6 @@ public class GlobalExceptionHandler {
             .metadata(Map.of(
                 "에러 원인", ex.getCause() != null ? ex.getCause().getMessage() : "원인 정보 없음",
                 "Error Code", ex.getExceptionCode().getCode().name(),
-                "StackTrace", stackTrace,
                 "Timestamp", LocalDateTime.now().toString()
             ))
             .build();
@@ -152,21 +149,5 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(ExceptionCode.INTERNAL_SERVER_ERROR.getHttpStatus())
             .body(ApiResponse.error(ExceptionCode.INTERNAL_SERVER_ERROR));
-    }
-
-
-    /**
-     * 예외 객체에서 스택 트레이스를 문자열로 추출하고, 원하는 라인 수만큼 잘라주는 헬퍼 메소드
-     */
-    private String getStackTrace(Throwable throwable, int lineCount) {
-        if (throwable == null) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        StackTraceElement[] stackTrace = throwable.getStackTrace();
-        for (int i = 0; i < Math.min(stackTrace.length, lineCount); i++) {
-            sb.append("\n\tat ").append(stackTrace[i]);
-        }
-        return sb.toString();
     }
 }
