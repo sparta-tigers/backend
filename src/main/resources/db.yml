@@ -17,9 +17,9 @@ spring.config.activate.on-profile: local
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${database-local-url}/sparta-tigers
-    username: ${database-local-username}
-    password: ${database-local-password}
+    url: jdbc:mysql://${DATABASE_LOCAL_URL}:${DATABASE_LOCAL_PORT}/${DATABASE_LOCAL_SCHEMA}
+    username: ${DATABASE_LOCAL_USERNAME}
+    password: ${DATABASE_LOCAL_PASSWORD}
 
   jpa:
     hibernate:
@@ -36,6 +36,6 @@ spring.config.activate.on-profile: prod
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${database.prod.url}
-    username: ${database.prod.username}
-    password: ${database.prod.password}
+    url: jdbc:mysql://${DATABASE_PROD_URL}:${DATABASE_PROD_PROT}/${DATABASE_PROD_SCHEMA}
+    username: ${DATABASE_PROD_USERNAME}
+    password: ${DATABASE_PROD_PASSWORD}

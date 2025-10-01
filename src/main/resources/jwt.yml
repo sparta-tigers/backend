@@ -2,11 +2,11 @@ spring.config.activate.on-profile: local
 
 jwt:
   access-token:
-    secret: jsdhfgsddfaskdfgkasdghfjkadkjfagdjadfgasjdfgaskdjfgkasjdasdfhjasdfg
+    secret: ${JWT_LOCAL_ACCESS_TOKEN_SECRET}
     # 7일
     expire: 604800000
   refresh-token:
-    secret: jsdhfgsddfaskdfgkasdghfjkadkjfagdjadfgasjdfgaskdjfgkasjdasdfhjasdfg
+    secret: ${JWT_LOCAL_REFRESH_TOKEN_SECRET}
     # 7일
     expire: 604800000
 
@@ -15,10 +15,10 @@ spring.config.activate.on-profile: prod
 
 jwt:
   access-token:
-    secret: ${access-token-prod-secret}
+    secret: ${JWT_PROD_ACCESS_TOKEN_SECRET}
     # 1시간
     expire: 3600000
   refresh-token:
-    secret: ${refresh-token-prod-secret}
+    secret: ${JWT_PROD_REFRESH_TOKEN_SECRET}
     # 7일
     expire: 604800000
