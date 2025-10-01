@@ -6,6 +6,7 @@ import com.sparta.spartatigers.global.notification.dto.MessagePayload;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
@@ -35,7 +36,7 @@ public class GlobalExceptionHandler {
 
     // 민감 정보 필드명 관리하는 Set
     private static final Set<String> SENSITIVE_FIELDS =
-        Set.of("password","pwd","pass","token","authorization","auth","secret","apiKey","api_key");
+        Set.of("password", "pwd", "pass", "token", "authorization", "auth", "secret", "apiKey", "api_key");
 
     /**
      * 값 마스킹 헬퍼 메서드
@@ -56,21 +57,21 @@ public class GlobalExceptionHandler {
     // validation 예외 핸들러
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<?>> handleValidationException(
-            MethodArgumentNotValidException ex) {
+        MethodArgumentNotValidException ex) {
         log.warn("Validation 예외 발생: {}", ex.getMessage());
 
         List<ErrorResponse.FieldErrorDetail> fieldErrorDetails =
-                ex.getBindingResult().getFieldErrors().stream()
-                        .map(
-                                error ->
-                                        ErrorResponse.FieldErrorDetail.of(
-                                                error.getField(),
-                                                maskIfSensitive(error.getField(), error.getRejectedValue()),
-                                                error.getDefaultMessage()))
-                        .toList();
+            ex.getBindingResult().getFieldErrors().stream()
+                .map(
+                    error ->
+                        ErrorResponse.FieldErrorDetail.of(
+                            error.getField(),
+                            maskIfSensitive(error.getField(), error.getRejectedValue()),
+                            error.getDefaultMessage()))
+                .toList();
 
         ApiResponse<?> response =
-                ApiResponse.error(ExceptionCode.VALIDATION_ERROR, fieldErrorDetails);
+            ApiResponse.error(ExceptionCode.VALIDATION_ERROR, fieldErrorDetails);
         return ResponseEntity.status(ExceptionCode.VALIDATION_ERROR.getHttpStatus()).body(response);
     }
 
@@ -90,23 +91,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ExternalServiceException.class)
     public ResponseEntity<ApiResponse<?>> handleExternalServiceException(ExternalServiceException ex) {
         String errorSource = ex.getSource();
-        log.error("외부 서비스({}) 예외 발생 [{}]: {}", errorSource, ex.getClass().getSimpleName(), ex.getMessage(), ex);
+        String title = String.format("외부 서비스(%s) 오류 발생", errorSource);
 
-        String stackTrace = getStackTrace(ex, 5);
-
-        MessagePayload payload = MessagePayload.builder()
-            .level(AlertLevel.CRITICAL)
-            .subject(String.format("외부 서비스(%s) 오류 발생", errorSource))
-            .message(ex.getExceptionCode().getMessage())
-            .metadata(Map.of(
-                "에러 원인", ex.getCause() != null ? ex.getCause().getMessage() : "원인 정보 없음",
-                "Error Code", ex.getExceptionCode().getCode().name(),
-                "StackTrace", stackTrace,
-                "Timestamp", LocalDateTime.now().toString()
-            ))
-            .build();
-
-        notificationSender.send(payload);
+        sendNotificationToDiscord(AlertLevel.CRITICAL, title, ex);
 
         return ResponseEntity.status(ex.getStatus())
             .body(ApiResponse.error(ex.getExceptionCode()));
@@ -145,28 +132,38 @@ public class GlobalExceptionHandler {
      */
     // 예상치 못한 예외 핸들러
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<?>> handleGeneralException(Exception e) {
-        log.error("예상치 못한 예외 발생: {}", e.getMessage());
+    public ResponseEntity<ApiResponse<?>> handleGeneralException(Exception ex) {
+        String title = "처리하지 못한 내부 비즈니즈 로직 오류 발생";
 
-        // TODO: 디코 등 운영팀 알림 로직 추가
+        sendNotificationToDiscord(AlertLevel.ERROR, title, ex);
 
         return ResponseEntity.status(ExceptionCode.INTERNAL_SERVER_ERROR.getHttpStatus())
             .body(ApiResponse.error(ExceptionCode.INTERNAL_SERVER_ERROR));
     }
 
+    private void sendNotificationToDiscord(AlertLevel level, String title, Exception ex) {
+        log.error("{} [Alert]: {}", title, ex.getMessage(), ex);
 
-    /**
-     * 예외 객체에서 스택 트레이스를 문자열로 추출하고, 원하는 라인 수만큼 잘라주는 헬퍼 메소드
-     */
-    private String getStackTrace(Throwable throwable, int lineCount) {
-        if (throwable == null) {
-            return "";
+        // BaseException 또는 ExternalServiceException에서 ExceptionCode를 가져오기 위한 처리
+        ExceptionCode code = null;
+        if (ex instanceof BaseException) {
+            code = ((BaseException) ex).getExceptionCode();
+        } else if (ex instanceof ExternalServiceException) {
+            code = ((ExternalServiceException) ex).getExceptionCode();
         }
-        StringBuilder sb = new StringBuilder();
-        StackTraceElement[] stackTrace = throwable.getStackTrace();
-        for (int i = 0; i < Math.min(stackTrace.length, lineCount); i++) {
-            sb.append("\n\tat ").append(stackTrace[i]);
-        }
-        return sb.toString();
+
+        MessagePayload payload = MessagePayload.builder()
+            .level(level)
+            .subject(title)
+            .message(ex.getMessage())
+            .metadata(Map.of(
+                "Exception Type", ex.getClass().getSimpleName(),
+                "Caused By", ex.getCause() != null ? ex.getCause().getMessage() : "원인 정보 없음",
+                "Error Code", (code != null) ? code.getCode().name() : "에러 코드 없음",
+                "Timestamp", LocalDateTime.now().toString()
+            ))
+            .build();
+
+        notificationSender.send(payload);
     }
 }

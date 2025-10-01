@@ -1,3 +1,0 @@
-notification:
-  discord:
-    webhook-url: ${discord-webhook-url}
