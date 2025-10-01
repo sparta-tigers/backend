@@ -159,7 +159,7 @@ public class GlobalExceptionHandler {
             .metadata(Map.of(
                 "Exception Type", ex.getClass().getSimpleName(),
                 "Caused By", ex.getCause() != null ? ex.getCause().getMessage() : "원인 정보 없음",
-                "Error Code", Objects.requireNonNull(code).getCode().name(),
+                "Error Code", (code != null) ? code.getCode().name() : "에러 코드 없음",
                 "Timestamp", LocalDateTime.now().toString()
             ))
             .build();
