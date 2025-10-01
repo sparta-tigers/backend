@@ -17,7 +17,7 @@ import org.springframework.web.client.RestClient;
 @RequiredArgsConstructor
 public class DiscordNotificationSender implements NotificationSender {
 
-    @Value("${notification.discord.webhook-url}")
+    @Value("${discord.webhook-url}")
     private String discordWebhookUrl;
 
     private final RestClient restClient;
