@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS stadiums;
 
 -- 2️⃣ 새 stadium 테이블 생성 (nx, ny 포함)
 CREATE TABLE stadiums (
-                         id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                         stadium_id BIGINT AUTO_INCREMENT PRIMARY KEY,
                          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                          latitude DOUBLE NOT NULL,
