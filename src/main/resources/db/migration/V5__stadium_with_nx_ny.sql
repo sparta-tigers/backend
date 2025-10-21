@@ -1,8 +1,8 @@
 -- 1️⃣ 기존 stadium 테이블 삭제
-DROP TABLE IF EXISTS stadium;
+DROP TABLE IF EXISTS stadiums;
 
 -- 2️⃣ 새 stadium 테이블 생성 (nx, ny 포함)
-CREATE TABLE stadium (
+CREATE TABLE stadiums (
                          id BIGINT AUTO_INCREMENT PRIMARY KEY,
                          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -14,7 +14,7 @@ CREATE TABLE stadium (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 3️⃣ 기본 구장 데이터 삽입 (기상청 격자 포함)
-INSERT INTO stadium (latitude, longitude, nx, ny, name) VALUES
+INSERT INTO stadiums (latitude, longitude, nx, ny, name) VALUES
                                                             (35.193900, 129.061600, 98, 76, '사직'),
                                                             (37.512150, 127.071976, 62, 126, '잠실'),
                                                             (37.435100, 126.690700, 55, 124, '문학'),
