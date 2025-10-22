@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardRoom;
 import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardStatus;
-import com.sparta.spartatigers.domain.Weather.model.SkyStatus;
 import com.sparta.spartatigers.domain.match.model.Match;
 import com.sparta.spartatigers.domain.match.model.MatchResult;
 import com.sparta.spartatigers.domain.team.model.TeamCode;

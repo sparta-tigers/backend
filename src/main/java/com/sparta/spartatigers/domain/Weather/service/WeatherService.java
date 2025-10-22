@@ -1,4 +1,4 @@
-package com.sparta.spartatigers.domain.Weather.service;
+package com.sparta.spartatigers.domain.weather.service;
 
 public class WeatherService {
 }

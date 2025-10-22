@@ -1,4 +1,4 @@
-package com.sparta.spartatigers.domain.Weather.controller;
+package com.sparta.spartatigers.domain.weather.controller;
 
 public class WeatherController {
 }
