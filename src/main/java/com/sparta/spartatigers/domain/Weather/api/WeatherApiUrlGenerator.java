@@ -11,7 +11,7 @@ public class WeatherApiUrlGenerator {
 	private static final String VILAGE_FCST_BASE_URL = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst";
 
 	// 초단기실황 getUltraSrtNcst
-	public static String getUltraSrtNcstUrl(int nx, int ny) throws UnsupportedEncodingException {
+	public static String getUltraSrtNcstUrl(int nx, int ny) {
 
 		BaseDateTime baseTime = ApiTimeCalculator.getNcstBaseDateTime();
 
@@ -29,7 +29,7 @@ public class WeatherApiUrlGenerator {
 	}
 
 	// 초단기예보 getUltraSrtFcst
-	public static String getUltraSrtFcstUrl(int nx, int ny) throws UnsupportedEncodingException {
+	public static String getUltraSrtFcstUrl(int nx, int ny)  {
 
 		BaseDateTime baseTime = ApiTimeCalculator.getFcstBaseDateTime();
 
@@ -47,7 +47,7 @@ public class WeatherApiUrlGenerator {
 	}
 
 	// 단기예보 getVilageFcst
-	public static String getVilageFcstUrl(int nx, int ny) throws UnsupportedEncodingException {
+	public static String getVilageFcstUrl(int nx, int ny) {
 
 		BaseDateTime baseTime = ApiTimeCalculator.getVilageFcstBaseDateTime();
 
