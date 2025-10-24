@@ -10,7 +10,7 @@ public class ForeCastResponseDto {
 
 	// private LocalDateTime referenceTime; // 업데이트시간
 	private LocalDateTime castTime; // 해당되는 예보 시간
-	private Stadium stadium;
+	private String stadium;
 
 	// ✅ 미래 날씨는 초단기 실황 활용 X
 	// 🌤️️
@@ -32,7 +32,7 @@ public class ForeCastResponseDto {
 	) {
 		ForeCastResponseDto dto = new ForeCastResponseDto();
 		dto.castTime = castTime;
-		dto.stadium = stadium;
+		dto.stadium = stadium.getName();
 		dto.temperature = temperature;
 		dto.skyStatus = skyStatus;
 		dto.rainProbability = rainProbability;

@@ -10,7 +10,7 @@ import com.sparta.spartatigers.domain.weather.model.WindDirection;
 public class NowCastResponseDto {
 
 	private LocalDateTime referenceTime; // 업데이트 시간
-	private Stadium stadium;
+	private String stadium;
 
 	// ✅ 현재 날씨는 최대한 초단기 실황을 활용할 것
 	// 🌤️️
@@ -35,7 +35,7 @@ public class NowCastResponseDto {
 	) {
 		NowCastResponseDto dto = new NowCastResponseDto();
 		dto.referenceTime = referenceTime;
-		dto.stadium = stadium;
+		dto.stadium = stadium.getName();
 		dto.temperature = temperature;
 		dto.skyStatus = skyStatus;
 		dto.rainType = rainType;
