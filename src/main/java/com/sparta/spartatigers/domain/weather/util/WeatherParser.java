@@ -3,6 +3,8 @@ package com.sparta.spartatigers.domain.weather.util;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -27,7 +29,7 @@ public class WeatherParser {
 		return res.response.body.items.item;
 	}
 
-	// 초단기실황 : 카테고리 - 응답 매핑
+	// ✅ 초단기실황 : 카테고리 - 응답 매핑
 	public static Map<String, String> toNcstMap(List<OriginResponse.Item> items) {
 		Map<String, String> m = new HashMap<>();
 		for (OriginResponse.Item it : items) {
@@ -37,17 +39,24 @@ public class WeatherParser {
 		} return m;
 	}
 
-	// 초단기예보 : 카테고리 - 응답 매핑 (현재시간만)
-	public static Map<String, String> toFcstMap(List<OriginResponse.Item> items) {
+	// ✅ 초단기예보 : 카테고리 - 응답 매핑 (현재시간만)
+	public static Map<String, String> toClosestFcstMap(List<OriginResponse.Item> items) {
+
+		if (getClosestTimeToNow(items) == null) return Collections.emptyMap();
+		String targetDate = getClosestTimeToNow(items).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+		String targetTime = getClosestTimeToNow(items).format(DateTimeFormatter.ofPattern("HHmm"));
+
 		Map<String, String> m = new HashMap<>();
 		for (OriginResponse.Item it : items) {
-			if(it.category != null && it.fcstValue != null) { // fcstValue는 실황용 응답값임
-				m.put(it.category, it.fcstValue);
+			if(targetDate.equals(it.fcstDate) && targetTime.equals(it.fcstTime)) {
+				if (it.category != null && it.fcstValue != null) { // fcstValue는 실황용 응답값임
+					m.put(it.category, it.fcstValue);
+				}
 			}
 		} return m;
 	}
 
-	// 초단기예보 , 단기예보 : 시간별 예보값 전체 추출
+	// ✅ 초단기예보 , 단기예보 : 카테고리 - 응답 매핑 (전체 시간)
 	public static Map<String, Map<String, String>> toFcstMapGroupedByTime(List<OriginResponse.Item> items) {
 		Map<String, Map<String, String>> timeCategoryMap = new LinkedHashMap<>();
 
@@ -61,6 +70,29 @@ public class WeatherParser {
 
 		return timeCategoryMap;
 	}
+
+	// 예보시간 중 현재와 시간 찾기
+	public static LocalDateTime getClosestTimeToNow(List<OriginResponse.Item> items) {
+		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime closest = null;
+
+		for (OriginResponse.Item it : items) {
+			if (it.fcstDate == null || it.fcstTime == null) continue;
+
+			LocalDateTime fcstDateTime = toDateTime(it.fcstDate, it.fcstTime);
+			if (fcstDateTime == null) continue;
+
+			if (closest == null || Math.abs(ChronoUnit.MINUTES.between(fcstDateTime, now)) <
+				Math.abs(ChronoUnit.MINUTES.between(closest, now))) {
+				closest = fcstDateTime;
+			}
+		}
+
+		if (closest == null) return null;
+
+		return closest;
+	}
+
 
 	// 가장 최근 발표 찾기
 	public static LocalDateTime latestBaseDateTime (List<OriginResponse.Item> items) {
@@ -113,6 +145,15 @@ public class WeatherParser {
 		} catch (Exception e) {
 			return null;
 		}
+	}
+
+	public static LocalDateTime toDateTimeFromFcst(String hhmm) {
+		LocalDate today = LocalDate.now();
+		LocalTime time = LocalTime.of(
+			Integer.parseInt(hhmm.substring(0, 2)),
+			Integer.parseInt(hhmm.substring(2, 4))
+		);
+		return LocalDateTime.of(today, time);
 	}
 
 }
