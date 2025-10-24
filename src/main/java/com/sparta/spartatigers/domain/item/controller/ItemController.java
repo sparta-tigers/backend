@@ -1,5 +1,16 @@
 package com.sparta.spartatigers.domain.item.controller;
 
+import com.sparta.spartatigers.domain.auth.model.TokenClaim;
+import com.sparta.spartatigers.domain.item.dto.request.CreateItemWithLocationRequestDto;
+import com.sparta.spartatigers.domain.item.dto.request.UpdateItemRequestDto;
+import com.sparta.spartatigers.domain.item.dto.response.ItemResponseDto;
+import com.sparta.spartatigers.domain.item.dto.response.ReadItemDetailResponseDto;
+import com.sparta.spartatigers.domain.item.dto.response.ReadItemResponseDto;
+import com.sparta.spartatigers.domain.item.service.ItemService;
+import com.sparta.spartatigers.global.aop.Auth;
+import com.sparta.spartatigers.global.response.ApiResponse;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
@@ -13,19 +24,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sparta.spartatigers.domain.auth.model.TokenClaim;
-import com.sparta.spartatigers.domain.item.dto.request.CreateItemRequestDto;
-import com.sparta.spartatigers.domain.item.dto.request.UpdateItemRequestDto;
-import com.sparta.spartatigers.domain.item.dto.response.ItemResponseDto;
-import com.sparta.spartatigers.domain.item.dto.response.ReadItemDetailResponseDto;
-import com.sparta.spartatigers.domain.item.dto.response.ReadItemResponseDto;
-import com.sparta.spartatigers.domain.item.service.ItemService;
-import com.sparta.spartatigers.global.aop.Auth;
-import com.sparta.spartatigers.global.response.ApiResponse;
-
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/items")
@@ -35,7 +33,7 @@ public class ItemController {
 
     @PostMapping
     public ApiResponse<ItemResponseDto> createItem(
-        @Valid @RequestBody CreateItemRequestDto request,
+        @Valid @RequestBody CreateItemWithLocationRequestDto request,
         @Auth TokenClaim tokenClaim) {
 
         ItemResponseDto response = itemService.createItem(request, tokenClaim);

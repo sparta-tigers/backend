@@ -1,0 +1,43 @@
+# ===========================================
+# Spring Boot Setting for 'local' profile
+# ===========================================
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${DATABASE_LOCAL_URL}:${DATABASE_LOCAL_PORT}/${DATABASE_LOCAL_SCHEMA}
+    username: ${DATABASE_LOCAL_USERNAME}
+    password: ${DATABASE_LOCAL_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        highlight_sql: true
+
+  data:
+    redis:
+      host: ${REDIS_LOCAL_URL}
+      port: ${REDIS_LOCAL_PORT}
+      password: ${REDIS_LOCAL_PASSWORD}
+      timeout: 3000
+
+# ===========================================
+# JWT Settings
+# ===========================================
+jwt:
+  access-token:
+    secret: ${JWT_LOCAL_ACCESS_TOKEN_SECRET}
+    expire: 604800000 # 7일
+  refresh-token:
+    secret: ${JWT_LOCAL_REFRESH_TOKEN_SECRET}
+    expire: 604800000 # 7일
+
+# ===========================================
+# Notification Settings (Discord)
+# ===========================================
+discord:
+  webhook-url: ${DISCORD_WEBHOOK_LOCAL_URL}
