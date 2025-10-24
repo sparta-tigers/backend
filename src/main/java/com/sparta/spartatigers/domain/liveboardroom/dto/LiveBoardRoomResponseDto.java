@@ -1,6 +1,7 @@
 package com.sparta.spartatigers.domain.liveboardroom.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardRoom;
@@ -8,6 +9,8 @@ import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardStatus;
 import com.sparta.spartatigers.domain.match.model.Match;
 import com.sparta.spartatigers.domain.match.model.MatchResult;
 import com.sparta.spartatigers.domain.team.model.TeamCode;
+import com.sparta.spartatigers.domain.weather.dto.ForeCastResponseDto;
+import com.sparta.spartatigers.domain.weather.dto.NowCastResponseDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,8 +38,13 @@ public class LiveBoardRoomResponseDto {
 	private MatchResult matchResult;
 	private String stadium;
 	private Long connectCount;
-	@JsonProperty("isTodayMatch")
-	private boolean isTodayMatch; // TODO : 룸이 있는지 없는지 검증용?
+	//@JsonProperty("isTodayMatch")
+	//private boolean isTodayMatch; // TODO : 삭제
+
+	private NowCastResponseDto nowCast;
+	private List<ForeCastResponseDto> foreCast;
+
+
 
 
 	public static LiveBoardRoomResponseDto fromUpcomingMatch(Match match) {
@@ -53,11 +61,10 @@ public class LiveBoardRoomResponseDto {
 			.matchResult(match.getMatchResult()) // 없을수있음
 			.stadium(match.getStadium() != null ? match.getStadium().getName() : null)
 			.connectCount(0L)
-			.isTodayMatch(false)
 			.build();
 	}
 
-	public static LiveBoardRoomResponseDto fromTodayMatch(Match match, LiveBoardRoom room, long connectCount) {
+	public static LiveBoardRoomResponseDto fromTodayMatch(Match match, LiveBoardRoom room, long connectCount, NowCastResponseDto nowCast, List<ForeCastResponseDto> foreCast) {
 		return LiveBoardRoomResponseDto.builder()
 			.roomId(room.getRoomId())
 			.matchId(match.getId())
@@ -71,7 +78,8 @@ public class LiveBoardRoomResponseDto {
 			.matchResult(match.getMatchResult()) // 없을수있음
 			.stadium(match.getStadium() != null ? match.getStadium().getName() : null)
 			.connectCount(connectCount)
-			.isTodayMatch(true)
+			.nowCast(nowCast)
+			.foreCast(foreCast)
 			.build();
 	}
 
@@ -89,7 +97,6 @@ public class LiveBoardRoomResponseDto {
 			.matchResult(match.getMatchResult()) // 없을수없음
 			.stadium(match.getStadium() != null ? match.getStadium().getName() : null)
 			.connectCount(0L)
-			.isTodayMatch(false)
 			.build();
 	}
 
