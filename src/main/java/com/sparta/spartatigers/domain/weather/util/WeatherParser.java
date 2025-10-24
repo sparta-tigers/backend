@@ -115,46 +115,5 @@ public class WeatherParser {
 		}
 	}
 
-
-	// ------------------------------------------------
-
-
-	// 현재 날씨 생성 (초단기실황 + 초단기예보)
-	public static NowCastResponseDto toNowCast(
-		OriginResponse ultraNcst,
-		OriginResponse ultraFcst,
-		String targetDate,
-		String targetTime
-	) {
-		List<OriginResponse.Item> ncstItems = originItems(ultraNcst);
-		List<OriginResponse.Item> fcstItems = originItems(ultraFcst);
-
-		Map<String, String> ncstMap = toNcstMap(ncstItems);
-		Map<String, String> fcstMap = toFcstMap(fcstItems, targetDate, targetTime);
-
-		LocalDateTime referenceTime = LocalDateTime.now();
-		Integer nx = extractNx(ncstItems);
-		Integer ny = extractNy(ncstItems);
-
-		double temperature = toNumberFromText(ncstMap.get("T1H"));
-		SkyStatus skyStatus = SkyStatus.fromCode(fcstMap.get("SKY"));
-		RainType rainType = RainType.fromCode(ncstMap.get("PTY"));
-		double rainAmount = toNumberFromText(ncstMap.get("RN1"));
-		double windSpeed = toNumberFromText(ncstMap.get("WSD"));
-		WindDirection windDirection = WindDirection.fromDegree(toNumberFromText(ncstMap.get("VEC")));
-
-		return NowCastResponseDto.of(
-			referenceTime,
-			null,
-			temperature,
-			skyStatus,
-			rainType,
-			rainAmount,
-			windSpeed,
-			windDirection
-		);
-
-	}
-
 }
 
