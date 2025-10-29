@@ -71,6 +71,21 @@ public class WeatherParser {
 		return timeCategoryMap;
 	}
 
+	public static List<OriginResponse.Item> normalizeVilageTimes(List<OriginResponse.Item> items) {
+		if (items == null || items.isEmpty()) return items;
+
+		for (OriginResponse.Item it : items) {
+			if (it.fcstTime == null || it.fcstTime.length() != 4) continue;
+
+			if (it.fcstTime.endsWith("00")) {
+				String hour = it.fcstTime.substring(0, 2);
+				it.fcstTime = hour + "30";
+			}
+		}
+		return items;
+	}
+
+
 	// 예보시간 중 현재와 시간 찾기
 	public static LocalDateTime getClosestTimeToNow(List<OriginResponse.Item> items) {
 		LocalDateTime now = LocalDateTime.now();
@@ -106,19 +121,6 @@ public class WeatherParser {
 		return latest;
 	}
 
-	// 구장의 위경도 찾기
-	public static Integer extractNx(List<OriginResponse.Item> itemLists) {
-		for (OriginResponse.Item item : itemLists) {
-			if(item.nx != null) return item.nx;
-		} return null;
-	}
-
-	public static Integer extractNy(List<OriginResponse.Item> itemLists) {
-		for (OriginResponse.Item item : itemLists) {
-			if(item.ny != null) return item.ny;
-		} return null;
-	}
-
 	// 응답속 String -> LocalDateTime으로 변환
 	public static LocalDateTime toDateTime(String yyyymmdd, String hhmm) {
 		try {
@@ -146,6 +148,7 @@ public class WeatherParser {
 			return null;
 		}
 	}
+
 
 	public static LocalDateTime toDateTimeFromFcst(String hhmm) {
 		LocalDate today = LocalDate.now();

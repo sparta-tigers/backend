@@ -6,6 +6,9 @@ import com.sparta.spartatigers.domain.team.model.Stadium;
 import com.sparta.spartatigers.domain.weather.model.RainType;
 import com.sparta.spartatigers.domain.weather.model.SkyStatus;
 
+import lombok.Getter;
+
+@Getter
 public class ForeCastResponseDto {
 
 	// private LocalDateTime referenceTime; // 업데이트시간
@@ -14,21 +17,21 @@ public class ForeCastResponseDto {
 
 	// ✅ 미래 날씨는 초단기 실황 활용 X
 	// 🌤️️
-	private double temperature; // 기온(T1H) - 초단기예보
+	private Double temperature; // 기온(T1H) - 초단기예보
 	private SkyStatus skyStatus; // 하늘상태(SKY) - 초단기예보
 	//️ ☔
-	private int rainProbability; // 강수확률(POP) - 단기예보
+	private Integer rainProbability; // 강수확률(POP) - 단기예보
 	private RainType rainType; // 강수형태(PYT) - 초단기예보
-	private double rainAmount; // 강수량(RN1) - 초단기예보
+	private Double rainAmount; // 강수량(RN1) - 초단기예보
 
 	public static ForeCastResponseDto of(
 		LocalDateTime castTime,
 		Stadium stadium,
-		double temperature,
+		Double temperature,
 		SkyStatus skyStatus,
-		int rainProbability,
+		Integer rainProbability,
 		RainType rainType,
-		double rainAmount
+		Double rainAmount
 	) {
 		ForeCastResponseDto dto = new ForeCastResponseDto();
 		dto.castTime = castTime;

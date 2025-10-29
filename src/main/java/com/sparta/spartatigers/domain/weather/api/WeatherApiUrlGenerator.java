@@ -5,7 +5,7 @@ import java.io.UnsupportedEncodingException;
 
 public class WeatherApiUrlGenerator {
 
-	private static final String API_KEY = "*";
+	private static final String API_KEY = "eeaf6b6e2f691626df4fd5679bdd481e4860401825e664dadeacacf3160dd28c";
 	private static final String ULTRA_NCST_BASE_URL = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst";
 	private static final String ULTRA_FCST_BASE_URL = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtFcst";
 	private static final String VILAGE_FCST_BASE_URL = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst";

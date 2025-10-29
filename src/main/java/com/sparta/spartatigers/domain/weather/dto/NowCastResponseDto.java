@@ -7,6 +7,9 @@ import com.sparta.spartatigers.domain.weather.model.SkyStatus;
 import com.sparta.spartatigers.domain.team.model.Stadium;
 import com.sparta.spartatigers.domain.weather.model.WindDirection;
 
+import lombok.Getter;
+
+@Getter
 public class NowCastResponseDto {
 
 	private LocalDateTime referenceTime; // 업데이트 시간
@@ -14,13 +17,13 @@ public class NowCastResponseDto {
 
 	// ✅ 현재 날씨는 최대한 초단기 실황을 활용할 것
 	// 🌤️️
-	private double temperature; // 기온(T1H) - 초단기실황
+	private Double temperature; // 기온(T1H) - 초단기실황
 	private SkyStatus skyStatus; // 하늘상태(SKY) - 초단기예보
 	//️ ☔
 	private RainType rainType; // 강수형태(PYT) - 초단기실황
-	private double rainAmount; // 강수량(RN1) - 초단기실황
+	private Double rainAmount; // 강수량(RN1) - 초단기실황
 	// 💨
-	private double windSpeed; // 풍속(WSD) - 초단기실황
+	private Double windSpeed; // 풍속(WSD) - 초단기실황
 	private WindDirection windDirection; // 풍향(VEC) - 초단기실황
 
 	public static NowCastResponseDto of(
