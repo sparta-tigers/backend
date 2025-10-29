@@ -32,7 +32,9 @@ public class WeatherService {
 		int ny = stadium.getNy();
 
 		String ncstUrl = WeatherApiUrlGenerator.getUltraSrtNcstUrl(nx, ny);
-		String fcstUrl = WeatherApiUrlGenerator.getVilageFcstUrl(nx, ny);
+		String fcstUrl = WeatherApiUrlGenerator.getUltraSrtFcstUrl(nx, ny);
+		log.info("초단기실황 URL={}", ncstUrl);
+		log.info("초단기예보 URL={}", fcstUrl);
 
 		OriginResponse ncstRes = restTemplate.getForObject(ncstUrl, OriginResponse.class);
 		OriginResponse fcstRes = restTemplate.getForObject(fcstUrl, OriginResponse.class);
@@ -70,9 +72,12 @@ public class WeatherService {
 
 		String ultraNcstUrl = WeatherApiUrlGenerator.getUltraSrtFcstUrl(nx, ny);
 		String vilageFcstUrl = WeatherApiUrlGenerator.getVilageFcstUrl(nx, ny);
+		log.info("초단기예보 URL={}", ultraNcstUrl);
+		log.info("단기예보 URL={}", vilageFcstUrl);
 
 		OriginResponse ultraRes = restTemplate.getForObject(ultraNcstUrl, OriginResponse.class);
 		OriginResponse vilageRes = restTemplate.getForObject(vilageFcstUrl, OriginResponse.class);
+
 
 		List<OriginResponse.Item> ultraItems = WeatherParser.originItems(ultraRes);
 		List<OriginResponse.Item> vilageItems = WeatherParser.normalizeVilageTimes(WeatherParser.originItems(vilageRes));
@@ -84,11 +89,7 @@ public class WeatherService {
 
 		for (String time : ultraMap.keySet()) {
 			Map<String, String> ultraFcst = ultraMap.get(time);
-
-			// 1) 초단기 키도 HH00이면 HH30으로 보정해서 단기맵 접근
 			String vKey = time.endsWith("00") ? time.substring(0, 2) + "30" : time;
-
-			// 2) NPE 방어: 키가 없어도 빈 맵
 			Map<String, String> vilageFcst = vilageMap.getOrDefault(vKey, java.util.Collections.emptyMap());
 
 			Double temp       = WeatherParser.toNumberFromText(ultraFcst.get("T1H"));
@@ -110,32 +111,9 @@ public class WeatherService {
 			));
 		}
 
-		// for (String time : ultraMap.keySet()) {
-		// 	Map<String, String> ultraFcst = ultraMap.get(time);
-		// 	Map<String, String> vilageFcst = vilageMap.get(time);
-		//
-		// 	Double temp = WeatherParser.toNumberFromText(ultraFcst.get("T1H"));
-		// 	Double rainAmount = WeatherParser.toNumberFromText(ultraFcst.get("RN1"));
-		// 	Double popValue = WeatherParser.toNumberFromText(vilageFcst.get("POP"));
-		//
-		// 	// ✅ null-safe 기본값 처리
-		// 	double temperature = temp != null ? temp : Double.NaN;
-		// 	double rain = rainAmount != null ? rainAmount : 0.0;
-		// 	int pop = popValue != null ? popValue.intValue() : 0;
-		//
-		// 	ForeCastResponseDto dto = ForeCastResponseDto.of(
-		// 		WeatherParser.toDateTimeFromFcst(time),
-		// 		stadium,
-		// 		temperature,
-		// 		SkyStatus.fromCode(ultraFcst.get("SKY")),
-		// 		pop,
-		// 		RainType.fromCode(ultraFcst.get("PTY")),
-		// 		rain
-		// 	);
-		// 	foreCastList.add(dto);
-		// }
 		return foreCastList;
 	}
+
 
 
 

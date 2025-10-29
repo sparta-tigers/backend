@@ -35,7 +35,7 @@ public class WeatherApiUrlGenerator {
 
 		String urlBuilder = ULTRA_FCST_BASE_URL +
 			"?serviceKey=" + API_KEY +
-			"&numOfRows=" + "10" +// numOfRows(한 페이지 결과수)
+			"&numOfRows=" + "1000" +// numOfRows(한 페이지 결과수)
 			"&pageNo=" + "1" + // pageNo(페이지 번호)
 			"&dataType=JSON" +
 			"&base_date=" + baseTime.baseDate() +
@@ -53,7 +53,7 @@ public class WeatherApiUrlGenerator {
 
 		String urlBuilder = VILAGE_FCST_BASE_URL +
 			"?serviceKey=" + API_KEY +
-			"&numOfRows=" + "10" +// numOfRows(한 페이지 결과수)
+			"&numOfRows=" + "1000" +// numOfRows(한 페이지 결과수)
 			"&pageNo=" + "1" + // pageNo(페이지 번호)
 			"&dataType=JSON" +
 			"&base_date=" + baseTime.baseDate() +
