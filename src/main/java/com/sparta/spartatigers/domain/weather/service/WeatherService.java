@@ -36,8 +36,6 @@ public class WeatherService {
 
 		String ncstUrl = apiUrlGenerator.getUltraSrtNcstUrl(nx, ny);
 		String fcstUrl = apiUrlGenerator.getUltraSrtFcstUrl(nx, ny);
-		log.info("초단기실황 URL={}", ncstUrl);
-		log.info("초단기예보 URL={}", fcstUrl);
 
 		OriginResponse ncstRes = restTemplate.getForObject(ncstUrl, OriginResponse.class);
 		OriginResponse fcstRes = restTemplate.getForObject(fcstUrl, OriginResponse.class);
@@ -75,8 +73,6 @@ public class WeatherService {
 
 		String ultraNcstUrl = apiUrlGenerator.getUltraSrtFcstUrl(nx, ny);
 		String vilageFcstUrl = apiUrlGenerator.getVilageFcstUrl(nx, ny);
-		log.info("초단기예보 URL={}", ultraNcstUrl);
-		log.info("단기예보 URL={}", vilageFcstUrl);
 
 		OriginResponse ultraRes = restTemplate.getForObject(ultraNcstUrl, OriginResponse.class);
 		OriginResponse vilageRes = restTemplate.getForObject(vilageFcstUrl, OriginResponse.class);
