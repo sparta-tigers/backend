@@ -18,21 +18,24 @@ import com.sparta.spartatigers.domain.weather.model.WindDirection;
 import com.sparta.spartatigers.domain.weather.response.OriginResponse;
 import com.sparta.spartatigers.domain.weather.util.WeatherParser;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class WeatherService {
 
 	private final RestTemplate restTemplate = new RestTemplate();
+	private final WeatherApiUrlGenerator apiUrlGenerator;
 
 	public NowCastResponseDto getNowCast(Stadium stadium) {
 
 		int nx = stadium.getNx();
 		int ny = stadium.getNy();
 
-		String ncstUrl = WeatherApiUrlGenerator.getUltraSrtNcstUrl(nx, ny);
-		String fcstUrl = WeatherApiUrlGenerator.getUltraSrtFcstUrl(nx, ny);
+		String ncstUrl = apiUrlGenerator.getUltraSrtNcstUrl(nx, ny);
+		String fcstUrl = apiUrlGenerator.getUltraSrtFcstUrl(nx, ny);
 		log.info("초단기실황 URL={}", ncstUrl);
 		log.info("초단기예보 URL={}", fcstUrl);
 
@@ -70,8 +73,8 @@ public class WeatherService {
 		int nx = stadium.getNx();
 		int ny = stadium.getNy();
 
-		String ultraNcstUrl = WeatherApiUrlGenerator.getUltraSrtFcstUrl(nx, ny);
-		String vilageFcstUrl = WeatherApiUrlGenerator.getVilageFcstUrl(nx, ny);
+		String ultraNcstUrl = apiUrlGenerator.getUltraSrtFcstUrl(nx, ny);
+		String vilageFcstUrl = apiUrlGenerator.getVilageFcstUrl(nx, ny);
 		log.info("초단기예보 URL={}", ultraNcstUrl);
 		log.info("단기예보 URL={}", vilageFcstUrl);
 
