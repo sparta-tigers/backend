@@ -77,3 +77,11 @@ cloud:
 # ===========================================
 firebase:
   project-id: "yaguniv-6a1b0"
+
+# ===============================
+# Weather API
+# ===============================
+weather:
+  api:
+    key: ${WEATHER_API_KEY}
+

@@ -34,10 +34,10 @@ public class StompInterceptor implements ChannelInterceptor {
 				message, StompHeaderAccessor.class); // stomp 메세지의 헤더를 분석 ( 커멘드, 세션아이디 등등..)
 		StompCommand command = accessor.getCommand();
 
-		String domainRaw = accessor.getFirstNativeHeader(CHAT_DOMAIN_TYPE);
-		ChatDomainType domain = resolveDomain(domainRaw);
-
 		if (StompCommand.CONNECT.equals(command)) {
+			String domainRaw = accessor.getFirstNativeHeader(CHAT_DOMAIN_TYPE);
+			ChatDomainType domain = resolveDomain(domainRaw);
+
 			String token = accessor.getFirstNativeHeader("Authorization");
 
 			// 토큰 있음

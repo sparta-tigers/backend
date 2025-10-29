@@ -30,4 +30,11 @@ public class Stadium extends BaseEntity {
 
     @Column
     private double longitude;
+
+    @Column
+    private int nx;
+
+    @Column
+    private int ny;
+
 }
