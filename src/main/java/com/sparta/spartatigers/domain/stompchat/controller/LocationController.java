@@ -1,4 +1,4 @@
-package com.sparta.spartatigers.domain.stompchat.Controller;
+package com.sparta.spartatigers.domain.stompchat.controller;
 
 import com.sparta.spartatigers.domain.stompchat.Service.LocationService;
 import com.sparta.spartatigers.domain.stompchat.dto.request.LocationRequestDto;
@@ -15,16 +15,21 @@ public class LocationController {
 
     private final LocationService locationService;
 
+    // @MessageMapping("/location.update")
+    // public void updateLocation(@Payload LocationRequestDto request, Principal principal) {
+    //     Long userId;
+    //
+    //     if (principal instanceof StompPrincipal stompPrincipal) {
+    //         userId = Long.parseLong(stompPrincipal.getName());
+    //     } else {
+    //         throw new IllegalStateException("지원하지 않는 principal 타입");
+    //     }
+    //
+    //     locationService.updateLocation(request, userId);
+    // }
     @MessageMapping("/location.update")
     public void updateLocation(@Payload LocationRequestDto request, Principal principal) {
-        Long userId;
-
-        if (principal instanceof StompPrincipal stompPrincipal) {
-            userId = Long.parseLong(stompPrincipal.getName());
-        } else {
-            throw new IllegalStateException("지원하지 않는 principal 타입");
-        }
-
+        Long userId = Long.parseLong(((StompPrincipal) principal).getName());
         locationService.updateLocation(request, userId);
     }
 }
