@@ -79,7 +79,7 @@ public class ExchangeChatService {
         // db에 메시지 저장
         DirectMessage savedMessage =
             directMessageRepository.save(
-                new DirectMessage(room, sender, messageText, LocalDateTime.now()));
+                DirectMessage.of(room, sender, messageText));
         log.debug(
             "[sendMessage] 메시지 저장 완료 - messageId: {}, senderId: {}, roomId: {}",
             savedMessage.getId(),

@@ -1,10 +1,14 @@
 package com.sparta.spartatigers.domain.directRoom.service;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomMessageResponse;
+import com.sparta.spartatigers.domain.directRoom.model.DirectMessage;
 import com.sparta.spartatigers.domain.directRoom.model.DirectRoom;
 import com.sparta.spartatigers.domain.directRoom.repository.DirectMessageRepository;
 import com.sparta.spartatigers.domain.directRoom.repository.DirectRoomRepository;
@@ -22,6 +26,7 @@ public class DirectMessageService {
     private final DirectRoomRepository directRoomRepository;
     private final DirectMessageRepository directRoomMessageRepository;
 
+    @Transactional
     public Page<DirectRoomMessageResponse> getMessages(
             Long roomId, Long userId, Pageable pageable) {
         log.info("[getMessages] 메시지 목록 조회 시작 - roomId: {}, userId: {}", roomId, userId);
@@ -41,6 +46,12 @@ public class DirectMessageService {
             throw new InvalidRequestException(ExceptionCode.FORBIDDEN_REQUEST);
         }
 
+        // 메세지 조회 전 안읽은 메세지 일괄 읽음 처리
+        List<DirectMessage> unreadMessages =
+            directRoomMessageRepository.findUnreadMsg(roomId, userId);
+        unreadMessages.forEach(DirectMessage::markAsRead);
+
+        // 메세지 조회
         Page<DirectRoomMessageResponse> messages =
                 directRoomMessageRepository
                         .findByDirectRoomIdWithSender(roomId, pageable)
