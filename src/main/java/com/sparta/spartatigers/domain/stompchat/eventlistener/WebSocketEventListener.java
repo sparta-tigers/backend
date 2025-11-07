@@ -4,7 +4,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
-import com.sparta.spartatigers.domain.stompchat.Service.ChatService;
+import com.sparta.spartatigers.domain.stompchat.service.ChatService;
 
 import lombok.RequiredArgsConstructor;
 
