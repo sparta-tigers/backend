@@ -1,4 +1,4 @@
-package com.sparta.spartatigers.domain.stompchat.Service;
+package com.sparta.spartatigers.domain.stompchat.service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;

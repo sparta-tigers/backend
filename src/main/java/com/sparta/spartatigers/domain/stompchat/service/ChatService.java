@@ -1,4 +1,4 @@
-package com.sparta.spartatigers.domain.stompchat.Service;
+package com.sparta.spartatigers.domain.stompchat.service;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
@@ -12,7 +12,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Service;
 
-import com.sparta.spartatigers.domain.favoriteteam.model.entity.FavoriteTeam;
 import com.sparta.spartatigers.domain.favoriteteam.repository.FavTeamRepository;
 import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardConnection;
 import com.sparta.spartatigers.domain.liveboardroom.repository.LiveBoardConnectionRepository;
