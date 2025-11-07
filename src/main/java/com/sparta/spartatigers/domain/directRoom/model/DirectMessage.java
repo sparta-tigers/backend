@@ -43,16 +43,27 @@ public class DirectMessage extends BaseEntity {
     @Column(nullable = false)
     private LocalDateTime sentAt;
 
+    @Column (nullable = false)
+    private boolean isRead;
+
     @PrePersist
     protected void onPersist() {
         this.sentAt = LocalDateTime.now();
     }
 
-    public DirectMessage(DirectRoom directRoom, User sender, String message, LocalDateTime sentAt) {
-        this.directRoom = directRoom;
-        this.sender = sender;
-        this.message = message;
-        this.sentAt = sentAt;
+    public static DirectMessage of(DirectRoom directRoom, User sender, String message) {
+        DirectMessage directMessage = new DirectMessage();
+        directMessage.directRoom = directRoom;
+        directMessage.sender = sender;
+        directMessage.message = message;
+        directMessage.sentAt = LocalDateTime.now();
+        directMessage.isRead = false;
+        return directMessage;
+    }
+
+    // 읽음 처리용 메서드
+    public void markAsRead() {
+        this.isRead = true;
     }
 
 }

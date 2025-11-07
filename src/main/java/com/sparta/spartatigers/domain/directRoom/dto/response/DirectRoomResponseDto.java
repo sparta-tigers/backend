@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 public class DirectRoomResponseDto {
 
     private Long directRoomId;
+    private Long unreadCount;
     private Long exchangeRequestId;
     private Long senderId;
     private Long receiverId;
@@ -31,7 +32,7 @@ public class DirectRoomResponseDto {
     private boolean opponentOnline;
 
     public static DirectRoomResponseDto from(
-            DirectRoom room, Long currentUserId, boolean opponentOnline) {
+            DirectRoom room, Long unreadCount, Long currentUserId, boolean opponentOnline) {
         ExchangeRequest exchangeRequest = room.getExchangeRequest();
         Item item = exchangeRequest.getItem();
 
@@ -40,6 +41,7 @@ public class DirectRoomResponseDto {
 
         return new DirectRoomResponseDto(
                 room.getId(),
+                unreadCount,
                 exchangeRequest.getId(),
                 room.getSender().getId(),
                 room.getReceiver().getId(),
