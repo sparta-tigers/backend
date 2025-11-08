@@ -1,5 +1,6 @@
 package com.sparta.spartatigers.domain.directRoom.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sparta.spartatigers.domain.directRoom.model.DirectMessage;
 
 import lombok.AllArgsConstructor;
@@ -17,6 +18,7 @@ public class RedisMessage {
     private String message;
     private String sentAt;
     private String senderNickname;
+    @JsonProperty("read")
     private boolean isRead;
 
     public static RedisMessage from(DirectMessage message) {
