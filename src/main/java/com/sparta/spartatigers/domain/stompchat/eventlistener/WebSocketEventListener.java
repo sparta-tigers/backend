@@ -64,6 +64,13 @@ public class WebSocketEventListener {
 	}
 
 	private Long getUserIdFromAccessor(StompHeaderAccessor accessor) {
-		return Long.parseLong((String) accessor.getSessionAttributes().get("userId"));
+		Object userIdAttributes = accessor.getSessionAttributes().get("userId");
+		if(userIdAttributes != null) {
+			return Long.parseLong(userIdAttributes.toString());
+		}
+		String sessionId = accessor.getSessionId();
+		Long userId = sessionRegistry.getUserIdBySessionId(sessionId);
+
+		return userId;
 	}
 }
