@@ -15,10 +15,9 @@ public class RedisMessage {
     private Long roomId;
     private Long messageId;
     private String message;
-    private String
-            sentAt; // redis 발행할 때 json으로 변환 실패할 수도 있음(RedisDirectMessageSubscriber 역직렬화 할 때 실패할 수도
-    // 있어서 String 타입)
+    private String sentAt;
     private String senderNickname;
+    private boolean isRead;
 
     public static RedisMessage from(DirectMessage message) {
         return new RedisMessage(
@@ -27,6 +26,16 @@ public class RedisMessage {
                 message.getId(),
                 message.getMessage(),
                 message.getSentAt().toString(),
-                message.getSender().getNickname());
+                message.getSender().getNickname(),
+                message.isRead()
+        );
+    }
+
+    public static RedisMessage readStatus(Long messageId, Long roomId, boolean isRead) {
+        RedisMessage redisMessage = new RedisMessage();
+        redisMessage.messageId = messageId;
+        redisMessage.roomId = roomId;
+        redisMessage.isRead = isRead;
+        return redisMessage;
     }
 }
