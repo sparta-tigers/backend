@@ -1,5 +1,7 @@
 package com.sparta.spartatigers.domain.directRoom.dto.response;
 
+import java.time.LocalDateTime;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sparta.spartatigers.domain.directRoom.model.DirectMessage;
 
@@ -38,6 +40,7 @@ public class RedisMessage {
         redisMessage.messageId = messageId;
         redisMessage.roomId = roomId;
         redisMessage.isRead = isRead;
+        redisMessage.sentAt = LocalDateTime.now().toString();
         return redisMessage;
     }
 }

@@ -72,7 +72,7 @@ public class ExchangeChatService {
 
         // redis 발행 (UNREAD 상태)
         redisPublisher.publish("directRoom:" + roomId, RedisMessage.from(savedMessage));
-        log.info("[sendMessage] Redis 메시지 발행 완료 - roomId: {}", roomId);
+        log.info("[1:1 채팅] PUBLISH / roomId={} , messageId={}", roomId, savedMessage.getId());
 
         // 수신자 조회
         Long receiverId = getOpponentId(room, senderId);
@@ -81,9 +81,10 @@ public class ExchangeChatService {
         boolean receiverOnline = sessionRegistry.isUserInRoom(roomId, receiverId);
         if (receiverOnline) {
             savedMessage.markAsRead();
+            directMessageRepository.save(savedMessage);
             RedisMessage readStatusMessage = RedisMessage.readStatus(savedMessage.getId(), roomId, true);
             redisPublisher.publish("directRoom:" + roomId, readStatusMessage);
-
+            log.info("[1:1 채팅] REPUBLISH / roomId={} , messageId={} , read={}", roomId, readStatusMessage.getMessageId(), readStatusMessage.isRead());
         }
 
     }
