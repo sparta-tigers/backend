@@ -2,7 +2,7 @@ package com.sparta.spartatigers.domain.stompchat.pubsub;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sparta.spartatigers.domain.stompchat.Service.LocationService;
+import com.sparta.spartatigers.domain.stompchat.service.LocationService;
 import com.sparta.spartatigers.domain.stompchat.dto.response.RedisUpdateDto;
 import java.nio.charset.StandardCharsets;
 import java.util.List;

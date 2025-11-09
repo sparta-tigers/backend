@@ -1,6 +1,6 @@
 package com.sparta.spartatigers.domain.stompchat.controller;
 
-import com.sparta.spartatigers.domain.stompchat.Service.LocationService;
+import com.sparta.spartatigers.domain.stompchat.service.LocationService;
 import com.sparta.spartatigers.domain.stompchat.dto.request.LocationRequestDto;
 import com.sparta.spartatigers.domain.stompchat.interceptor.StompPrincipal;
 import java.security.Principal;

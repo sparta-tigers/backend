@@ -1,4 +1,4 @@
-package com.sparta.spartatigers.domain.stompchat.Controller;
+package com.sparta.spartatigers.domain.stompchat.controller;
 
 import java.security.Principal;
 
@@ -8,7 +8,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
 
-import com.sparta.spartatigers.domain.stompchat.Service.ChatService;
+import com.sparta.spartatigers.domain.stompchat.service.ChatService;
 import com.sparta.spartatigers.domain.stompchat.model.ChatMessage;
 import com.sparta.spartatigers.global.exception.internal.WebSocketException;
 import com.sparta.spartatigers.global.response.WebSocketErrorResponse;
