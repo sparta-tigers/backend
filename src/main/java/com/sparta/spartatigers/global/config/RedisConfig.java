@@ -1,5 +1,6 @@
 package com.sparta.spartatigers.global.config;
 
+import com.sparta.spartatigers.domain.stompchat.pubsub.RedisLocationSubscriber;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -76,13 +77,15 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory connectionFactory, RedisDirectMessageSubscriber subscriber) {
+    public RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory connectionFactory, RedisDirectMessageSubscriber subscriber, RedisLocationSubscriber locationSubscriber) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
 
         // 모든 directRoom:{id} 형식의 채널 구독
         container.addMessageListener(subscriber, new PatternTopic("directRoom:*"));
         log.info("연결된 채팅방: directRoom:*");
+
+        container.addMessageListener(locationSubscriber, new PatternTopic("location-channel"));
         return container;
     }
 
