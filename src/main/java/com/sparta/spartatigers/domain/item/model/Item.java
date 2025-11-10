@@ -129,6 +129,7 @@ public class Item extends BaseEntity {
 
     public void deleteItem() {
         this.status = ItemStatus.DELETED;
+        this.createdDate = null;
     }
 
     public void updateItem(UpdateItemRequestDto request) {
