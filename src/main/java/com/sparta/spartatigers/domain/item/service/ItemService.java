@@ -1,7 +1,7 @@
 package com.sparta.spartatigers.domain.item.service;
 
 import com.sparta.spartatigers.domain.auth.model.TokenClaim;
-import com.sparta.spartatigers.domain.item.dto.request.CreateItemRequestDto;
+import com.sparta.spartatigers.domain.item.dto.request.CreateItemWithLocationRequestDto;
 import com.sparta.spartatigers.domain.item.dto.request.UpdateItemRequestDto;
 import com.sparta.spartatigers.domain.item.dto.response.ItemResponseDto;
 import com.sparta.spartatigers.domain.item.dto.response.ReadItemDetailResponseDto;
@@ -9,12 +9,15 @@ import com.sparta.spartatigers.domain.item.dto.response.ReadItemResponseDto;
 import com.sparta.spartatigers.domain.item.model.Item;
 import com.sparta.spartatigers.domain.item.model.ItemStatus;
 import com.sparta.spartatigers.domain.item.repository.ItemRepository;
+import com.sparta.spartatigers.domain.stompchat.service.LocationService;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.repository.UserRepository;
-import com.sparta.spartatigers.global.exception.ExceptionCode;
-import com.sparta.spartatigers.global.exception.InvalidRequestException;
 
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,17 +28,35 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ItemService {
 
+    private static final double SEARCH_RADIUS_KM = 0.05;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final LocationService locationService;
 
     @Transactional
-    public ItemResponseDto createItem(CreateItemRequestDto request, TokenClaim tokenClaim) {
+    public ItemResponseDto createItem(CreateItemWithLocationRequestDto request, TokenClaim tokenClaim) {
+
+        //        LocationRequestDto locationDto = request.getLocationDto();
+        //        boolean isNear =
+        //                locationService.isNearStadium(
+        //                        locationDto.getLongitude(), locationDto.getLatitude());
+        //
+        //        if (!isNear) {
+        //            throw new ServerException(ExceptionCode.LOCATION_NOT_VALID);
+        //        }
 
         User user = userRepository.findById(tokenClaim.getUserId())
             .orElseThrow(() -> new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
 
-        Item item = Item.of(request, user, null);
+        Item item = Item.of(request.getItemDto(), user, null);
         itemRepository.save(item);
+
+        if (request.getLocationDto() != null) {
+            locationService.updateLocation(request.getLocationDto(), user.getId());
+        }
+
+        ReadItemResponseDto newItemDto = ReadItemResponseDto.from(item);
+        locationService.notifyUsersNearBy(user.getId(), "ADD_ITEM", newItemDto);
 
         return ItemResponseDto.from(item);
     }
@@ -43,10 +64,13 @@ public class ItemService {
     @Transactional(readOnly = true)
     public Page<ReadItemResponseDto> findAllItems(TokenClaim tokenClaim, Pageable pageable) {
 
-        User user = userRepository.findById(tokenClaim.getUserId())
-            .orElseThrow(() ->  new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
+        Long userId = userRepository.findById(tokenClaim.getUserId())
+            .orElseThrow(() ->  new InvalidRequestException(ExceptionCode.VALIDATION_ERROR)).getId();
 
-        Page<Item> itemList = itemRepository.findAllItems(ItemStatus.REGISTERED, LocalDate.now(), pageable);
+        List<Long> nearByUserIds = locationService.findUsersNearBy(userId, SEARCH_RADIUS_KM);
+        nearByUserIds.add(userId);
+
+        Page<Item> itemList = itemRepository.findAllItems(ItemStatus.REGISTERED, LocalDate.now(), nearByUserIds, pageable);
 
         return itemList.map(ReadItemResponseDto::from);
     }
@@ -68,6 +92,9 @@ public class ItemService {
         Item item = itemRepository.findByIdAndStatusAndDateOrElseThrow(itemId);
         item.validateUserIsOwner(user);
         item.deleteItem();
+
+        Map<String, Object> data = Map.of("itemId", item.getId(), "userId", item.getUser().getId());
+        locationService.notifyUsersNearBy(item.getUser().getId(), "REMOVE_ITEM", data);
     }
 
     @Transactional

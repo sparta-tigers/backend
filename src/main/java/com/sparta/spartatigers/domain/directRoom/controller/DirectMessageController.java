@@ -1,11 +1,5 @@
 package com.sparta.spartatigers.domain.directRoom.controller;
 
-import com.sparta.spartatigers.domain.auth.model.TokenClaim;
-import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomMessageResponse;
-import com.sparta.spartatigers.domain.directRoom.service.DirectMessageService;
-import com.sparta.spartatigers.global.aop.Auth;
-import com.sparta.spartatigers.global.response.ApiResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -14,6 +8,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.sparta.spartatigers.domain.auth.model.TokenClaim;
+import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomMessageResponse;
+import com.sparta.spartatigers.domain.directRoom.service.DirectMessageService;
+import com.sparta.spartatigers.global.aop.Auth;
+import com.sparta.spartatigers.global.response.ApiResponse;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
@@ -37,6 +39,6 @@ public class DirectMessageController {
         Page<DirectRoomMessageResponse> messages =
                 directMessageService.getMessages(roomId, currentUserId, pageable);
 
-        return ApiResponse.ok(messages);
+        return ApiResponse.success(messages);
     }
 }

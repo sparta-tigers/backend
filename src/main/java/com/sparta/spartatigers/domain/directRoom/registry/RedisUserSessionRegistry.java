@@ -2,16 +2,18 @@ package com.sparta.spartatigers.domain.directRoom.registry;
 
 import java.time.Duration;
 import java.util.Set;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
+
+import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
 public class RedisUserSessionRegistry {
 
-    private static final String USER_SESSION_KEY_PREFIX =
-            "user-sessions:"; // userId -> Set<sessionId>
+    private static final String USER_SESSION_KEY_PREFIX = "user-sessions:"; // userId -> Set<sessionId>
+    private static final String ROOM_USERS_KEY_PREFIX = "room-users:";
     private final StringRedisTemplate redisTemplate;
 
     // 멀티 세션 불가 x (메시지 중복 수신 문제 발생)
@@ -67,5 +69,25 @@ public class RedisUserSessionRegistry {
     public Set<String> getSessionIds(Long userId) {
         String userKey = USER_SESSION_KEY_PREFIX + userId;
         return redisTemplate.opsForSet().members(userKey);
+    }
+
+    //--------------------------------------------------------------------
+    // 유저 입장시
+    public void registerUserInRoom(Long roomId, Long userId) {
+        String key = ROOM_USERS_KEY_PREFIX + roomId;
+        redisTemplate.opsForSet().add(key, String.valueOf(userId));
+        redisTemplate.expire(key,Duration.ofHours(6)); // TODO: 일단 태정님하고 똑같이 6시간,,,
+    }
+
+    // 유저 퇴장시
+    public void unregisterUserInRoom(Long roomId, Long userId) {
+        String key = ROOM_USERS_KEY_PREFIX + roomId;
+        redisTemplate.opsForSet().remove(key, String.valueOf(userId));
+    }
+
+    // 방에 유저 있는지 확인
+    public boolean isUserInRoom(Long roomId, Long userId) {
+        String key = ROOM_USERS_KEY_PREFIX +roomId;
+        return Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(key,String.valueOf(userId)));
     }
 }

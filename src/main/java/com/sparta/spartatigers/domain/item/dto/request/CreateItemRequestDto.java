@@ -1,6 +1,7 @@
 package com.sparta.spartatigers.domain.item.dto.request;
 
 import com.sparta.spartatigers.domain.item.model.ItemCategory;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 

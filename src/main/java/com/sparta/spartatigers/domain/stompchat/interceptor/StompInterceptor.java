@@ -1,7 +1,5 @@
 package com.sparta.spartatigers.domain.stompchat.interceptor;
 
-
-import com.sparta.spartatigers.domain.directRoom.registry.RedisUserSessionRegistry;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -12,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.domain.auth.service.JwtTokenService;
+import com.sparta.spartatigers.domain.directRoom.registry.RedisUserSessionRegistry;
 import com.sparta.spartatigers.domain.stompchat.model.ChatDomainType;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.repository.UserRepository;
@@ -35,10 +34,10 @@ public class StompInterceptor implements ChannelInterceptor {
 				message, StompHeaderAccessor.class); // stomp 메세지의 헤더를 분석 ( 커멘드, 세션아이디 등등..)
 		StompCommand command = accessor.getCommand();
 
-		String domainRaw = accessor.getFirstNativeHeader(CHAT_DOMAIN_TYPE);
-		ChatDomainType domain = resolveDomain(domainRaw);
-
 		if (StompCommand.CONNECT.equals(command)) {
+			String domainRaw = accessor.getFirstNativeHeader(CHAT_DOMAIN_TYPE);
+			ChatDomainType domain = resolveDomain(domainRaw);
+
 			String token = accessor.getFirstNativeHeader("Authorization");
 
 			// 토큰 있음
@@ -67,6 +66,7 @@ public class StompInterceptor implements ChannelInterceptor {
 	private ChatDomainType resolveDomain(String domainRaw) {
 		if ("liveboard".equalsIgnoreCase(domainRaw)) return ChatDomainType.LIVEBOARD;
 		if ("directroom".equalsIgnoreCase(domainRaw)) return ChatDomainType.EXCHANGE;
+		if ("location".equalsIgnoreCase(domainRaw)) return ChatDomainType.LOCATION;
 		throw new RuntimeException("ChatDomain 헤더가 올바르지 않습니다.");
 	}
 

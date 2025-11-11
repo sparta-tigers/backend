@@ -1,15 +1,25 @@
 package com.sparta.spartatigers.domain.match.model;
 
+import java.time.LocalDateTime;
+
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
 import com.sparta.spartatigers.domain.team.model.Stadium;
 import com.sparta.spartatigers.domain.team.model.Team;
-import jakarta.persistence.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-
-import java.time.LocalDateTime;
 
 @Entity(name = "matches")
 @Getter

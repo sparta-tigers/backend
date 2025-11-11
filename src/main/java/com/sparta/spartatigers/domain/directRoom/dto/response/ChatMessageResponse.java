@@ -1,6 +1,7 @@
 package com.sparta.spartatigers.domain.directRoom.dto.response;
 
 import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -10,6 +11,7 @@ public class ChatMessageResponse {
 
     private Long roomId;
     private Long senderId;
+    private Long messageId;
     private String senderNickname;
     private String message;
     private LocalDateTime sentAt;
@@ -18,6 +20,7 @@ public class ChatMessageResponse {
         return new ChatMessageResponse(
                 message.getRoomId(),
                 message.getSenderId(),
+                message.getMessageId(),
                 message.getSenderNickname(),
                 message.getMessage(),
                 LocalDateTime.parse(message.getSentAt()));

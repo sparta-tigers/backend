@@ -1,7 +1,7 @@
 package com.sparta.spartatigers.domain.item.controller;
 
 import com.sparta.spartatigers.domain.auth.model.TokenClaim;
-import com.sparta.spartatigers.domain.item.dto.request.CreateItemRequestDto;
+import com.sparta.spartatigers.domain.item.dto.request.CreateItemWithLocationRequestDto;
 import com.sparta.spartatigers.domain.item.dto.request.UpdateItemRequestDto;
 import com.sparta.spartatigers.domain.item.dto.response.ItemResponseDto;
 import com.sparta.spartatigers.domain.item.dto.response.ReadItemDetailResponseDto;
@@ -33,7 +33,7 @@ public class ItemController {
 
     @PostMapping
     public ApiResponse<ItemResponseDto> createItem(
-        @Valid @RequestBody CreateItemRequestDto request,
+        @Valid @RequestBody CreateItemWithLocationRequestDto request,
         @Auth TokenClaim tokenClaim) {
 
         ItemResponseDto response = itemService.createItem(request, tokenClaim);

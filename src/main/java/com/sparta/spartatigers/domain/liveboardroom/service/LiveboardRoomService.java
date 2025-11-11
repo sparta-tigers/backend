@@ -1,12 +1,8 @@
 package com.sparta.spartatigers.domain.liveboardroom.service;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAdjuster;
-import java.time.temporal.TemporalAdjusters;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -18,14 +14,17 @@ import org.springframework.stereotype.Service;
 
 import com.sparta.spartatigers.domain.liveboardroom.dto.LiveBoardRoomResponseDto;
 import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardRoom;
-import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardStatus;
 import com.sparta.spartatigers.domain.liveboardroom.repository.LiveBoardConnectionRepository;
 import com.sparta.spartatigers.domain.liveboardroom.repository.LiveBoardRoomRepository;
 import com.sparta.spartatigers.domain.match.model.Match;
 import com.sparta.spartatigers.domain.match.model.MatchResult;
 import com.sparta.spartatigers.domain.match.repository.MatchRepository;
+import com.sparta.spartatigers.domain.team.model.Stadium;
+import com.sparta.spartatigers.domain.team.repository.StadiumRepository;
+import com.sparta.spartatigers.domain.weather.dto.ForeCastResponseDto;
+import com.sparta.spartatigers.domain.weather.dto.NowCastResponseDto;
+import com.sparta.spartatigers.domain.weather.service.WeatherService;
 
-import jakarta.persistence.ManyToOne;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -35,6 +34,8 @@ public class LiveboardRoomService {
 	private final LiveBoardRoomRepository roomRepository;
 	private final LiveBoardConnectionRepository connectionRepository;
 	private final MatchRepository matchRepository;
+	private final StadiumRepository stadiumRepository;
+	private final WeatherService weatherService;
 
 	public String createRoomsForDay(LocalDate anyday) {
 		// 1. 특정 날짜의 00:00 ~ 24:00 까지 선택해 경기 찾기
@@ -100,11 +101,16 @@ public class LiveboardRoomService {
 				}
 
 				LocalDate matchDate = match.getMatchTime().toLocalDate();
+				LocalDate realToday = LocalDateTime.now().toLocalDate();
 
-				if(matchDate.isEqual(anyday)) { // 당일 경기
+				if(matchDate.isEqual(realToday)) { // 당일 경기
 					long connectCount = connectionRepository.getConnectionCount(room.getRoomId());
-					return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount);
-				} else if (matchDate.isBefore(anyday)) { // 지난 경기
+
+					Stadium stadium = stadiumRepository.findById(match.getStadium().getId()).orElseThrow(()-> new RuntimeException());
+					NowCastResponseDto nowCast = weatherService.getNowCast(stadium);
+					List< ForeCastResponseDto> foreCast = weatherService.getForeCast(stadium);
+					return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, nowCast, foreCast);
+				} else if (matchDate.isBefore(realToday)) { // 지난 경기
 					return LiveBoardRoomResponseDto.fromPastMatch(match, room);
 				} else { // 그외의 예정 경기
 					return LiveBoardRoomResponseDto.fromUpcomingMatch(match);

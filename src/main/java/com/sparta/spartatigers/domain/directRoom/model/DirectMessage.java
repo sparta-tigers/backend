@@ -1,13 +1,22 @@
 package com.sparta.spartatigers.domain.directRoom.model;
 
+import java.time.LocalDateTime;
+
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
 import com.sparta.spartatigers.domain.user.model.User;
-import jakarta.persistence.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Entity(name = "direct_message")
 @Getter
@@ -34,16 +43,27 @@ public class DirectMessage extends BaseEntity {
     @Column(nullable = false)
     private LocalDateTime sentAt;
 
+    @Column (nullable = false)
+    private boolean isRead;
+
     @PrePersist
     protected void onPersist() {
         this.sentAt = LocalDateTime.now();
     }
 
-    public DirectMessage(DirectRoom directRoom, User sender, String message, LocalDateTime sentAt) {
-        this.directRoom = directRoom;
-        this.sender = sender;
-        this.message = message;
-        this.sentAt = sentAt;
+    public static DirectMessage of(DirectRoom directRoom, User sender, String message) {
+        DirectMessage directMessage = new DirectMessage();
+        directMessage.directRoom = directRoom;
+        directMessage.sender = sender;
+        directMessage.message = message;
+        directMessage.sentAt = LocalDateTime.now();
+        directMessage.isRead = false;
+        return directMessage;
+    }
+
+    // 읽음 처리용 메서드
+    public void markAsRead() {
+        this.isRead = true;
     }
 
 }

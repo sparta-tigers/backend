@@ -1,6 +1,7 @@
 package com.sparta.spartatigers.domain.exchangerequest.dto.request;
 
 import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeStatus;
+
 import jakarta.validation.constraints.NotNull;
 
 public record UpdateExchangeRequestDto(

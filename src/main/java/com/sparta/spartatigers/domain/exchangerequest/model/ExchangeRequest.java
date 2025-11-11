@@ -3,9 +3,19 @@ package com.sparta.spartatigers.domain.exchangerequest.model;
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
 import com.sparta.spartatigers.domain.item.model.Item;
 import com.sparta.spartatigers.domain.user.model.User;
-import com.sparta.spartatigers.global.exception.ExceptionCode;
-import com.sparta.spartatigers.global.exception.ServerException;
-import jakarta.persistence.*;
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+import com.sparta.spartatigers.global.exception.internal.ServerException;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +29,7 @@ public class ExchangeRequest extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "match_id")
+    @Column(name = "exchange_request_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

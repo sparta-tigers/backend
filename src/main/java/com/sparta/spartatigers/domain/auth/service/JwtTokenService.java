@@ -1,20 +1,22 @@
 package com.sparta.spartatigers.domain.auth.service;
 
+import java.util.Date;
+
+import javax.crypto.SecretKey;
+
+import org.springframework.stereotype.Service;
+
 import com.sparta.spartatigers.domain.auth.model.Token;
 import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.domain.user.model.UserRole;
 import com.sparta.spartatigers.global.config.JwtConfig;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
-import javax.crypto.SecretKey;
-import java.time.LocalDateTime;
-import java.util.Date;
 
 @Slf4j
 @Service
@@ -69,9 +71,9 @@ public class JwtTokenService implements TokenService {
         SecretKey secretKey = Keys.hmacShaKeyFor(jwtConfig.getAccessToken().secret().getBytes());
         Jws<Claims> claimsJws = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token);
 
-        final String email = claimsJws.getPayload().getSubject();
         // 한번에 Long으로 받으면에러가 발생함 Number.class로 가져와야 안전
         final Number userId = claimsJws.getPayload().get("userId", Number.class);
+        final String email = claimsJws.getPayload().get("email", String.class);
         final String nickname = claimsJws.getPayload().get("nickname", String.class);
         final String profileImageUrl = claimsJws.getPayload().get("profileImageUrl", String.class);
         final String userRole = claimsJws.getPayload().get("role", String.class);

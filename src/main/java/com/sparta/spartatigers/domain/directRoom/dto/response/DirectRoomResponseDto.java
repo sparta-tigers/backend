@@ -1,10 +1,12 @@
 package com.sparta.spartatigers.domain.directRoom.dto.response;
 
+import java.time.LocalDateTime;
+
 import com.sparta.spartatigers.domain.directRoom.model.DirectRoom;
 import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeRequest;
 import com.sparta.spartatigers.domain.item.model.Item;
 import com.sparta.spartatigers.domain.user.model.User;
-import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,6 +17,7 @@ import lombok.NoArgsConstructor;
 public class DirectRoomResponseDto {
 
     private Long directRoomId;
+    private Long unreadCount;
     private Long exchangeRequestId;
     private Long senderId;
     private Long receiverId;
@@ -29,7 +32,7 @@ public class DirectRoomResponseDto {
     private boolean opponentOnline;
 
     public static DirectRoomResponseDto from(
-            DirectRoom room, Long currentUserId, boolean opponentOnline) {
+            DirectRoom room, Long unreadCount, Long currentUserId, boolean opponentOnline) {
         ExchangeRequest exchangeRequest = room.getExchangeRequest();
         Item item = exchangeRequest.getItem();
 
@@ -38,6 +41,7 @@ public class DirectRoomResponseDto {
 
         return new DirectRoomResponseDto(
                 room.getId(),
+                unreadCount,
                 exchangeRequest.getId(),
                 room.getSender().getId(),
                 room.getReceiver().getId(),

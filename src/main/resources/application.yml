@@ -1,25 +1,87 @@
-spring.profiles.active: local
-
+# ===========================================
+# Spring Boot Core Settings
+# ===========================================
 spring:
+  profiles:
+    active: local
+
   application:
     name: sparta-tigers
 
-  config:
-    import:
-      - db.yml
-      - redis.yml
-      - logging.yml
-      - monitoring.yml
-      - jwt.yml
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.default_batch_fetch_size: 100
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 1
 
   web:
     resources:
       add-mappings: false
 
+# ===========================================
+# Spring Boot Actuator Settings (Monitoring)
+# ===========================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus
 
+# ===========================================
+# Logging Settings
+# ===========================================
+logging.config: classpath:logback/logback-${spring.profiles.active}.xml
+
+# ===========================================
+# Embedded Web Server Settings (Tomcat)
+# ===========================================
 server:
   tomcat:
     max-connections: 20000
     threads:
       max: 600
       min-spare: 100
+
+# ===========================================
+# AWS Cloud Settings
+# ===========================================
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_S3_ACCESS_KEY}
+      secret-key: ${AWS_S3_SECRET_KEY}
+    region:
+      static: ${AWS_REGION}
+    s3:
+      bucket: ${AWS_S3_BUCKET_NAME}
+      folders:
+        team-symbol: team-symbols/
+      upload:
+        max-size: 5242880
+        allowed-extensions:
+          - jpg
+          - jpeg
+          - png
+    stack:
+      auto: false
+
+# ===========================================
+# Firebase Settings
+# ===========================================
+firebase:
+  project-id: "yaguniv-6a1b0"
+
+# ===============================
+# Weather API
+# ===============================
+weather:
+  api:
+    key: ${WEATHER_API_KEY}
+

@@ -1,48 +1,37 @@
 package com.sparta.spartatigers.global.response;
 
-import com.sparta.spartatigers.global.exception.BaseException;
-import com.sparta.spartatigers.global.exception.ErrorCode;
-import com.sparta.spartatigers.global.exception.ExceptionCode;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
+@JsonInclude(Include.NON_NULL)
 public class ErrorResponse {
 
-    private String code;
-    private String message;
-    private Object data;
-    private List<FieldErrorDetail> fieldErrors;
+    private final String code;
+    private final String message;
+    private final Object data;
 
-    public ErrorResponse(ExceptionCode code) {
-        this.code = code.getCode().name();
-        this.message = code.getMessage();
-        this.data = null;
-    }
-
-    public ErrorResponse(ExceptionCode code, Object data) {
+    private ErrorResponse(final ExceptionCode code, final Object data) {
         this.code = code.getCode().name();
         this.message = code.getMessage();
         this.data = data;
     }
 
-    public static ErrorResponse of(ExceptionCode code) {
-        return new ErrorResponse(code);
+    public static ErrorResponse of(final ExceptionCode code) {
+        return new ErrorResponse(code, null);
     }
 
-
-    public ErrorResponse(ExceptionCode code, List<FieldErrorDetail> fieldErrors) {
-        this.message = code.getMessage();
-        this.fieldErrors = fieldErrors;
+    public static ErrorResponse of(final ExceptionCode code, final Object data) {
+        return new ErrorResponse(code, data);
     }
 
-
-    public static ErrorResponse of(ExceptionCode code, List<FieldErrorDetail> fieldErrors) {
-        return new ErrorResponse(code, fieldErrors);
-    }
-
+    /**
+     * @Valid 검증 실패 시 발생하는 필드 에러 정보를 담는 내부 클래스
+     */
     @Getter
     @AllArgsConstructor(staticName = "of")
     public static class FieldErrorDetail {

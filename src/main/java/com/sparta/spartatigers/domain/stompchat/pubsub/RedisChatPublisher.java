@@ -5,7 +5,6 @@ import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sparta.spartatigers.domain.stompchat.model.ChatMessage;
 
 import lombok.RequiredArgsConstructor;
 

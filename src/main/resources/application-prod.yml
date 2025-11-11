@@ -1,0 +1,38 @@
+# ===========================================
+# Spring Boot Setting for 'prod' profile
+# ===========================================
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${DATABASE_PROD_URL}:${DATABASE_PROD_PORT}/${DATABASE_PROD_SCHEMA}
+    username: ${DATABASE_PROD_USERNAME}
+    password: ${DATABASE_PROD_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+  data:
+    redis:
+      host: ${REDIS_PROD_URL}
+      port: ${REDIS_PROD_PORT}
+      password: ${REDIS_PROD_PASSWORD}
+      timeout: 3000
+
+# ===========================================
+# JWT Settings
+# ===========================================
+jwt:
+  access-token:
+    secret: ${JWT_PROD_ACCESS_TOKEN_SECRET}
+    expire: 3600000 # 1시간
+  refresh-token:
+    secret: ${JWT_PROD_REFRESH_TOKEN_SECRET}
+    expire: 604800000 # 7일
+
+# ===========================================
+# Notification Settings (Discord)
+# ===========================================
+discord:
+  webhook-url: ${DISCORD_WEBHOOK_PROD_URL}
