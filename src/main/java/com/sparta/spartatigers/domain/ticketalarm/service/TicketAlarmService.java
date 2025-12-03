@@ -8,9 +8,5 @@ import com.sparta.spartatigers.domain.ticketalarm.dto.response.TicketAlarmRespon
 @Service
 public class TicketAlarmService {
 
-	public TicketAlarmResponseDto createAlarm(Long userId, CreateTicketAlarmRequestDto request) {
-
-
-	};
 
 }

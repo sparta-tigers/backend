@@ -20,12 +20,12 @@ public class TicketAlarmController {
 
 	private final TicketAlarmService ticketAlarmService;
 
-	public ApiResponse<TicketAlarmResponseDto> createAlarm(
-		@RequestBody CreateTicketAlarmRequestDto request,
-		@Auth TokenClaim tokenClaim
-	){
-		Long userId = tokenClaim.getUserId();
-		return ApiResponse.created(ticketAlarmService.createAlarm(userId, request));
-
-	}
+	// public ApiResponse<TicketAlarmResponseDto> createAlarm(
+	// 	@RequestBody CreateTicketAlarmRequestDto request,
+	// 	@Auth TokenClaim tokenClaim
+	// ){
+	// 	Long userId = tokenClaim.getUserId();
+	// 	return ApiResponse.created(ticketAlarmService.createAlarm(userId, request));
+	//
+	// }
 }

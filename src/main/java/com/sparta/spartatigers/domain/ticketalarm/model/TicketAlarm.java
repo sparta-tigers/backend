@@ -1,9 +1,6 @@
 package com.sparta.spartatigers.domain.ticketalarm.model;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-
-import org.springframework.cglib.core.Local;
 
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
 import com.sparta.spartatigers.domain.match.model.Match;
@@ -42,5 +39,13 @@ public class TicketAlarm extends BaseEntity {
 	@JoinColumn (name = "match_id", nullable = false)
 	private Match match;
 
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn (name ="booking_policy_id", nullable = false)
+	private TeamBookingPolicy teamBookingPolicy;
+
+	@Column(nullable = false)
+	private Integer minusBefore;
+
+	@Column(nullable = false)
 	private LocalDateTime alarmTime;
 }
