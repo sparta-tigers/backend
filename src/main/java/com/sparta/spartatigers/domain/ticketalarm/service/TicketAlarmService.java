@@ -31,6 +31,7 @@ public class TicketAlarmService {
 	private final TeamBookingPolicyRepository bookingPolicyRepository;
 	private final TicketAlarmRepository ticketAlarmRepository;
 
+	// TODO : 익셉션 정리
 	public TicketAlarmResponseDto createAlarm(Long userId, CreateTicketAlarmRequestDto request) {
 		// 1. 구단 예매 정책 확인하기
 		TeamBookingPolicy bookingPolicy = bookingPolicyRepository.findByTeamIdAndMembership(request.getTeamId(),
@@ -54,7 +55,7 @@ public class TicketAlarmService {
 		);
 		ticketAlarmRepository.save(alarm);
 
-		return TicketAlarmResponseDto.from(alarm);
+		return TicketAlarmResponseDto.from(alarm, openBookingTime);
 	}
 
 	// ----------------- Util 메서드

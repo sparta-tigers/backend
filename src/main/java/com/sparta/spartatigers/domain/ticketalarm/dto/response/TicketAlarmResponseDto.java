@@ -29,8 +29,9 @@ public class TicketAlarmResponseDto {
 	private Long bookingPolicyId;
 	private String membership;
 	private String ticketUrl;
+	private LocalDateTime openBookingTime;
 
-	public static TicketAlarmResponseDto from(TicketAlarm alarm) {
+	public static TicketAlarmResponseDto from(TicketAlarm alarm, LocalDateTime openBookingTime) {
 		Match match = alarm.getMatch();
 		TeamBookingPolicy policy = alarm.getTeamBookingPolicy();
 
@@ -47,7 +48,8 @@ public class TicketAlarmResponseDto {
 
 			policy.getId(),
 			policy.getMembership(),
-			policy.getTicketUrl()
+			policy.getTicketUrl(),
+			openBookingTime
 		);
 	}
 
