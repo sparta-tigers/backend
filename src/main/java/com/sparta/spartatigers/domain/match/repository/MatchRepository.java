@@ -37,5 +37,18 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
 		""")
 	Optional<Match> findByMatchId(Long matchId);
 
+	// [예매알림] 홈시리즈의 첫번째 경기 찾기
+	@Query(
+		"""
+		SELECT m
+		FROM matches m
+		WHERE m.awayTeam.id = :awayTeamId
+				AND m.homeTeam.id = :homeTeamId
+				AND m.matchTime BETWEEN :from AND :to
+		ORDER BY m.matchTime ASC LIMIT 1
+		"""
+	)
+	Optional<Match> findFirstHomeSeriesMatch (Long awayTeamId, Long homeTeamId, LocalDateTime from, LocalDateTime to);
+
 
 }
