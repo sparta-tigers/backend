@@ -107,8 +107,8 @@ public class TicketAlarmService {
 		TeamBookingPolicy currentPolicy = alarm.getTeamBookingPolicy();
 		TeamBookingPolicy newPolicy = currentPolicy;
 
-		if(request.getMemberShip() != null && !request.getMemberShip().equals(currentPolicy.getMembership())) {
-			newPolicy = bookingPolicyRepository.findByTeamIdAndMembership(alarm.getMatch().getHomeTeam().getId(), request.getMemberShip());
+		if(request.getMembership() != null && !request.getMembership().equals(currentPolicy.getMembership())) {
+			newPolicy = bookingPolicyRepository.findByTeamIdAndMembership(alarm.getMatch().getHomeTeam().getId(), request.getMembership());
 
 			if (newPolicy == null) {
 				throw new InvalidRequestException(ExceptionCode.POLICY_NOT_FOUND);

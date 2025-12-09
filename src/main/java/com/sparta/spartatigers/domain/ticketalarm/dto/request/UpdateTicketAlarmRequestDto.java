@@ -10,5 +10,6 @@ import lombok.NoArgsConstructor;
 public class UpdateTicketAlarmRequestDto {
 
 	Integer preAlarmTime;
-	String memberShip;
+	String membership;
+
 }
