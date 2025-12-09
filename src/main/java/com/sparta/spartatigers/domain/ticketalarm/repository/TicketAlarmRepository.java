@@ -3,6 +3,9 @@ package com.sparta.spartatigers.domain.ticketalarm.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -25,6 +28,15 @@ public interface TicketAlarmRepository extends JpaRepository<TicketAlarm, Long> 
 		"""
 	)
 	List<TicketAlarm> findAllByUserId(Long userId);
+
+	@EntityGraph(attributePaths = {
+		"match",
+		"match.homeTeam",
+		"match.awayTeam",
+		"match.stadium",
+		"teamBookingPolicy"
+	})
+	Page<TicketAlarm> findByUserId(Long userId, Pageable pageable);
 
 	Optional<TicketAlarm> findById(Long alarmId);
 

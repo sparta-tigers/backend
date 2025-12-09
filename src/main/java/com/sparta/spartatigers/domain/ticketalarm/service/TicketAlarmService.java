@@ -7,6 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +41,8 @@ public class TicketAlarmService {
 	private final MatchRepository matchRepository;
 	private final TeamBookingPolicyRepository bookingPolicyRepository;
 	private final TicketAlarmRepository ticketAlarmRepository;
+
+	// TODO : 지난 알림 삭제해 말아???
 
 	@Transactional
 	public TicketAlarmResponseDto createAlarm(Long userId, CreateTicketAlarmRequestDto request) {
@@ -79,9 +85,12 @@ public class TicketAlarmService {
 		return TicketAlarmResponseDto.from(alarm);
 	}
 
-	public List<TicketAlarmResponseDto> getAllAlarms(Long userId) {
-		List<TicketAlarm> alarms = ticketAlarmRepository.findAllByUserId(userId);
-		return alarms.stream().map(TicketAlarmResponseDto::from).toList();
+	public Page<TicketAlarmResponseDto> getAllAlarms(Long userId, int page, int size) {
+		Pageable pageable = PageRequest.of(
+			page, size, Sort.by(Sort.Direction.ASC, "alarmTime")
+		);
+		return ticketAlarmRepository.findByUserId(userId, pageable)
+			.map(TicketAlarmResponseDto::from);
 	}
 
 	@Transactional
@@ -120,6 +129,17 @@ public class TicketAlarmService {
 		return TicketAlarmResponseDto.from(alarm);
 	}
 
+	@Transactional
+	public void deleteAlarm (Long userId, Long alarmId) {
+		TicketAlarm alarm = ticketAlarmRepository.findById(alarmId)
+			.orElseThrow(()->new InvalidRequestException(ExceptionCode.ALARM_NOT_FOUND));
+
+		if(!alarm.getUser().getId().equals(userId)) {
+			throw new InvalidRequestException(ExceptionCode.AUTHORIZATION_ERROR);
+		}
+
+		ticketAlarmRepository.delete(alarm);
+	}
 
 	// ----------------- Util 메서드
 	// 예매 오픈 시간 구하기
