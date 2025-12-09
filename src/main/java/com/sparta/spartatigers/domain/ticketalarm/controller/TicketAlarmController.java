@@ -3,6 +3,8 @@ package com.sparta.spartatigers.domain.ticketalarm.controller;
 import java.util.List;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.domain.ticketalarm.dto.request.CreateTicketAlarmRequestDto;
+import com.sparta.spartatigers.domain.ticketalarm.dto.request.UpdateTicketAlarmRequestDto;
 import com.sparta.spartatigers.domain.ticketalarm.dto.response.TicketAlarmResponseDto;
 import com.sparta.spartatigers.domain.ticketalarm.service.TicketAlarmService;
 import com.sparta.spartatigers.global.aop.Auth;
@@ -39,6 +42,17 @@ public class TicketAlarmController {
 	) {
 		Long userId = tokenClaim.getUserId();
 		return ApiResponse.success(ticketAlarmService.getAllAlarms(userId));
+	}
+
+	@PatchMapping ("/{alarmId}")
+	public ApiResponse<TicketAlarmResponseDto> updateAlarms (
+		@PathVariable Long alarmId,
+		@RequestBody UpdateTicketAlarmRequestDto request,
+		@Auth TokenClaim tokenClaim
+	) {
+		Long userId = tokenClaim.getUserId();
+		return ApiResponse.success(ticketAlarmService.updateAlarm(userId, alarmId, request));
+
 	}
 
 

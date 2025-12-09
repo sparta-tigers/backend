@@ -41,20 +41,28 @@ public class TicketAlarmService {
 	@Transactional
 	public TicketAlarmResponseDto createAlarm(Long userId, CreateTicketAlarmRequestDto request) {
 		// 1. 구단 예매 정책 확인하기
-		TeamBookingPolicy bookingPolicy = bookingPolicyRepository.findByTeamIdAndMembership(request.getTeamId(),
-			request.getMembership());
+		validatePreAlarmTime(request.getPreAlarmTime());
+		TeamBookingPolicy bookingPolicy;
 
-		// 입력안하면 구단의 일반 멤버쉽으로
-		if (bookingPolicy == null) {
+		if (request.getMembership() == null || request.getMembership().isBlank()) {
+			bookingPolicy = bookingPolicyRepository.findDefaultPolicyByTeamId(request.getTeamId());
+		} else {
+			bookingPolicy = bookingPolicyRepository.findByTeamIdAndMembership(request.getTeamId(),
+				request.getMembership());
+		}
 
+		if(bookingPolicy == null) {
+			throw new InvalidRequestException(ExceptionCode.POLICY_NOT_FOUND);
 		}
 
 		// 2. 예매 오픈시간 찾기
-		Match targetMatch = matchRepository.findByMatchId(request.getMatchId()).orElseThrow();
+		Match targetMatch = matchRepository.findByMatchId(request.getMatchId())
+			.orElseThrow(()-> new InvalidRequestException(ExceptionCode.MATCH_NOT_FOUND));
 		LocalDateTime openBookingTime = calculateOpenBookingTime(bookingPolicy, targetMatch);
 
 		// 3. 푸시 알림 시간 설정
 		LocalDateTime alarmTime = openBookingTime.minusMinutes(request.getPreAlarmTime());
+		validateAlarmTime(alarmTime);
 
 		// 4. 엔티티 생성 & 저장
 		User findUser = userRepository.findByIdOrElseThrow(userId);
@@ -90,7 +98,7 @@ public class TicketAlarmService {
 		TeamBookingPolicy currentPolicy = alarm.getTeamBookingPolicy();
 		TeamBookingPolicy newPolicy = currentPolicy;
 
-		if(request.getMemberShip() == null && !request.getMemberShip().equals(currentPolicy)) {
+		if(request.getMemberShip() != null && !request.getMemberShip().equals(currentPolicy.getMembership())) {
 			newPolicy = bookingPolicyRepository.findByTeamIdAndMembership(alarm.getMatch().getHomeTeam().getId(), request.getMemberShip());
 
 			if (newPolicy == null) {
@@ -102,10 +110,12 @@ public class TicketAlarmService {
 		LocalDateTime openBookingTime = calculateOpenBookingTime(newPolicy, alarm.getMatch());
 		Integer newPreAlarmTime =
 			request.getPreAlarmTime() != null ? request.getPreAlarmTime() : alarm.getMinusBefore();
+		validatePreAlarmTime(newPreAlarmTime);
 		LocalDateTime newAlarmTime = openBookingTime.minusMinutes(newPreAlarmTime);
+		validateAlarmTime(newAlarmTime);
 
 		// 엔티티 업데이트
-		alarm.update(newPolicy, request.getPreAlarmTime(), openBookingTime, newAlarmTime);
+		alarm.update(newPolicy, newPreAlarmTime, openBookingTime, newAlarmTime);
 
 		return TicketAlarmResponseDto.from(alarm);
 	}
@@ -153,5 +163,18 @@ public class TicketAlarmService {
 		return openDateTime;
 	}
 
+	// 알람은 세시간 전까지만!
+	private void validatePreAlarmTime(Integer minutes) {
+		if (minutes == null || minutes <=0 || minutes >180) {
+			throw new InvalidRequestException(ExceptionCode.INVALID_PRE_ALARM_TIME);
+		}
+	}
+
+	// 알람시간이 이미 지났는지 검증
+	private void validateAlarmTime (LocalDateTime alarmTime) {
+		if(alarmTime.isBefore(LocalDateTime.now())) {
+			throw new InvalidRequestException(ExceptionCode.ALARM_TIME_ALREADY_PASSED);
+		}
+	}
 
 }
