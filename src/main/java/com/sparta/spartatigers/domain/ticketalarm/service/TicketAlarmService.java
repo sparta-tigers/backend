@@ -3,13 +3,17 @@ package com.sparta.spartatigers.domain.ticketalarm.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.sparta.spartatigers.domain.match.model.Match;
 import com.sparta.spartatigers.domain.match.repository.MatchRepository;
 import com.sparta.spartatigers.domain.ticketalarm.dto.request.CreateTicketAlarmRequestDto;
+import com.sparta.spartatigers.domain.ticketalarm.dto.request.UpdateTicketAlarmRequestDto;
 import com.sparta.spartatigers.domain.ticketalarm.dto.response.TicketAlarmResponseDto;
 import com.sparta.spartatigers.domain.ticketalarm.model.TeamBookingPolicy;
 import com.sparta.spartatigers.domain.ticketalarm.model.TicketAlarm;
@@ -19,11 +23,14 @@ import com.sparta.spartatigers.domain.ticketalarm.repository.TeamBookingPolicyRe
 import com.sparta.spartatigers.domain.ticketalarm.repository.TicketAlarmRepository;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.repository.UserRepository;
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class TicketAlarmService {
 
 	private final UserRepository userRepository;
@@ -31,11 +38,16 @@ public class TicketAlarmService {
 	private final TeamBookingPolicyRepository bookingPolicyRepository;
 	private final TicketAlarmRepository ticketAlarmRepository;
 
-	// TODO : 익셉션 정리
+	@Transactional
 	public TicketAlarmResponseDto createAlarm(Long userId, CreateTicketAlarmRequestDto request) {
 		// 1. 구단 예매 정책 확인하기
 		TeamBookingPolicy bookingPolicy = bookingPolicyRepository.findByTeamIdAndMembership(request.getTeamId(),
 			request.getMembership());
+
+		// 입력안하면 구단의 일반 멤버쉽으로
+		if (bookingPolicy == null) {
+
+		}
 
 		// 2. 예매 오픈시간 찾기
 		Match targetMatch = matchRepository.findByMatchId(request.getMatchId()).orElseThrow();
@@ -51,12 +63,53 @@ public class TicketAlarmService {
 			targetMatch,
 			bookingPolicy,
 			request.getPreAlarmTime(),
-			alarmTime
+			alarmTime,
+			openBookingTime
 		);
 		ticketAlarmRepository.save(alarm);
 
-		return TicketAlarmResponseDto.from(alarm, openBookingTime);
+		return TicketAlarmResponseDto.from(alarm);
 	}
+
+	public List<TicketAlarmResponseDto> getAllAlarms(Long userId) {
+		List<TicketAlarm> alarms = ticketAlarmRepository.findAllByUserId(userId);
+		return alarms.stream().map(TicketAlarmResponseDto::from).toList();
+	}
+
+	@Transactional
+	public TicketAlarmResponseDto updateAlarm(Long userId, Long alarmId, UpdateTicketAlarmRequestDto request) {
+		// 유저의 알람이 맞는지 (해당 알람을 만든 사람이 맞는지)
+		TicketAlarm alarm = ticketAlarmRepository.findById(alarmId)
+			.orElseThrow(()-> new InvalidRequestException(ExceptionCode.ALARM_NOT_FOUND));
+
+		if(!alarm.getUser().getId().equals(userId)) {
+			throw new InvalidRequestException(ExceptionCode.AUTHORIZATION_ERROR);
+		}
+
+		// 요청 멤버쉽 없으면 기존과 동일
+		TeamBookingPolicy currentPolicy = alarm.getTeamBookingPolicy();
+		TeamBookingPolicy newPolicy = currentPolicy;
+
+		if(request.getMemberShip() == null && !request.getMemberShip().equals(currentPolicy)) {
+			newPolicy = bookingPolicyRepository.findByTeamIdAndMembership(alarm.getMatch().getHomeTeam().getId(), request.getMemberShip());
+
+			if (newPolicy == null) {
+				throw new InvalidRequestException(ExceptionCode.POLICY_NOT_FOUND);
+			}
+		}
+
+		// 예매 오픈 시간 다시 계산
+		LocalDateTime openBookingTime = calculateOpenBookingTime(newPolicy, alarm.getMatch());
+		Integer newPreAlarmTime =
+			request.getPreAlarmTime() != null ? request.getPreAlarmTime() : alarm.getMinusBefore();
+		LocalDateTime newAlarmTime = openBookingTime.minusMinutes(newPreAlarmTime);
+
+		// 엔티티 업데이트
+		alarm.update(newPolicy, request.getPreAlarmTime(), openBookingTime, newAlarmTime);
+
+		return TicketAlarmResponseDto.from(alarm);
+	}
+
 
 	// ----------------- Util 메서드
 	// 예매 오픈 시간 구하기
@@ -84,12 +137,12 @@ public class TicketAlarmService {
 			LocalDateTime to = matchDate.plusDays(seriesCount-1).atTime(23,59,59);
 
 			Match firstHomeSeriesMatch = matchRepository.findFirstHomeSeriesMatch(awayTeamId, homeTeamId, from, to)
-				.orElseThrow(()-> new RuntimeException());
+				.orElseThrow(()-> new InvalidRequestException(ExceptionCode.BOOKING_SCHEDULE_NOT_FOUND));
 
 			baseTime = firstHomeSeriesMatch.getMatchTime();
 
 		} else {
-			throw new RuntimeException();
+			throw new InvalidRequestException(ExceptionCode.BOOKING_SCHEDULE_NOT_FOUND);
 		}
 
 		// 2. 기준 경기 시간에서 예매 오픈 날짜, 시간 찾기

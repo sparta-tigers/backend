@@ -1,5 +1,8 @@
 package com.sparta.spartatigers.domain.ticketalarm.controller;
 
+import java.util.List;
+
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,4 +32,14 @@ public class TicketAlarmController {
 		Long userId = tokenClaim.getUserId();
 		return ApiResponse.created(ticketAlarmService.createAlarm(userId, request));
 	}
+
+	@GetMapping
+	public ApiResponse<List<TicketAlarmResponseDto>> getAllAlarms (
+		@Auth TokenClaim tokenClaim
+	) {
+		Long userId = tokenClaim.getUserId();
+		return ApiResponse.success(ticketAlarmService.getAllAlarms(userId));
+	}
+
+
 }

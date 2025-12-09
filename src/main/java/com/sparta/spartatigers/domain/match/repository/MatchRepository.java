@@ -35,7 +35,7 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
 		LEFT JOIN FETCH m.stadium
 		WHERE m.id = :matchId
 		""")
-	Optional<Match> findByMatchId(Long matchId);
+	Optional<Match> findByMatchId(Long matchId) ;
 
 	// [예매알림] 홈시리즈의 첫번째 경기 찾기
 	@Query(

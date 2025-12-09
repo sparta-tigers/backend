@@ -49,26 +49,39 @@ public class TicketAlarm extends BaseEntity {
 	@Column(nullable = false)
 	private LocalDateTime alarmTime;
 
+	@Column(nullable = false)
+	private LocalDateTime openBookingTime;
+
 	public TicketAlarm(
 		User user,
 		Match match,
 		TeamBookingPolicy policy,
 		Integer minusBefore,
-		LocalDateTime alarmTime
+		LocalDateTime alarmTime,
+		LocalDateTime openBookingTime
 	) {
 		this.user = user;
 		this.match = match;
 		this.teamBookingPolicy = policy;
 		this.minusBefore = minusBefore;
 		this.alarmTime = alarmTime;
+		this.openBookingTime = openBookingTime;
 	}
 
-	public static TicketAlarm of (User user, Match match, TeamBookingPolicy policy, Integer minusBefore, LocalDateTime alarmTime) {
+	public static TicketAlarm of (User user, Match match, TeamBookingPolicy policy, Integer minusBefore, LocalDateTime alarmTime, LocalDateTime openBookingTime) {
 		return new TicketAlarm(
 			user, 
 			match, 
 			policy, 
 			minusBefore, 
-			alarmTime);
+			alarmTime,
+			openBookingTime);
+	}
+
+	public void update (TeamBookingPolicy newBookingPolicy, Integer minusBefore, LocalDateTime alarmTime, LocalDateTime openBookingTime) {
+		this.teamBookingPolicy = newBookingPolicy;
+		this.minusBefore = minusBefore;
+		this.alarmTime = alarmTime;
+		this.openBookingTime = openBookingTime;
 	}
 }
