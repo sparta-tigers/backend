@@ -41,6 +41,7 @@ CREATE TABLE ticket_alarms (
 
                                minus_before INT NOT NULL,                          -- 알람 몇 분 전
                                alarm_time DATETIME(6) NOT NULL,                    -- 실제 알람 시간
+                               open_booking_time DATETIME(6) NOT NULL,
 
                                created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
                                updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
