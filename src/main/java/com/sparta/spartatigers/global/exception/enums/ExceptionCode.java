@@ -45,8 +45,10 @@ public enum ExceptionCode {
 
     // 알람
     ALARM_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "알람을 찾을 수 없습니다.", LogLevel.DEBUG),
-    ALARM_TIME_BEFORE_NOW(HttpStatus.BAD_REQUEST, ErrorCode.E400, "알람 시간이 현재보다 이전입니다.", LogLevel.DEBUG),
-    PRE_ALARM_TIME_BEFORE_NOW(HttpStatus.BAD_REQUEST, ErrorCode.E400, "알람 시간이 현재보다 이전입니다.", LogLevel.DEBUG),
+    ALARM_TIME_ALREADY_PASSED(HttpStatus.BAD_REQUEST, ErrorCode.E400, "현재보다 과거 시점에 알람을 맞출 수 없습니다", LogLevel.DEBUG),
+    BOOKING_SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "예매 오픈 일정을 계산할 수 없습니다.", LogLevel.DEBUG),
+    POLICY_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "멤버쉽을 찾을 수 없습니다.", LogLevel.DEBUG),
+    INVALID_PRE_ALARM_TIME(HttpStatus.BAD_REQUEST, ErrorCode.E400, "알람시간은 세시간을 넘길 수 없습니다.", LogLevel.DEBUG),
 
     // 채팅방
     CHATROOM_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "채팅방이 존재하지 않습니다.", LogLevel.DEBUG),
