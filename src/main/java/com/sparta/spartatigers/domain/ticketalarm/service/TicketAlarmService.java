@@ -47,11 +47,13 @@ public class TicketAlarmService {
 		validatePreAlarmTime(request.getPreAlarmTime());
 		TeamBookingPolicy bookingPolicy;
 
-		if (request.getMembership() == null || request.getMembership().isBlank()) {
+		String membership = normalizeMembership(request.getMembership());
+
+		if (membership == null) {
 			bookingPolicy = bookingPolicyRepository.findDefaultPolicyByTeamId(request.getTeamId());
 		} else {
 			bookingPolicy = bookingPolicyRepository.findByTeamIdAndMembership(request.getTeamId(),
-				request.getMembership());
+				membership);
 		}
 
 		if(bookingPolicy == null) {
@@ -103,9 +105,10 @@ public class TicketAlarmService {
 		// 요청 멤버쉽 없으면 기존과 동일
 		TeamBookingPolicy currentPolicy = alarm.getTeamBookingPolicy();
 		TeamBookingPolicy newPolicy = currentPolicy;
+		String membership = normalizeMembership(request.getMembership());
 
-		if(request.getMembership() != null && !request.getMembership().equals(currentPolicy.getMembership())) {
-			newPolicy = bookingPolicyRepository.findByTeamIdAndMembership(alarm.getMatch().getHomeTeam().getId(), request.getMembership());
+		if(membership != null && !membership.equals(currentPolicy.getMembership())) {
+			newPolicy = bookingPolicyRepository.findByTeamIdAndMembership(alarm.getMatch().getHomeTeam().getId(), membership);
 
 			if (newPolicy == null) {
 				throw new InvalidRequestException(ExceptionCode.POLICY_NOT_FOUND);
@@ -192,6 +195,11 @@ public class TicketAlarmService {
 		if(alarmTime.isBefore(LocalDateTime.now())) {
 			throw new InvalidRequestException(ExceptionCode.ALARM_TIME_ALREADY_PASSED);
 		}
+	}
+
+	// 멤버쉽 문자열 정규화 / null, "", " " -> 전부 null로 통일
+	private String normalizeMembership(String membership) {
+		return (membership == null || membership.isBlank()) ? null : membership;
 	}
 
 }
