@@ -21,6 +21,7 @@ import com.sparta.spartatigers.domain.ticketalarm.service.TicketAlarmService;
 import com.sparta.spartatigers.global.aop.Auth;
 import com.sparta.spartatigers.global.response.ApiResponse;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -32,7 +33,7 @@ public class TicketAlarmController {
 
 	@PostMapping
 	public ApiResponse<TicketAlarmResponseDto> createAlarm(
-		@RequestBody CreateTicketAlarmRequestDto request,
+		@Valid @RequestBody CreateTicketAlarmRequestDto request,
 		@Auth TokenClaim tokenClaim
 	){
 		Long userId = tokenClaim.getUserId();
@@ -50,9 +51,9 @@ public class TicketAlarmController {
 	}
 
 	@PatchMapping ("/{alarmId}")
-	public ApiResponse<TicketAlarmResponseDto> updateAlarms (
+	public ApiResponse<TicketAlarmResponseDto> updateAlarm (
 		@PathVariable Long alarmId,
-		@RequestBody UpdateTicketAlarmRequestDto request,
+		@Valid @RequestBody UpdateTicketAlarmRequestDto request,
 		@Auth TokenClaim tokenClaim
 	) {
 		Long userId = tokenClaim.getUserId();

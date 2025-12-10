@@ -32,7 +32,7 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
 		FROM matches m
 		JOIN FETCH m.homeTeam
 		JOIN FETCH m.awayTeam
-		LEFT JOIN FETCH m.stadium
+		JOIN FETCH m.stadium
 		WHERE m.id = :matchId
 		""")
 	Optional<Match> findByMatchId(Long matchId) ;

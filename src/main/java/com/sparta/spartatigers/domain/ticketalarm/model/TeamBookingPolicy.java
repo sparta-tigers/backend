@@ -45,14 +45,14 @@ public class TeamBookingPolicy {
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	private applyScope applyScope;
+	private ApplyScope applyScope;
 
 	@Column(nullable = false)
 	private Integer seriesCount;
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	private baseType baseType;
+	private BaseType baseType;
 
 	@Column(nullable = false)
 	private Integer seasonYear;

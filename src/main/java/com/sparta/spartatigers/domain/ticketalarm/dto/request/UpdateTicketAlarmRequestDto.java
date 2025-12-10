@@ -1,5 +1,7 @@
 package com.sparta.spartatigers.domain.ticketalarm.dto.request;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,7 +11,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UpdateTicketAlarmRequestDto {
 
+	@Min(1)
+	@Max(180)
 	Integer preAlarmTime;
+
 	String membership;
 
 }
