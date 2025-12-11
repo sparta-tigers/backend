@@ -24,6 +24,8 @@ import com.sparta.spartatigers.domain.team.repository.StadiumRepository;
 import com.sparta.spartatigers.domain.weather.dto.ForeCastResponseDto;
 import com.sparta.spartatigers.domain.weather.dto.NowCastResponseDto;
 import com.sparta.spartatigers.domain.weather.service.WeatherService;
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -106,9 +108,10 @@ public class LiveboardRoomService {
 				if(matchDate.isEqual(realToday)) { // 당일 경기
 					long connectCount = connectionRepository.getConnectionCount(room.getRoomId());
 
-					Stadium stadium = stadiumRepository.findById(match.getStadium().getId()).orElseThrow(()-> new RuntimeException());
-					NowCastResponseDto nowCast = weatherService.getNowCast(stadium);
-					List< ForeCastResponseDto> foreCast = weatherService.getForeCast(stadium);
+					Stadium stadium = stadiumRepository.findById(match.getStadium().getId())
+						.orElseThrow(()-> new InvalidRequestException(ExceptionCode.STADIUM_NOT_FOUND));
+					NowCastResponseDto nowCast = weatherService.getNowCast(stadium.getId());
+					List< ForeCastResponseDto> foreCast = weatherService.getForeCast(stadium.getId());
 					return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, nowCast, foreCast);
 				} else if (matchDate.isBefore(realToday)) { // 지난 경기
 					return LiveBoardRoomResponseDto.fromPastMatch(match, room);

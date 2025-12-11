@@ -9,14 +9,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.sparta.spartatigers.domain.team.model.Stadium;
+import com.sparta.spartatigers.domain.team.repository.StadiumRepository;
 import com.sparta.spartatigers.domain.weather.api.WeatherApiUrlGenerator;
 import com.sparta.spartatigers.domain.weather.dto.ForeCastResponseDto;
 import com.sparta.spartatigers.domain.weather.dto.NowCastResponseDto;
+import com.sparta.spartatigers.domain.weather.dto.StadiumWeatherRequestDto;
 import com.sparta.spartatigers.domain.weather.model.RainType;
 import com.sparta.spartatigers.domain.weather.model.SkyStatus;
 import com.sparta.spartatigers.domain.weather.model.WindDirection;
 import com.sparta.spartatigers.domain.weather.response.OriginResponse;
 import com.sparta.spartatigers.domain.weather.util.WeatherParser;
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,9 +32,12 @@ public class WeatherService {
 
 	private final RestTemplate restTemplate = new RestTemplate();
 	private final WeatherApiUrlGenerator apiUrlGenerator;
+	private final StadiumRepository stadiumRepository;
 
-	public NowCastResponseDto getNowCast(Stadium stadium) {
+	public NowCastResponseDto getNowCast(Long stadiumId) {
 
+		Stadium stadium = stadiumRepository.findById(stadiumId)
+			.orElseThrow(()-> new InvalidRequestException(ExceptionCode.STADIUM_NOT_FOUND));
 		int nx = stadium.getNx();
 		int ny = stadium.getNy();
 
@@ -66,7 +73,10 @@ public class WeatherService {
 
 	}
 
-	public List<ForeCastResponseDto> getForeCast(Stadium stadium) {
+	public List<ForeCastResponseDto> getForeCast(Long stadiumId) {
+
+		Stadium stadium = stadiumRepository.findById(stadiumId)
+			.orElseThrow(()-> new InvalidRequestException(ExceptionCode.STADIUM_NOT_FOUND));
 
 		int nx = stadium.getNx();
 		int ny = stadium.getNy();
