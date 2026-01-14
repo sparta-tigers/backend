@@ -28,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ExchangeRequestService {
 
+    private final ExchangeNotificationService exchangeNotificationService;
     private final ExchangeRequestRepository exchangeRequestRepository;
     private final DirectRoomService directRoomService;
     private final UserRepository userRepository;
@@ -48,6 +49,8 @@ public class ExchangeRequestService {
 
         ExchangeRequest exchangeRequest = ExchangeRequest.of(item, sender, receiver);
         exchangeRequestRepository.save(exchangeRequest);
+
+        exchangeNotificationService.sendExchangeRequested(exchangeRequest);
     }
 
     public Page<ReceiveRequestResponseDto> findAllReceiveRequest(TokenClaim tokenClaim, Pageable pageable) {
@@ -71,6 +74,7 @@ public class ExchangeRequestService {
 
         if (exchangeRequest.getStatus() == ExchangeStatus.ACCEPTED) {
             directRoomService.createRoom(exchangeRequestId, user.getId());
+            exchangeNotificationService.sendExchangeAccepted(exchangeRequest);
         }
 
         if (exchangeRequest.getStatus() == ExchangeStatus.REJECTED) {
