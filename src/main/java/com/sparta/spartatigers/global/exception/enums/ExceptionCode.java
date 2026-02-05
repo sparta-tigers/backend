@@ -90,7 +90,11 @@ public enum ExceptionCode {
     // 공통
     INVALID_TYPE_EXCEPTION(HttpStatus.BAD_REQUEST, ErrorCode.E400, "잘못된 데이터 타입입니다.", LogLevel.DEBUG),
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, ErrorCode.E400, "요청값 검증에 실패 했습니다", LogLevel.DEBUG),
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.E500, "예상하지 못한 예외가 발생 했습니다.", LogLevel.ERROR);
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.E500, "예상하지 못한 예외가 발생 했습니다.", LogLevel.ERROR),
+
+    // 순위
+    LEAGUE_NOT_FOUND(HttpStatus.BAD_REQUEST, ErrorCode.E400, "해당 날짜의 리그를 찾을 수 없습니다.", LogLevel.DEBUG);
+
 
 
     private final HttpStatus httpStatus;
