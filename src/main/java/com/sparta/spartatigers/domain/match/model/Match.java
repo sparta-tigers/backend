@@ -3,6 +3,7 @@ package com.sparta.spartatigers.domain.match.model;
 import java.time.LocalDateTime;
 
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
+import com.sparta.spartatigers.domain.ranking.dto.LeagueType;
 import com.sparta.spartatigers.domain.team.model.Stadium;
 import com.sparta.spartatigers.domain.team.model.Team;
 
@@ -33,6 +34,13 @@ public class Match extends BaseEntity {
     @Column(name = "match_id")
     private Long id;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private LeagueType leagueType;
+
+    @Column(nullable = false)
+    private int seasonYear;
+
     @Column private LocalDateTime matchTime;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -58,5 +66,6 @@ public class Match extends BaseEntity {
 
     @Column private String remark; // 비고
 
-    @Column private LocalDateTime reservationOpenTime;
+
+
 }
