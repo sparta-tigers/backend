@@ -23,12 +23,12 @@ public class TeamRankingController {
 	private final TeamRankingService rankingService;
 
 	/**
-	 * [ 날짜별 KBO 구단 순위 조회 ]
-	 * 특정 일자의 구단 순위 전체와, 해당 날짜가 속하는 리그 타입을 반환합니다.
-	 * @param anyday
+	 * [ 날짜별 순위 조회 ]
+	 * 특정 날짜까지의 누적 성적을 기반으로 순위를 반환합니다.
+	 * @param anyday (default = now)
 	 * @return List<TeamRankingResponseDto>
 	 */
-	@GetMapping
+	@GetMapping("/daily")
 	public List<TeamRankingResponseDto> getRankingByDate(
 		@RequestParam (required = false)
 		@DateTimeFormat(pattern = "yyyyMMdd") LocalDate anyday
@@ -36,7 +36,24 @@ public class TeamRankingController {
 		if (anyday == null) {
 			anyday = LocalDate.now();
 		}
-		return rankingService.getTeamRanking(anyday);
+		return rankingService.getRankingByDate(anyday);
 	}
 
+	/**
+	 * [ 연도별 순위 조회 ]
+	 * 특정 연도의 순위를 반환합니다.
+	 * @param year (default = currentyear)
+	 * @param leagueType
+	 * @return
+	 */
+	@GetMapping("/yearly")
+	public List<TeamRankingResponseDto> getRankingByYear(
+		@RequestParam (required = false) Integer year,
+		@RequestParam LeagueType leagueType
+	) {
+		if(year == null) {
+			year = LocalDate.now().getYear();
+		}
+		return rankingService.getRankingByYear(year, leagueType);
+	}
 }
