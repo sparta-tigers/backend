@@ -23,21 +23,20 @@ public class TeamRankingController {
 	private final TeamRankingService rankingService;
 
 	/**
-	 * 특정 일자까지의 리그 전체 순위를 리턴합니다.
-	 * @param leagueType - PRESEASON, REGULAR, POST_SEASON
+	 * [ 날짜별 KBO 구단 순위 조회 ]
+	 * 특정 일자의 구단 순위 전체와, 해당 날짜가 속하는 리그 타입을 반환합니다.
 	 * @param anyday
-	 * @return 해당 리그의 전체 순위를 리턴합니다.
+	 * @return List<TeamRankingResponseDto>
 	 */
 	@GetMapping
 	public List<TeamRankingResponseDto> getRankingByDate(
-		@RequestParam LeagueType leagueType,
 		@RequestParam (required = false)
 		@DateTimeFormat(pattern = "yyyyMMdd") LocalDate anyday
 	) {
 		if (anyday == null) {
 			anyday = LocalDate.now();
 		}
-		return rankingService.getTeamRanking(leagueType, anyday);
+		return rankingService.getTeamRanking(anyday);
 	}
 
 }

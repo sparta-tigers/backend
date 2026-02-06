@@ -10,10 +10,14 @@ import org.springframework.stereotype.Repository;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.sparta.spartatigers.domain.match.model.Match;
 import com.sparta.spartatigers.domain.match.model.MatchResult;
 import com.sparta.spartatigers.domain.match.model.QMatch;
+import com.sparta.spartatigers.domain.ranking.dto.LeagueType;
 import com.sparta.spartatigers.domain.ranking.dto.TeamRankingStat;
 import com.sparta.spartatigers.domain.team.model.QTeam;
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,13 +32,29 @@ public class TeamRankingRepositoryCustomImpl implements TeamRankingRepositoryCus
 	private final QTeam awayTeam = QTeam.team;
 
 	@Override
-	public List<TeamRankingStat> applyTeamRecords(LocalDateTime from, LocalDateTime to) {
+	public List<TeamRankingStat> applyTeamRecords(LocalDateTime anyday) {
+		// 해당 날짜로부터 가장 최근에 진행된 경기의 season_year, leagueType을 찾는다
+		Match lastestMatch = queryFactory
+			.selectFrom(match)
+			.where(match.matchTime.loe(anyday))
+			.orderBy(match.matchTime.desc())
+			.fetchFirst();
 
-		List<TeamRankingStat> homeAgg = aggregateHome(from, to);
-		List<TeamRankingStat> awayAgg = aggregateAway(from, to);
+		if (lastestMatch == null) {
+			throw new InvalidRequestException(ExceptionCode.MATCH_NOT_FOUND);
+		}
 
+		// 파악된 시즌 연도와 리그 종류를 기준으로 집계 범위 확정
+		LeagueType leagueType = lastestMatch.getLeagueType();
+		int currentSeason = lastestMatch.getSeasonYear();
+		LocalDateTime to = anyday.toLocalDate().atTime(23,59,59);
+
+		// 홈+원정 데이터 각각 집계
+		List<TeamRankingStat> homeAgg = aggregateHome(leagueType, currentSeason, to);
+		List<TeamRankingStat> awayAgg = aggregateAway(leagueType, currentSeason, to);
+
+		// 팀별로 데이터 병합
 		Map<Long, TeamRankingStat> merged = new HashMap<>();
-
 		mergeInto(merged, homeAgg);
 		mergeInto(merged, awayAgg);
 
@@ -52,6 +72,7 @@ public class TeamRankingRepositoryCustomImpl implements TeamRankingRepositoryCus
 
 			rankingStatMap.put(stat.getTeamId(),
 				new TeamRankingStat(
+					stat.getLeagueType(),
 					stat.getTeamId(),
 					stat.getTeamName(),
 					alreadyApplied.getWinCount() + stat.getWinCount(),
@@ -63,10 +84,11 @@ public class TeamRankingRepositoryCustomImpl implements TeamRankingRepositoryCus
 	}
 
 	// 특정 기간의 경기중 홈팀에 대해 승/패/무 횟수를 집계합니다.
-	private List<TeamRankingStat> aggregateHome(LocalDateTime from, LocalDateTime to) {
+	private List<TeamRankingStat> aggregateHome(LeagueType leagueType, int seasonYear, LocalDateTime anyday) {
 		return queryFactory
 			.select(Projections.constructor(
 				TeamRankingStat.class,
+				match.leagueType,
 				homeTeam.id,
 				homeTeam.name,
 				new CaseBuilder().when(match.matchResult.eq(MatchResult.HOME_WIN)).then(1).otherwise(0).sum(),
@@ -76,7 +98,9 @@ public class TeamRankingRepositoryCustomImpl implements TeamRankingRepositoryCus
 			.from(match)
 			.join(match.homeTeam, homeTeam)
 			.where(
-				match.matchTime.between(from, to),
+				match.leagueType.eq(leagueType),
+				match.seasonYear.eq(seasonYear),
+				match.matchTime.loe(anyday),
 				match.matchResult.in(MatchResult.HOME_WIN, MatchResult.AWAY_WIN, MatchResult.DRAW)
 			)
 			.groupBy(homeTeam.id, homeTeam.name)
@@ -84,10 +108,11 @@ public class TeamRankingRepositoryCustomImpl implements TeamRankingRepositoryCus
 	}
 
 	// 특정 기간의 경기중 원정팀에 대해 승/패/무 횟수를 집계합니다.
-	private List<TeamRankingStat> aggregateAway(LocalDateTime from, LocalDateTime to) {
+	private List<TeamRankingStat> aggregateAway(LeagueType leagueType, int seasonYear, LocalDateTime anyday) {
 		return queryFactory
 			.select(Projections.constructor(
 				TeamRankingStat.class,
+				match.leagueType,
 				awayTeam.id,
 				awayTeam.name,
 				new CaseBuilder().when(match.matchResult.eq(MatchResult.AWAY_WIN)).then(1).otherwise(0).sum(),
@@ -97,7 +122,9 @@ public class TeamRankingRepositoryCustomImpl implements TeamRankingRepositoryCus
 			.from(match)
 			.join(match.awayTeam, awayTeam)
 			.where(
-				match.matchTime.between(from, to),
+				match.leagueType.eq(leagueType),
+				match.seasonYear.eq(seasonYear),
+				match.matchTime.loe(anyday),
 				match.matchResult.in(MatchResult.HOME_WIN, MatchResult.AWAY_WIN, MatchResult.DRAW)
 			)
 			.groupBy(awayTeam.id, awayTeam.name)

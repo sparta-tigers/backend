@@ -24,19 +24,17 @@ public class TeamRankingService {
 	private final TeamRankingRepositoryCustom rankingRepository;
 
 	public List<TeamRankingResponseDto> getTeamRanking(
-		LeagueType leagueType,
 		LocalDate date
 	) {
-		// 파라미터 date가 어떤 리그에 속하는지
-		LocalDateTime from = findleagueSchedule(leagueType);
-		LocalDateTime to = date.atTime(23,59,59);
+
+		LocalDateTime tilltheDay = date.atTime(23,59,59);
 
 		// 해당 일자의 경기 결과를 보고 Stat을 계산
 		List<TeamRankingStat> stats =
-			rankingRepository.applyTeamRecords(from, to);
+			rankingRepository.applyTeamRecords(tilltheDay);
 
 		// 스탯을 토대로 랭킹 계산 후 DTO 변환
-		return convertToResponse(leagueType, stats);
+		return convertToResponse(stats);
 	}
 
 	// TODO : 테스트 용으로 리그 일정 하드코딩 중
@@ -49,7 +47,6 @@ public class TeamRankingService {
 	}
 
 	private List<TeamRankingResponseDto> convertToResponse(
-		LeagueType leagueType,
 		List<TeamRankingStat> stats
 	) {
 
@@ -75,7 +72,7 @@ public class TeamRankingService {
 			}
 
 			result.add(TeamRankingResponseDto.of(
-					leagueType,
+					stat.getLeagueType(),
 					displayRank,
 					stat.getTeamId(),
 					stat.getTeamName(),
