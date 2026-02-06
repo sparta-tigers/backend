@@ -1,6 +1,7 @@
 package com.sparta.spartatigers.domain.ranking.repository;
 
 import java.time.LocalDateTime;
+import java.time.Year;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +37,10 @@ public class TeamRankingRepositoryCustomImpl implements TeamRankingRepositoryCus
 		// 해당 날짜로부터 가장 최근에 진행된 경기의 season_year, leagueType을 찾는다
 		Match lastestMatch = queryFactory
 			.selectFrom(match)
-			.where(match.matchTime.loe(anyday))
+			.where(
+				match.matchTime.loe(anyday),
+				match.leagueType.ne(LeagueType.POST_SEASON)
+				)
 			.orderBy(match.matchTime.desc())
 			.fetchFirst();
 
@@ -52,6 +56,22 @@ public class TeamRankingRepositoryCustomImpl implements TeamRankingRepositoryCus
 		// 홈+원정 데이터 각각 집계
 		List<TeamRankingStat> homeAgg = aggregateHome(leagueType, currentSeason, to);
 		List<TeamRankingStat> awayAgg = aggregateAway(leagueType, currentSeason, to);
+
+		// 팀별로 데이터 병합
+		Map<Long, TeamRankingStat> merged = new HashMap<>();
+		mergeInto(merged, homeAgg);
+		mergeInto(merged, awayAgg);
+
+		return merged.values().stream().toList();
+	}
+
+	public List<TeamRankingStat> applyTeamRecordsByYear(int year, LeagueType leagueType) {
+
+		LocalDateTime endOfyear = Year.of(year).atMonth(12).atEndOfMonth().atTime(23,59,59);
+
+		// 홈+원정 데이터 각각 집계
+		List<TeamRankingStat> homeAgg = aggregateHome(leagueType, year, endOfyear);
+		List<TeamRankingStat> awayAgg = aggregateAway(leagueType, year, endOfyear);
 
 		// 팀별로 데이터 병합
 		Map<Long, TeamRankingStat> merged = new HashMap<>();

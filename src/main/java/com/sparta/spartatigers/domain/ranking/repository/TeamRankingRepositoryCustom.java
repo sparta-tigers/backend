@@ -9,4 +9,5 @@ import com.sparta.spartatigers.domain.ranking.dto.TeamRankingStat;
 public interface TeamRankingRepositoryCustom {
 
 	List<TeamRankingStat> applyTeamRecords (LocalDateTime anyday);
+	List<TeamRankingStat> applyTeamRecordsByYear (int year, LeagueType leagueType);
 }
