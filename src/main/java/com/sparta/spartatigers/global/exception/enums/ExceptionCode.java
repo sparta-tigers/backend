@@ -93,7 +93,8 @@ public enum ExceptionCode {
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.E500, "예상하지 못한 예외가 발생 했습니다.", LogLevel.ERROR),
 
     // 순위
-    LEAGUE_NOT_FOUND(HttpStatus.BAD_REQUEST, ErrorCode.E400, "해당 날짜의 리그를 찾을 수 없습니다.", LogLevel.DEBUG);
+    POSTSEASON_RANKING_UNAVAILABLE(HttpStatus.BAD_REQUEST, ErrorCode.E400, "포스트시즌은 순위 조회가 불가능합니다.", LogLevel.DEBUG);
+
 
 
 

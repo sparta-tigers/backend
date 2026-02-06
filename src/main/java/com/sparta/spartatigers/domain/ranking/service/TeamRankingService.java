@@ -23,28 +23,28 @@ public class TeamRankingService {
 
 	private final TeamRankingRepositoryCustom rankingRepository;
 
-	public List<TeamRankingResponseDto> getTeamRanking(
+	public List<TeamRankingResponseDto> getRankingByDate(
 		LocalDate date
 	) {
-
 		LocalDateTime tilltheDay = date.atTime(23,59,59);
-
 		// 해당 일자의 경기 결과를 보고 Stat을 계산
 		List<TeamRankingStat> stats =
 			rankingRepository.applyTeamRecords(tilltheDay);
-
 		// 스탯을 토대로 랭킹 계산 후 DTO 변환
 		return convertToResponse(stats);
 	}
 
-	// TODO : 테스트 용으로 리그 일정 하드코딩 중
-	private LocalDateTime findleagueSchedule(LeagueType leagueType) {
-		return switch (leagueType) {
-			case PRESEASON -> LocalDate.of(2025,2,1).atStartOfDay();
-			case REGULAR -> LocalDate.of(2025,3,22).atStartOfDay();
-			default -> throw new InvalidRequestException(ExceptionCode.LEAGUE_NOT_FOUND);
-		};
+	public List<TeamRankingResponseDto> getRankingByYear(
+		int year, LeagueType leagueType
+	) {
+		if(leagueType == LeagueType.POST_SEASON) {
+			throw new InvalidRequestException(ExceptionCode.POSTSEASON_RANKING_UNAVAILABLE);
+		}
+		List<TeamRankingStat> stats =
+			rankingRepository.applyTeamRecordsByYear(year, leagueType);
+		return convertToResponse(stats);
 	}
+
 
 	private List<TeamRankingResponseDto> convertToResponse(
 		List<TeamRankingStat> stats
