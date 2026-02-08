@@ -2,9 +2,13 @@ package com.sparta.spartatigers.domain.ranking.repository;
 
 import java.time.LocalDateTime;
 import java.time.Year;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.stereotype.Repository;
 
@@ -15,7 +19,9 @@ import com.sparta.spartatigers.domain.match.model.Match;
 import com.sparta.spartatigers.domain.match.model.MatchResult;
 import com.sparta.spartatigers.domain.match.model.QMatch;
 import com.sparta.spartatigers.domain.ranking.dto.LeagueType;
+import com.sparta.spartatigers.domain.ranking.dto.PostseasonStage;
 import com.sparta.spartatigers.domain.ranking.dto.TeamRankingStat;
+import com.sparta.spartatigers.domain.team.model.QStadium;
 import com.sparta.spartatigers.domain.team.model.QTeam;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
@@ -29,8 +35,9 @@ public class TeamRankingRepositoryCustomImpl implements TeamRankingRepositoryCus
 	private final JPAQueryFactory queryFactory;
 
 	private final QMatch match = QMatch.match;
-	private final QTeam homeTeam = QTeam.team;
-	private final QTeam awayTeam = QTeam.team;
+	private final QTeam homeTeam = new QTeam("homeTeam");
+	private final QTeam awayTeam = new QTeam("awayTeam");
+	private final QStadium stadium = QStadium.stadium;
 
 	@Override
 	public List<TeamRankingStat> applyTeamRecords(LocalDateTime anyday) {
@@ -80,6 +87,46 @@ public class TeamRankingRepositoryCustomImpl implements TeamRankingRepositoryCus
 
 		return merged.values().stream().toList();
 	}
+
+	public Map<PostseasonStage, List<Match>> classifyStages(int year) {
+		List<Match> postSeasonMatches
+			= queryFactory
+			.selectFrom(match)
+			.join(match.homeTeam, homeTeam).fetchJoin() // match에서 Lazy로딩이므로 따로 fetch join 해야함 -> proxy로 가짜 객체만 가져와서 못찾음
+			.join(match.awayTeam, awayTeam).fetchJoin()
+			.leftJoin(match.stadium, stadium).fetchJoin()
+			.where(
+				match.leagueType.eq(LeagueType.POST_SEASON),
+				match.seasonYear.eq(year)
+			)
+			.orderBy(match.matchTime.asc())
+			.fetch();
+
+		Map<PostseasonStage, List<Match>> classified = new LinkedHashMap<>();
+		Set<Long> currentTeamPair = new HashSet<>();
+		int stageIndex = -1;
+
+		PostseasonStage[] stages = PostseasonStage.values();
+
+		for(Match postSeasonMatch : postSeasonMatches) {
+			Set<Long> matchTeamPair = Set.of(
+				postSeasonMatch.getHomeTeam().getId(),
+				postSeasonMatch.getAwayTeam().getId()
+			);
+
+			if(!matchTeamPair.equals(currentTeamPair)) {
+				stageIndex++;
+				currentTeamPair = matchTeamPair;
+			}
+
+			if(stageIndex >= 0 && stageIndex < stages.length) {
+				PostseasonStage currentStage = stages[stageIndex];
+				classified.computeIfAbsent(currentStage, k -> new ArrayList<>()).add(postSeasonMatch);
+			}
+		}
+		return classified;
+	}
+
 
 	// 집계결과를 팀별 누적 집계에 합산합니다.
 	private void mergeInto(Map<Long, TeamRankingStat> rankingStatMap, List<TeamRankingStat> rowStats) {
