@@ -33,6 +33,16 @@ public class TeamRankingService {
 
 	private final TeamRankingRepositoryCustom rankingRepository;
 
+	// --- Public  ---
+
+	/**
+	 * 특정 날짜 기준 순위 산출
+	 * 해당 날짜의 23:59:59 까지 종료된 모든 경기 결과를 합산하여 순위를 매깁니다.
+	 * 해당 날짜로부터 가장 최근 진행된 리그의 순위를 계산합니다.
+	 *
+	 * @param date 기준 날짜
+	 * @return 승률 내림차 순으로 정렬된 랭킹 리스트
+	 */
 	public List<TeamRankingResponseDto> getRankingByDate(
 		LocalDate date
 	) {
@@ -44,6 +54,16 @@ public class TeamRankingService {
 		return convertToResponse(stats);
 	}
 
+	/**
+	 * 연도별 시즌 최종 순위 산출
+	 * 지정된 연도의 전체 시즌 데이터를 집계합니다.
+	 * 단, 포스트시즌은 순위 집계 대상이 아니므로 예외를 발생시킵니다.
+	 *
+	 * @param year 시즌 연도
+	 * @param leagueType 리그 타입 (REGULAR, EXHIBITION)
+	 * @return 승률 내림차순으로 정렬된 순위 리스트
+	 * @throws InvalidRequestException POST_SEASON 타입으로 요청 시 발생
+	 */
 	public List<TeamRankingResponseDto> getRankingByYear(
 		int year, LeagueType leagueType
 	) {
@@ -55,6 +75,14 @@ public class TeamRankingService {
 		return convertToResponse(stats);
 	}
 
+	/**
+	 * 포스트 시즌 전체 결과 조회
+	 * 해당 연도의 포스트시즌 경기를 단계별(와일드카드 -> 한국시리즈)로 분류하고,
+	 * 각 단계의 경기 상세 정보와 최종 우승팀을 반환합니다.
+	 *
+	 * @param year 시즌 연도
+	 * @return 포스트 시즌 단계별 경기 목록 및 우승팀 정보
+	 */
 	public PostSeasonResponseDto getPostSeasonResults(
 		int year
 	) {
@@ -75,6 +103,9 @@ public class TeamRankingService {
 		return PostSeasonResponseDto.from(year, champion, postSeasonMatches);
 	}
 
+	// --- Internal Helpers (Private) ---
+
+	/** 한국시리즈 4승 선승제 기반 우승팀 판별 */
 	private String extractChampion(List<Match> postSeasonMatches) {
 		if(postSeasonMatches == null || postSeasonMatches.isEmpty()) return "한국시리즈 진출팀 결정 전";
 
@@ -99,11 +130,10 @@ public class TeamRankingService {
 		return "진행 중";
 	}
 
-
+	/** 집계 데이터를 응답 DTO로 변환 + 순위 부여 */
 	private List<TeamRankingResponseDto> convertToResponse(
 		List<TeamRankingStat> stats
 	) {
-
 		// Stat 승률 기준 내림차순 정렬
 		List<TeamRankingStat> sorted = stats.stream().sorted(
 			Comparator.comparingDouble(this::winRate).reversed()
@@ -141,6 +171,7 @@ public class TeamRankingService {
 		return result;
 	}
 
+	/** 승률 계산 (승 / 승 + 패) */
 	private double winRate(TeamRankingStat stat) {
 		int win = stat.getWinCount();
 		int lose = stat.getLoseCount();
