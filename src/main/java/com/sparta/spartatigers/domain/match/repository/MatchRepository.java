@@ -50,13 +50,4 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
 	)
 	Optional<Match> findFirstHomeSeriesMatch (Long awayTeamId, Long homeTeamId, LocalDateTime from, LocalDateTime to);
 
-	@Query(
-		"""
-		SELECT m
-		FROM matches m
-		where m.matchResult <> 'NOT_PLAYED'
-		"""
-	)
-	List<Match> findFinishedMatches();
-
 }

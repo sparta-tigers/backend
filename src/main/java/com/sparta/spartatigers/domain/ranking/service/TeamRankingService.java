@@ -2,6 +2,7 @@ package com.sparta.spartatigers.domain.ranking.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -14,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.sparta.spartatigers.domain.match.model.Match;
 import com.sparta.spartatigers.domain.match.model.MatchResult;
-import com.sparta.spartatigers.domain.ranking.dto.LeagueType;
+import com.sparta.spartatigers.domain.match.model.LeagueType;
 import com.sparta.spartatigers.domain.ranking.dto.MatchDetailDto;
 import com.sparta.spartatigers.domain.ranking.dto.PostSeasonResponseDto;
 import com.sparta.spartatigers.domain.ranking.dto.PostseasonStage;
@@ -46,7 +47,7 @@ public class TeamRankingService {
 	public List<TeamRankingResponseDto> getRankingByDate(
 		LocalDate date
 	) {
-		LocalDateTime tilltheDay = date.atTime(23,59,59);
+		LocalDateTime tilltheDay = date.atTime(LocalTime.MAX);
 		// 해당 일자의 경기 결과를 보고 Stat을 계산
 		List<TeamRankingStat> stats =
 			rankingRepository.applyTeamRecords(tilltheDay);

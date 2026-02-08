@@ -1,5 +1,7 @@
 package com.sparta.spartatigers.domain.ranking.dto;
 
+import com.sparta.spartatigers.domain.match.model.LeagueType;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

@@ -1,4 +1,4 @@
-package com.sparta.spartatigers.domain.ranking.dto;
+package com.sparta.spartatigers.domain.match.model;
 
 public enum LeagueType {
 	PRESEASON,

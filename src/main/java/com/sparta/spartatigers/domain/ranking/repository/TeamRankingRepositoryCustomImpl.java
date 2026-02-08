@@ -18,7 +18,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sparta.spartatigers.domain.match.model.Match;
 import com.sparta.spartatigers.domain.match.model.MatchResult;
 import com.sparta.spartatigers.domain.match.model.QMatch;
-import com.sparta.spartatigers.domain.ranking.dto.LeagueType;
+import com.sparta.spartatigers.domain.match.model.LeagueType;
 import com.sparta.spartatigers.domain.ranking.dto.PostseasonStage;
 import com.sparta.spartatigers.domain.ranking.dto.TeamRankingStat;
 import com.sparta.spartatigers.domain.team.model.QStadium;

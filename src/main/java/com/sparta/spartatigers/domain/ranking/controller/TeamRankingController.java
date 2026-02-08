@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sparta.spartatigers.domain.ranking.dto.LeagueType;
+import com.sparta.spartatigers.domain.match.model.LeagueType;
 import com.sparta.spartatigers.domain.ranking.dto.PostSeasonResponseDto;
 import com.sparta.spartatigers.domain.ranking.dto.TeamRankingResponseDto;
 import com.sparta.spartatigers.domain.ranking.service.TeamRankingService;

@@ -3,7 +3,6 @@ package com.sparta.spartatigers.domain.match.model;
 import java.time.LocalDateTime;
 
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
-import com.sparta.spartatigers.domain.ranking.dto.LeagueType;
 import com.sparta.spartatigers.domain.team.model.Stadium;
 import com.sparta.spartatigers.domain.team.model.Team;
 

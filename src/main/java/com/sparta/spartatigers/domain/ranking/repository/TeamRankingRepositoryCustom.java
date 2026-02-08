@@ -5,8 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.sparta.spartatigers.domain.match.model.Match;
-import com.sparta.spartatigers.domain.ranking.dto.LeagueType;
-import com.sparta.spartatigers.domain.ranking.dto.MatchDetailDto;
+import com.sparta.spartatigers.domain.match.model.LeagueType;
 import com.sparta.spartatigers.domain.ranking.dto.PostseasonStage;
 import com.sparta.spartatigers.domain.ranking.dto.TeamRankingStat;
 
