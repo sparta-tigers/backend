@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sparta.spartatigers.domain.ranking.dto.LeagueType;
+import com.sparta.spartatigers.domain.ranking.dto.PostSeasonResponseDto;
 import com.sparta.spartatigers.domain.ranking.dto.TeamRankingResponseDto;
 import com.sparta.spartatigers.domain.ranking.service.TeamRankingService;
 
@@ -55,5 +56,15 @@ public class TeamRankingController {
 			year = LocalDate.now().getYear();
 		}
 		return rankingService.getRankingByYear(year, leagueType);
+	}
+
+	@GetMapping("/postseason")
+	public PostSeasonResponseDto getPostSeasonMatchesByYear(
+		@RequestParam (required = false) Integer year
+	) {
+		if(year == null) {
+			year = LocalDate.now().getYear();
+		}
+		return rankingService.getPostSeasonResults(year);
 	}
 }

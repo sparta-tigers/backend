@@ -4,11 +4,20 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.sparta.spartatigers.domain.match.model.Match;
+import com.sparta.spartatigers.domain.match.model.MatchResult;
 import com.sparta.spartatigers.domain.ranking.dto.LeagueType;
+import com.sparta.spartatigers.domain.ranking.dto.MatchDetailDto;
+import com.sparta.spartatigers.domain.ranking.dto.PostSeasonResponseDto;
+import com.sparta.spartatigers.domain.ranking.dto.PostseasonStage;
 import com.sparta.spartatigers.domain.ranking.dto.TeamRankingResponseDto;
 import com.sparta.spartatigers.domain.ranking.dto.TeamRankingStat;
 import com.sparta.spartatigers.domain.ranking.repository.TeamRankingRepositoryCustom;
@@ -19,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class TeamRankingService {
 
 	private final TeamRankingRepositoryCustom rankingRepository;
@@ -43,6 +53,50 @@ public class TeamRankingService {
 		List<TeamRankingStat> stats =
 			rankingRepository.applyTeamRecordsByYear(year, leagueType);
 		return convertToResponse(stats);
+	}
+
+	public PostSeasonResponseDto getPostSeasonResults(
+		int year
+	) {
+		Map<PostseasonStage, List<Match>> classifyStages = rankingRepository.classifyStages(year);
+
+		Map<PostseasonStage, List<MatchDetailDto>> postSeasonMatches = new LinkedHashMap<>();
+
+		classifyStages.forEach((postseasonStage, matches) -> {
+			List<MatchDetailDto> dtos = new ArrayList<>();
+			for (int i = 0; i < matches.size(); i++) {
+				String stageLabel = postseasonStage.getKrName() + " " + (i + 1) + "차전";
+				dtos.add(MatchDetailDto.from(matches.get(i), stageLabel));
+			}
+			postSeasonMatches.put(postseasonStage, dtos);
+		});
+
+		String champion = extractChampion(classifyStages.get(PostseasonStage.KOREAN_SERIES));
+		return PostSeasonResponseDto.from(year, champion, postSeasonMatches);
+	}
+
+	private String extractChampion(List<Match> postSeasonMatches) {
+		if(postSeasonMatches == null || postSeasonMatches.isEmpty()) return "한국시리즈 진출팀 결정 전";
+
+		Map<String, Integer> winCountMap = new HashMap<>();
+		int targetWins = 4;
+
+		for(Match match : postSeasonMatches) {
+			String winner = null;
+			if(match.getMatchResult() == MatchResult.HOME_WIN) {
+				winner = match.getHomeTeam().getName();
+			} else if (match.getMatchResult() == MatchResult.AWAY_WIN) {
+				winner = match.getAwayTeam().getName();
+			}
+			if(winner != null) {
+				int currentWins = winCountMap.getOrDefault(winner,0) +1;
+				winCountMap.put(winner, currentWins);
+				if(currentWins >= targetWins) {
+					return winner;
+				}
+			}
+		}
+		return "진행 중";
 	}
 
 
