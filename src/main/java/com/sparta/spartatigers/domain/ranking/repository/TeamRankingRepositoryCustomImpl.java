@@ -88,11 +88,10 @@ public class TeamRankingRepositoryCustomImpl implements TeamRankingRepositoryCus
 		return merged.values().stream().toList();
 	}
 
-	public Map<PostseasonStage, List<Match>> classifyStages(int year) {
-		List<Match> postSeasonMatches
-			= queryFactory
+	public List<Match> findAllPostSeasonMatches(int year) {
+		return queryFactory
 			.selectFrom(match)
-			.join(match.homeTeam, homeTeam).fetchJoin() // match에서 Lazy로딩이므로 따로 fetch join 해야함 -> proxy로 가짜 객체만 가져와서 못찾음
+			.join(match.homeTeam, homeTeam).fetchJoin()
 			.join(match.awayTeam, awayTeam).fetchJoin()
 			.leftJoin(match.stadium, stadium).fetchJoin()
 			.where(
@@ -101,30 +100,6 @@ public class TeamRankingRepositoryCustomImpl implements TeamRankingRepositoryCus
 			)
 			.orderBy(match.matchTime.asc())
 			.fetch();
-
-		Map<PostseasonStage, List<Match>> classified = new LinkedHashMap<>();
-		Set<Long> currentTeamPair = new HashSet<>();
-		int stageIndex = -1;
-
-		PostseasonStage[] stages = PostseasonStage.values();
-
-		for(Match postSeasonMatch : postSeasonMatches) {
-			Set<Long> matchTeamPair = Set.of(
-				postSeasonMatch.getHomeTeam().getId(),
-				postSeasonMatch.getAwayTeam().getId()
-			);
-
-			if(!matchTeamPair.equals(currentTeamPair)) {
-				stageIndex++;
-				currentTeamPair = matchTeamPair;
-			}
-
-			if(stageIndex >= 0 && stageIndex < stages.length) {
-				PostseasonStage currentStage = stages[stageIndex];
-				classified.computeIfAbsent(currentStage, k -> new ArrayList<>()).add(postSeasonMatch);
-			}
-		}
-		return classified;
 	}
 
 

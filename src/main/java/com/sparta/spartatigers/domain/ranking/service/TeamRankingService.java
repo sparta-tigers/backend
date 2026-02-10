@@ -6,9 +6,11 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -87,24 +89,78 @@ public class TeamRankingService {
 	public PostSeasonResponseDto getPostSeasonResults(
 		int year
 	) {
-		Map<PostseasonStage, List<Match>> classifyStages = rankingRepository.classifyStages(year);
+		List<Match> allMatches = rankingRepository.findAllPostSeasonMatches(year);
 
-		Map<PostseasonStage, List<MatchDetailDto>> postSeasonMatches = new LinkedHashMap<>();
+		List<List<Match>> seriesGroups = groupMatchesBySeries(allMatches);
 
-		classifyStages.forEach((postseasonStage, matches) -> {
+		Map<PostseasonStage, List<MatchDetailDto>> resultMap = new LinkedHashMap<>();
+		int totalSeries = seriesGroups.size();
+
+		String champion = "한국시리즈 진출팀 결정 전";
+		for(int i = 0 ; i<totalSeries ; i++) {
+			PostseasonStage stage = resolveStageName(totalSeries, i);
+			List<Match> seriesMatches = seriesGroups.get(i);
+
+			if(stage == PostseasonStage.KOREAN_SERIES)
+				champion = extractChampion(seriesMatches);
+
 			List<MatchDetailDto> dtos = new ArrayList<>();
-			for (int i = 0; i < matches.size(); i++) {
-				String stageLabel = postseasonStage.getKrName() + " " + (i + 1) + "차전";
-				dtos.add(MatchDetailDto.from(matches.get(i), stageLabel));
+			for(int j =0; j<seriesMatches.size(); j++) {
+				String label = stage.getKrName()+ " " + (j+1) + "차전";
+				dtos.add(MatchDetailDto.from(seriesMatches.get(j), label));
 			}
-			postSeasonMatches.put(postseasonStage, dtos);
-		});
 
-		String champion = extractChampion(classifyStages.get(PostseasonStage.KOREAN_SERIES));
-		return PostSeasonResponseDto.from(year, champion, postSeasonMatches);
+			resultMap.put(stage, dtos);
+		}
+
+		return PostSeasonResponseDto.from(year, champion, resultMap);
 	}
 
 	// --- Internal Helpers (Private) ---
+
+	/** 포스트 시즌 Stage 분리를 위해 두 팀간 Pair 별로 그룹핑 */
+	private List<List<Match>> groupMatchesBySeries(List<Match> matches) {
+		List<List<Match>> groups = new ArrayList<>();
+		Set<Long> currentPair = new HashSet<>();
+
+		for (Match match : matches) {
+			Set<Long> matchPair = Set.of(match.getHomeTeam().getId(), match.getAwayTeam().getId());
+
+			if(!matchPair.equals(currentPair)) {
+				groups.add(new ArrayList<>());
+				currentPair = matchPair;
+			}
+
+			groups.get(groups.size() -1).add(match);
+		}
+		return groups;
+	}
+
+	/** 포스트 시즌 Stage 수에 따라 다르게 분류*/
+	private PostseasonStage resolveStageName(int totalStages, int currentIndex) {
+		// 1. 와일드카드가 있는 경우 (4단계)
+		if(totalStages == 4) {
+			if(currentIndex == 0) return PostseasonStage.WILD_CARD;
+			if(currentIndex == 1) return PostseasonStage.SEMI_PLAYOFF;
+			if(currentIndex == 2) return PostseasonStage.PLAYOFF;
+			if(currentIndex == 3) return PostseasonStage.KOREAN_SERIES;
+		}
+
+		// 2. 와일드카드 없는 경우 (3단계) : ~2014년
+		else if (totalStages == 3) {
+			if(currentIndex == 0 ) return PostseasonStage.SEMI_PLAYOFF;
+			if(currentIndex == 1 ) return PostseasonStage.PLAYOFF;
+			if(currentIndex == 2) return PostseasonStage.KOREAN_SERIES;
+		}
+
+		// 3. 데이터가 이상하거나 극과거리크 -> 뒤에서 부터 매핑
+		if (currentIndex == totalStages - 1) return PostseasonStage.KOREAN_SERIES;
+		if (currentIndex == totalStages - 2) return PostseasonStage.PLAYOFF;
+		if (currentIndex == totalStages - 3) return PostseasonStage.SEMI_PLAYOFF;
+		if (currentIndex == totalStages - 4) return PostseasonStage.WILD_CARD;
+
+		return  PostseasonStage.UNKNOWN;
+	}
 
 	/** 한국시리즈 4승 선승제 기반 우승팀 판별 */
 	private String extractChampion(List<Match> postSeasonMatches) {

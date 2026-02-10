@@ -13,5 +13,5 @@ public interface TeamRankingRepositoryCustom {
 
 	List<TeamRankingStat> applyTeamRecords (LocalDateTime anyday);
 	List<TeamRankingStat> applyTeamRecordsByYear (int year, LeagueType leagueType);
-	Map<PostseasonStage, List<Match>> classifyStages (int year);
+	List<Match> findAllPostSeasonMatches(int year);
 }
