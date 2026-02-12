@@ -76,7 +76,7 @@ cloud:
 # Firebase Settings
 # ===========================================
 firebase:
-  project-id: "yaguniv-6a1b0"
+  project-id: "sparta-33b05"
 
 # ===============================
 # Weather API
