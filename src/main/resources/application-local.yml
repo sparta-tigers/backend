@@ -41,3 +41,10 @@ jwt:
 # ===========================================
 discord:
   webhook-url: ${DISCORD_WEBHOOK_LOCAL_URL}
+
+# ===========================================
+# Weather API Settings
+# ===========================================
+weather:
+  api:
+    key: ${WEATHER_API_KEY}
