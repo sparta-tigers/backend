@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.domain.favoriteteam.dto.FavTeamRequestDto;
+import com.sparta.spartatigers.domain.favoriteteam.dto.FavTeamResponseDto;
 import com.sparta.spartatigers.domain.favoriteteam.service.FavTeamService;
 import com.sparta.spartatigers.global.aop.Auth;
 import com.sparta.spartatigers.global.response.ApiResponse;
@@ -23,7 +24,7 @@ public class FavTeamController {
 	private final FavTeamService favTeamService;
 
 	@PostMapping("/fav")
-	public ApiResponse<?> addFavTeam(
+	public ApiResponse<FavTeamResponseDto> addFavTeam(
 		@RequestBody FavTeamRequestDto request,
 		@Auth TokenClaim tokenClaim
 	) {
@@ -32,7 +33,7 @@ public class FavTeamController {
 	}
 
 	@GetMapping("/fav")
-	public ApiResponse<?> getFavTeam(
+	public ApiResponse<FavTeamResponseDto> getFavTeam(
 		@Auth TokenClaim tokenClaim
 	) {
 		Long userId = tokenClaim.getUserId();
@@ -40,7 +41,7 @@ public class FavTeamController {
 	}
 
 	@PatchMapping("/fav")
-	public ApiResponse<?> updateFavTeam(
+	public ApiResponse<FavTeamResponseDto> updateFavTeam(
 		@RequestBody FavTeamRequestDto request,
 		@Auth TokenClaim tokenClaim
 	) {

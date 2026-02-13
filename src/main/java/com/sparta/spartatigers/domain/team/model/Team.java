@@ -35,4 +35,12 @@ public class Team extends BaseEntity {
 
     @Column(name = "symbol_url")
     private String symbolUrl;
+
+    public Team(String name) {
+        this.name = name;
+    }
+
+    public static Team of(String name) {
+        return new Team(name);
+    }
 }

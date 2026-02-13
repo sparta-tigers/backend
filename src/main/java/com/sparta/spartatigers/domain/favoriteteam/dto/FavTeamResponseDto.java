@@ -16,13 +16,15 @@ public class FavTeamResponseDto {
 	private Long teamId;
 	private String teamName;
 	private TeamCode teamCode;
+	private String symbolUrl;
 
 	public static FavTeamResponseDto of(FavoriteTeam favoriteTeam) {
 		return new FavTeamResponseDto(
 			favoriteTeam.getUser().getId(),
 			favoriteTeam.getTeam().getId(),
 			favoriteTeam.getTeam().getName(),
-			favoriteTeam.getTeam().getCode()
+			favoriteTeam.getTeam().getCode(),
+			favoriteTeam.getTeam().getSymbolUrl()
 		);
 	}
 

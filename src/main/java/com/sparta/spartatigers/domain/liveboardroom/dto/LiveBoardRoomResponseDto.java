@@ -49,7 +49,7 @@ public class LiveBoardRoomResponseDto {
 
 	public static LiveBoardRoomResponseDto fromUpcomingMatch(Match match) {
 		return LiveBoardRoomResponseDto.builder()
-			.roomId(null)
+			.roomId("LIVEBOARD_"+match.getId())
 			.matchId(match.getId())
 			.title(match.getAwayTeam().getName()+"VS"+match.getHomeTeam().getName())
 			.matchTime(match.getMatchTime())
