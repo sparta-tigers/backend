@@ -10,6 +10,9 @@ COPY build.gradle .
 COPY gradle.properties .
 COPY lint.gradle .
 
+# Firebase 키 파일을 리소스 디렉토리로 복사
+COPY firebase-key.json src/main/resources/
+
 # 소스코드 복사
 COPY src/ src/
 

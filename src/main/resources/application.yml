@@ -77,6 +77,8 @@ cloud:
 # ===========================================
 firebase:
   project-id: "sparta-33b05"
+  # 로컬: 파일 시스템, 운영: 클래스패스 리소스
+  credentials-path: "firebase-key.json"
 
 # ===============================
 # Weather API
