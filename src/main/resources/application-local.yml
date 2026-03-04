@@ -41,3 +41,4 @@ jwt:
 # ===========================================
 discord:
   webhook-url: ${DISCORD_WEBHOOK_LOCAL_URL}
+

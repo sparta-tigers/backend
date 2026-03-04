@@ -85,3 +85,12 @@ weather:
   api:
     key: ${WEATHER_API_KEY}
 
+# ===========================================
+# Google Cloud Vision API Setting
+# ===========================================
+google:
+  cloud:
+    vision:
+      credentials:
+        location: ${VISION_API_KEY_PATH:classpath:vision-api-key.json}
+
