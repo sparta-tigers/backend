@@ -4,7 +4,9 @@ import com.sparta.spartatigers.domain.auth.client.KakaoClient;
 import com.sparta.spartatigers.domain.auth.dto.KakaoUserInfo;
 import com.sparta.spartatigers.domain.auth.model.OAuthProvider;
 import com.sparta.spartatigers.domain.auth.model.Oauth;
+import com.sparta.spartatigers.domain.auth.model.RefreshToken;
 import com.sparta.spartatigers.domain.auth.repository.OauthRepository;
+import com.sparta.spartatigers.domain.auth.repository.RefreshTokenRepository;
 import com.sparta.spartatigers.domain.user.model.UserRole;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ import com.sparta.spartatigers.global.exception.internal.InvalidRequestException
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +31,7 @@ public class AuthService {
     private final OauthRepository oauthRepository;
     private final KakaoClient kakaoClient;
     private final TokenService tokenService;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     public Token login(final String email, final String password) {
         User user = userRepository
@@ -59,6 +63,44 @@ public class AuthService {
             .findByProviderAndProviderId(OAuthProvider.KAKAO, info.id())
             .map(Oauth::getUser)
             .orElseGet(() -> findOrCreateKakaoUser(info));
+
+        TokenClaim tokenClaim = TokenClaim.from(user);
+        return tokenService.generateToken(tokenClaim);
+    }
+
+    @Transactional
+    public void logout(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new InvalidRequestException(ExceptionCode.INVALID_REFRESH_TOKEN);
+        }
+
+        refreshTokenRepository.deleteById(refreshToken);
+    }
+
+    @Transactional
+    public Token refresh(String refreshToken) {
+        if (!StringUtils.hasText(refreshToken)) {
+            throw new InvalidRequestException(ExceptionCode.INVALID_REFRESH_TOKEN);
+        }
+
+        TokenClaim refreshClaim = tokenService.parseRefreshToken(refreshToken);
+        String subject = refreshClaim.getSubject();
+
+        if (!StringUtils.hasText(subject)) {
+            throw new InvalidRequestException(ExceptionCode.INVALID_REFRESH_TOKEN);
+        }
+
+        RefreshToken saved = refreshTokenRepository.findById(refreshToken)
+            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.INVALID_REFRESH_TOKEN));
+
+        if (saved.getSubject()==null || !saved.getSubject().equals(subject)) {
+            throw new InvalidRequestException(ExceptionCode.INVALID_REFRESH_TOKEN);
+        }
+
+        User user = userRepository.findByEmail(subject)
+            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.USER_NOT_FOUND));
+
+        refreshTokenRepository.deleteById(refreshToken);
 
         TokenClaim tokenClaim = TokenClaim.from(user);
         return tokenService.generateToken(tokenClaim);

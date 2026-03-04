@@ -1,7 +1,10 @@
 package com.sparta.spartatigers.domain.auth.service;
 
+import com.sparta.spartatigers.domain.auth.model.RefreshToken;
+import com.sparta.spartatigers.domain.auth.repository.RefreshTokenRepository;
 import java.util.Date;
 
+import java.util.concurrent.TimeUnit;
 import javax.crypto.SecretKey;
 
 import org.springframework.stereotype.Service;
@@ -24,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 public class JwtTokenService implements TokenService {
 
     private final JwtConfig jwtConfig;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Override
     public Token generateToken(TokenClaim tokenClaim) {
@@ -38,32 +42,43 @@ public class JwtTokenService implements TokenService {
         Date nowDate = new Date(now);
 
         final String accessToken = Jwts.builder()
-                .subject(tokenClaim.getSubject())
-                .claim("userId", tokenClaim.getUserId())
-                .claim("email", tokenClaim.getEmail())
-                .claim("nickname", tokenClaim.getNickname())
-                .claim("profileImageUrl", tokenClaim.getProfileImageUrl())
-                .claim("role", tokenClaim.getRole())
-                .issuedAt(nowDate)
-                .expiration(accessTokenExpireAt)
-                .signWith(accessTokenSecretKey)
-                .compact();
+            .subject(tokenClaim.getSubject())
+            .claim("userId", tokenClaim.getUserId())
+            .claim("email", tokenClaim.getEmail())
+            .claim("nickname", tokenClaim.getNickname())
+            .claim("profileImageUrl", tokenClaim.getProfileImageUrl())
+            .claim("role", tokenClaim.getRole())
+            .issuedAt(nowDate)
+            .expiration(accessTokenExpireAt)
+            .signWith(accessTokenSecretKey)
+            .compact();
 
         final String refreshToken = Jwts.builder()
+            .subject(tokenClaim.getSubject())
+            .issuedAt(nowDate)
+            .expiration(refreshTokenExpireAt)
+            .signWith(refreshTokenSecret)
+            .compact();
+
+        long ttlSeconds = TimeUnit.MILLISECONDS.toSeconds(jwtConfig.getRefreshToken().expire());
+        log.info("refresh expire raw={}, ttlSeconds={}",
+            jwtConfig.getRefreshToken().expire(), ttlSeconds);
+        refreshTokenRepository.save(
+            RefreshToken.builder()
+                .token(refreshToken)
                 .subject(tokenClaim.getSubject())
-                .issuedAt(nowDate)
-                .expiration(refreshTokenExpireAt)
-                .signWith(refreshTokenSecret)
-                .compact();
+                .ttlSeconds(ttlSeconds)
+                .build()
+        );
 
         return Token.builder()
-                .accessToken(accessToken)
-                .accessTokenExpiredAt(accessTokenExpireAt)
-                .accessTokenIssuedAt(nowDate)
-                .refreshToken(refreshToken)
-                .refreshTokenExpiredAt(refreshTokenExpireAt)
-                .refreshTokenIssuedAt(nowDate)
-                .build();
+            .accessToken(accessToken)
+            .accessTokenExpiredAt(accessTokenExpireAt)
+            .accessTokenIssuedAt(nowDate)
+            .refreshToken(refreshToken)
+            .refreshTokenExpiredAt(refreshTokenExpireAt)
+            .refreshTokenIssuedAt(nowDate)
+            .build();
     }
 
     @Override
@@ -79,13 +94,13 @@ public class JwtTokenService implements TokenService {
         final String userRole = claimsJws.getPayload().get("role", String.class);
 
         return TokenClaim.builder()
-                .subject(email)
-                .userId(userId.longValue())
-                .email(email)
-                .nickname(nickname)
-                .profileImageUrl(profileImageUrl)
-                .role(UserRole.from(userRole))
-                .build();
+            .subject(email)
+            .userId(userId.longValue())
+            .email(email)
+            .nickname(nickname)
+            .profileImageUrl(profileImageUrl)
+            .role(UserRole.from(userRole))
+            .build();
     }
 
     @Override
@@ -96,8 +111,8 @@ public class JwtTokenService implements TokenService {
         final String subject = claimsJws.getPayload().getSubject();
 
         return TokenClaim.builder()
-                .subject(subject)
-                .build();
+            .subject(subject)
+            .build();
     }
 
 }

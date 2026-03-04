@@ -1,6 +1,8 @@
 package com.sparta.spartatigers.domain.auth.controller;
 
+import com.sparta.spartatigers.domain.auth.dto.LogoutRequest;
 import com.sparta.spartatigers.domain.auth.dto.OauthLoginRequest;
+import com.sparta.spartatigers.domain.auth.dto.RefreshRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,6 +33,20 @@ public class AuthController {
     @PostMapping("/api/v1/auth/oauth/kakao")
     public ApiResponse<Token> kakaoLogin(@Valid @RequestBody OauthLoginRequest request) {
         Token token = authService.kakaoLogin(request.code(), request.redirectUri());
+
+        return ApiResponse.success(token);
+    }
+
+    @PostMapping("/api/v1/auth/logout")
+    public ApiResponse<Void> logout(@Valid @RequestBody LogoutRequest request) {
+        authService.logout(request.refreshToken());
+
+        return ApiResponse.success(null);
+    }
+
+    @PostMapping("/api/v1/auth/refresh")
+    public ApiResponse<Token> refresh(@Valid @RequestBody RefreshRequest request) {
+        Token token = authService.refresh(request.refreshToken());
 
         return ApiResponse.success(token);
     }

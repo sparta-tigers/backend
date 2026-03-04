@@ -19,6 +19,7 @@ public enum ExceptionCode {
     NOT_SUPPORTED_SOCIAL_LOGIN(HttpStatus.BAD_REQUEST, ErrorCode.E400, "지원하지 않는 소셜 로그인입니다.", LogLevel.DEBUG),
     AUTHENTICATION_ERROR(HttpStatus.UNAUTHORIZED, ErrorCode.E401, "인증된 사용자만 수행할 수 있는 요청입니다.", LogLevel.DEBUG),
     AUTHORIZATION_ERROR(HttpStatus.FORBIDDEN, ErrorCode.E403, "권한이 부족한 유저입니다.", LogLevel.DEBUG),
+    INVALID_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, ErrorCode.E400, "유효하지 않은 리프레시 토큰입니다.", LogLevel.DEBUG),
 
     // 회원
     EMAIL_ALREADY_USED(HttpStatus.BAD_REQUEST, ErrorCode.E400, "이미 사용 중인 이메일입니다.", LogLevel.DEBUG),
