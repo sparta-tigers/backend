@@ -86,6 +86,8 @@ dependencies {
     // dotenv
 //    implementation("io.github.cdimascio:dotenv-java:3.0.0")
     implementation("me.paulschwarz:spring-dotenv:4.0.0")
+
+    testImplementation 'com.h2database:h2'
 }
 
 def querydslDir = "$buildDir/generated/querydsl"

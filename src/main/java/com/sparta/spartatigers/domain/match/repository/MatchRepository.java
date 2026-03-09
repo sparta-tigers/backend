@@ -50,5 +50,4 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
 	)
 	Optional<Match> findFirstHomeSeriesMatch (Long awayTeamId, Long homeTeamId, LocalDateTime from, LocalDateTime to);
 
-
 }
