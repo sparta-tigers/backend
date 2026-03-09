@@ -150,4 +150,4 @@ nbdist/
 # ================================
 # Firebase
 # ================================
-firebase-key.json
+**/firebase-key.json
