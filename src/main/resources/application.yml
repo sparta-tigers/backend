@@ -93,6 +93,14 @@ firebase:
 weather:
   api:
     key: ${WEATHER_API_KEY}
+
+# ===============================
+# Image Storage
+# ===============================
+image:
+  storage:
+    path: ${IMAGE_STORAGE_PATH:/app/uploads}
+
 # ===============================
 # OAuth Settings
 # ===============================

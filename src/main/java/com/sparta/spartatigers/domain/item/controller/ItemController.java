@@ -33,10 +33,12 @@ import com.sparta.spartatigers.global.response.ApiResponse;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/items")
+@Slf4j
 public class ItemController {
 
     private final ItemService itemService;
@@ -61,8 +63,15 @@ public class ItemController {
         System.out.println("storedImageUrls: " + storedImageUrls);
         System.out.println("========================");
 
-        // 2. 비즈니스 로직 실행 (DTO에 URL 리스트 추가 전달)
-        itemService.createItemWithImages(request, tokenClaim, storedImageUrls);
+        try {
+            // 2. 비즈니스 로직 실행 (DTO에 URL 리스트 추가 전달)
+            itemService.createItemWithImages(request, tokenClaim, storedImageUrls);
+        } catch (Exception e) {
+            // 3. 실패 시 업로드된 파일 삭제 (롤백)
+            log.error("아이템 생성 실패, 업로드된 파일 삭제: {}", storedImageUrls, e);
+            imageStorageService.deleteImages(storedImageUrls);
+            throw e;
+        }
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
