@@ -1,15 +1,20 @@
 package com.sparta.spartatigers.domain.image.service;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
+
+import javax.imageio.ImageIO;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,6 +25,19 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class LocalImageStorageServiceImpl implements ImageStorageService {
+    
+    // 허용된 이미지 MIME 타입
+    private static final Set<String> ALLOWED_MIME_TYPES = Set.of(
+        "image/jpeg",
+        "image/jpg", 
+        "image/png",
+        "image/gif"
+    );
+    
+    // 허용된 파일 확장자
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
+        "jpg", "jpeg", "png", "gif"
+    );
     
     // 설정 가능한 영구 저장 경로
     private final String uploadPath;
@@ -59,23 +77,50 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
         }
 
         List<String> imageUrls = new ArrayList<>();
+        List<Path> savedFiles = new ArrayList<>(); // 저장된 파일 경로 추적
+        
         File directory = new File(uploadDir);
         if (!directory.exists()) {
             log.info("디렉토리 생성: {}", directory.getAbsolutePath());
             directory.mkdirs();
         }
 
-        for (MultipartFile file : images) {
-            log.info("처리 중인 파일: {}, 크기: {}, isEmpty: {}", 
-                file.getOriginalFilename(), file.getSize(), file.isEmpty());
-            
-            if (file.isEmpty()) continue;
-            try {
+        try {
+            for (MultipartFile file : images) {
+                log.info("처리 중인 파일: {}, 크기: {}, isEmpty: {}", 
+                    file.getOriginalFilename(), file.getSize(), file.isEmpty());
+                
+                if (file.isEmpty()) continue;
+                
                 // 안전한 파일명 생성
                 String originalFilename = file.getOriginalFilename();
                 if (originalFilename == null || originalFilename.trim().isEmpty()) {
                     log.warn("파일명이 비어있어 건너뜁니다");
                     continue;
+                }
+                
+                // 보안 검증: MIME 타입 확인
+                String contentType = file.getContentType();
+                if (contentType == null || !ALLOWED_MIME_TYPES.contains(contentType.toLowerCase())) {
+                    log.error("허용되지 않는 MIME 타입: {} (파일: {})", contentType, originalFilename);
+                    throw new RuntimeException("허용되지 않는 파일 타입입니다: " + contentType);
+                }
+                
+                // 보안 검증: 파일 확장자 확인
+                String fileExtension = getFileExtension(originalFilename).toLowerCase();
+                if (!ALLOWED_EXTENSIONS.contains(fileExtension)) {
+                    log.error("허용되지 않는 파일 확장자: {} (파일: {})", fileExtension, originalFilename);
+                    throw new RuntimeException("허용되지 않는 파일 확장자입니다: " + fileExtension);
+                }
+                
+                // 보안 검증: 실제 이미지 파일인지 확인
+                try (InputStream inputStream = file.getInputStream()) {
+                    BufferedImage image = ImageIO.read(inputStream);
+                    if (image == null) {
+                        log.error("이미지 디코딩 실패: {}", originalFilename);
+                        throw new RuntimeException("유효하지 않은 이미지 파일입니다: " + originalFilename);
+                    }
+                    log.info("이미지 검증 성공: {}x{}", image.getWidth(), image.getHeight());
                 }
                 
                 // 파일명에서 디렉토리 경로 제거 및 안전한 문자만 남기기
@@ -97,18 +142,45 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
                 // transferTo는 application.yml의 설정에 따라 임시 파일을 실제 경로로 안전하게 이동시킴
                 file.transferTo(destination);
                 
+                // 저장된 파일 경로 추적
+                savedFiles.add(destinationPath);
+                
                 // 컨트롤러 엔드포인트 URL 반환 (/api/v1/images/{fileName})
                 imageUrls.add("/api/v1/images/" + fileName);
                 log.info("파일 저장 성공: {}", fileName);
-            } catch (IOException e) {
-                log.error("Failed to store image file", e);
-                throw new RuntimeException("이미지 저장 중 오류가 발생했습니다.");
             }
+        } catch (IOException e) {
+            log.error("이미지 업로드 중 오류 발생, 저장된 파일 롤백 시작", e);
+            
+            // 저장된 파일들 삭제 (롤백)
+            for (Path savedFile : savedFiles) {
+                try {
+                    if (Files.exists(savedFile)) {
+                        Files.delete(savedFile);
+                        log.info("롤백: 파일 삭제 성공 - {}", savedFile);
+                    }
+                } catch (IOException deleteException) {
+                    log.error("롤백: 파일 삭제 실패 - {}", savedFile, deleteException);
+                }
+            }
+            
+            throw new RuntimeException("이미지 저장 중 오류가 발생했습니다.", e);
         }
         
         log.info("최종 imageUrls: {}", imageUrls);
         log.info("=== 이미지 업로드 종료 ===");
         return imageUrls;
+    }
+    
+    /**
+     * 파일 확장자를 추출합니다.
+     */
+    private String getFileExtension(String filename) {
+        int lastDotIndex = filename.lastIndexOf('.');
+        if (lastDotIndex == -1 || lastDotIndex == filename.length() - 1) {
+            return "";
+        }
+        return filename.substring(lastDotIndex + 1);
     }
     
     /**

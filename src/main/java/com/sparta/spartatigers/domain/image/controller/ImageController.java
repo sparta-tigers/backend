@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -22,6 +23,9 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/api/v1/images")
 @Slf4j
 public class ImageController {
+    
+    @Value("${image.storage.path:./uploads}")
+    private String uploadDirectory;
 
     @GetMapping("/{fileName}")
     public ResponseEntity<Resource> getImage(@PathVariable String fileName) {
@@ -63,10 +67,9 @@ public class ImageController {
     
     /**
      * 업로드 디렉토리 경로를 가져옵니다.
-     * 기본값은 /app/uploads 이지만 환경변수로 변경 가능합니다.
+     * Spring 속성으로 주입된 값을 사용하며, 슬래시 정규화를 보장합니다.
      */
     private String getUploadDirectory() {
-        String uploadPath = System.getenv().getOrDefault("IMAGE_STORAGE_PATH", "/app/uploads");
-        return uploadPath.endsWith("/") ? uploadPath : uploadPath + "/";
+        return uploadDirectory.endsWith("/") ? uploadDirectory : uploadDirectory + "/";
     }
 }

@@ -53,7 +53,8 @@ public class Item extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ItemCategory category;
 
-    @Column private String image;
+    @Column(columnDefinition = "TEXT")
+    private String image;
 
     @Column private String seatInfo;
 

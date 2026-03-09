@@ -34,6 +34,16 @@ public record ReadItemResponseDto(
     
     // 기존 호환성을 위한 오버로드 (이미지 없는 경우)
     public static ReadItemResponseDto from(Item item) {
-        return from(item, null);
+        // itemService가 null이면 빈 리스트로 처리
+        List<String> imageUrls = List.of();
+        
+        return new ReadItemResponseDto(
+            item.getId(),
+            UserResponseDto.from(item.getUser()),
+            item.getCategory(),
+            item.getTitle(),
+            item.getStatus(),
+            imageUrls,
+            item.getCreatedAt());
     }
 }

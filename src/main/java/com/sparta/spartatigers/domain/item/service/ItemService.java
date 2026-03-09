@@ -80,7 +80,7 @@ public class ItemService {
 
         Page<Item> itemList = itemRepository.findAllItems(ItemStatus.REGISTERED, LocalDate.now(), nearByUserIds, pageable);
 
-        return itemList.map(ReadItemResponseDto::from);
+        return itemList.map(item -> ReadItemResponseDto.from(item, this));
     }
 
     @Transactional(readOnly = true)
