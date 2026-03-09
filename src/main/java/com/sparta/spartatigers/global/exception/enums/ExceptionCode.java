@@ -43,6 +43,9 @@ public enum ExceptionCode {
     // 매치
     MATCH_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "경기 일정을 찾을 수 없습니다.", LogLevel.DEBUG),
 
+    // 경기장
+    STADIUM_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "구장을 찾을 수 없습니다.", LogLevel.DEBUG),
+
     // 알람
     ALARM_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "알람을 찾을 수 없습니다.", LogLevel.DEBUG),
     ALARM_TIME_ALREADY_PASSED(HttpStatus.BAD_REQUEST, ErrorCode.E400, "현재보다 과거 시점에 알람을 맞출 수 없습니다", LogLevel.DEBUG),
@@ -87,7 +90,12 @@ public enum ExceptionCode {
     // 공통
     INVALID_TYPE_EXCEPTION(HttpStatus.BAD_REQUEST, ErrorCode.E400, "잘못된 데이터 타입입니다.", LogLevel.DEBUG),
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, ErrorCode.E400, "요청값 검증에 실패 했습니다", LogLevel.DEBUG),
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.E500, "예상하지 못한 예외가 발생 했습니다.", LogLevel.ERROR);
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.E500, "예상하지 못한 예외가 발생 했습니다.", LogLevel.ERROR),
+
+    // 순위
+    POSTSEASON_RANKING_UNAVAILABLE(HttpStatus.BAD_REQUEST, ErrorCode.E400, "포스트시즌은 순위 조회가 불가능합니다.", LogLevel.DEBUG);
+
+
 
 
     private final HttpStatus httpStatus;

@@ -33,6 +33,13 @@ public class Match extends BaseEntity {
     @Column(name = "match_id")
     private Long id;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private LeagueType leagueType;
+
+    @Column(nullable = false)
+    private int seasonYear;
+
     @Column private LocalDateTime matchTime;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -58,5 +65,6 @@ public class Match extends BaseEntity {
 
     @Column private String remark; // 비고
 
-    @Column private LocalDateTime reservationOpenTime;
+
+
 }

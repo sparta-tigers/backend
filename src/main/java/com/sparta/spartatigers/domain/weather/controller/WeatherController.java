@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.sparta.spartatigers.domain.team.model.Stadium;
 import com.sparta.spartatigers.domain.weather.dto.ForeCastResponseDto;
 import com.sparta.spartatigers.domain.weather.dto.NowCastResponseDto;
+import com.sparta.spartatigers.domain.weather.dto.StadiumWeatherRequestDto;
 import com.sparta.spartatigers.domain.weather.service.WeatherService;
 
 import lombok.RequiredArgsConstructor;
@@ -22,15 +23,15 @@ public class WeatherController {
 	private final WeatherService weatherService;
 
 	@GetMapping ("/now")
-	public NowCastResponseDto getNowCast(@RequestBody Stadium stadium) {
+	public NowCastResponseDto getNowCast(@RequestBody StadiumWeatherRequestDto request) {
 
-		return weatherService.getNowCast(stadium);
+		return weatherService.getNowCast(request.getStadiumId());
 	}
 
 	@GetMapping("/fore")
-	public List<ForeCastResponseDto> getForeCast (@RequestBody Stadium stadium) {
+	public List<ForeCastResponseDto> getForeCast (@RequestBody StadiumWeatherRequestDto request) {
 
-		return weatherService.getForeCast(stadium);
+		return weatherService.getForeCast(request.getStadiumId());
 	}
 
 }

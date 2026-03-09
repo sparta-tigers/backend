@@ -49,7 +49,6 @@ public class WebSocketEventListener {
 			sessionRegistry.unregisterUserInRoom(roomId, userId);
 			log.info("[1:1 채팅] 퇴장 이벤트 감지 - user {} left room {}", userId, roomId);
 		}
-
 	}
 
 	// 웹소켓 연결 종료 감지
