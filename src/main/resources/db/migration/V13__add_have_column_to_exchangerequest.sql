@@ -1,0 +1,2 @@
+ALTER TABLE exchange_request
+    ADD COLUMN have VARCHAR(1000) NOT NULL;
