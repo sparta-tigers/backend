@@ -36,7 +36,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/items")
+@RequestMapping("/api/items")
 public class ItemController {
 
     private final ItemService itemService;
