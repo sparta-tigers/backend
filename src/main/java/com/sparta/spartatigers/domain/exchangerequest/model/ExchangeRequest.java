@@ -47,16 +47,19 @@ public class ExchangeRequest extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ExchangeStatus status;
 
-    public ExchangeRequest(Item item, User sender, User receiver, ExchangeStatus exchangeStatus) {
+    private String have;
+
+    public ExchangeRequest(Item item, User sender, User receiver, ExchangeStatus exchangeStatus, String have) {
         this.item = item;
         this.sender = sender;
         this.receiver = receiver;
         this.status = exchangeStatus;
+        this.have = have;
     }
 
-    public static ExchangeRequest of(Item item, User sender, User receiver) {
+    public static ExchangeRequest of(Item item, User sender, User receiver, String have) {
 
-        return new ExchangeRequest(item, sender, receiver, ExchangeStatus.PENDING);
+        return new ExchangeRequest(item, sender, receiver, ExchangeStatus.PENDING, have);
     }
 
     public void validateReceiverIsOwner(User receiver) {

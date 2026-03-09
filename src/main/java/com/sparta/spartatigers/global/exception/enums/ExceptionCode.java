@@ -19,6 +19,7 @@ public enum ExceptionCode {
     NOT_SUPPORTED_SOCIAL_LOGIN(HttpStatus.BAD_REQUEST, ErrorCode.E400, "지원하지 않는 소셜 로그인입니다.", LogLevel.DEBUG),
     AUTHENTICATION_ERROR(HttpStatus.UNAUTHORIZED, ErrorCode.E401, "인증된 사용자만 수행할 수 있는 요청입니다.", LogLevel.DEBUG),
     AUTHORIZATION_ERROR(HttpStatus.FORBIDDEN, ErrorCode.E403, "권한이 부족한 유저입니다.", LogLevel.DEBUG),
+    INVALID_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, ErrorCode.E400, "유효하지 않은 리프레시 토큰입니다.", LogLevel.DEBUG),
 
     // 회원
     EMAIL_ALREADY_USED(HttpStatus.BAD_REQUEST, ErrorCode.E400, "이미 사용 중인 이메일입니다.", LogLevel.DEBUG),
@@ -29,6 +30,9 @@ public enum ExceptionCode {
     ACCESS_DENIED(HttpStatus.FORBIDDEN, ErrorCode.E403, "해당 계정의 접근 권한이 없습니다.", LogLevel.DEBUG),
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, ErrorCode.E400, "현재 비밀번호가 일치하지 않습니다.", LogLevel.DEBUG),
     SAME_AS_OLD_PASSWORD(HttpStatus.BAD_REQUEST, ErrorCode.E400, "새 비밀번호는 현재 비밀번호와 달라야 합니다.", LogLevel.DEBUG),
+    OAUTH_TOKEN_EXCHANGE_FAILED(HttpStatus.BAD_REQUEST, ErrorCode.E400, "카카오 로그인에 실패했습니다.", LogLevel.DEBUG),
+    OAUTH_USERINFO_FAILED(HttpStatus.BAD_REQUEST, ErrorCode.E400, "카카오 사용자 정보를 가져오지 못했습니다.", LogLevel.DEBUG),
+    OAUTH_EMAIL_REQUIRED(HttpStatus.BAD_REQUEST, ErrorCode.E400, "카카오 로그인 시 이메일 제공 동의가 필요합니다.", LogLevel.DEBUG),
 
     // 파일
     FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.E500, "파일 업로드에 실패했습니다.", LogLevel.ERROR),

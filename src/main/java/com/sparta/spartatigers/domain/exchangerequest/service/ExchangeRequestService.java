@@ -46,7 +46,9 @@ public class ExchangeRequestService {
 
         checkDuplicateExchangeRequest(sender.getId(), receiver.getId(), item.getId());
 
-        ExchangeRequest exchangeRequest = ExchangeRequest.of(item, sender, receiver);
+        String have = request.have();
+
+        ExchangeRequest exchangeRequest = ExchangeRequest.of(item, sender, receiver, have);
         exchangeRequestRepository.save(exchangeRequest);
     }
 
