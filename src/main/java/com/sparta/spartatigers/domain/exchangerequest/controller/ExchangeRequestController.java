@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/exchanges")
+@RequestMapping("/api/exchanges")
 public class ExchangeRequestController {
 
     private final ExchangeRequestService exchangeRequestService;
