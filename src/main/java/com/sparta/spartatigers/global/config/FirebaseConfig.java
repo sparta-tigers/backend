@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -30,6 +29,13 @@ public class FirebaseConfig {
 
     @Bean
     public FirebaseApp firebaseApp() throws IOException {
+        // 이미 초기화된 Firebase 앱이 있는지 확인
+        if (!FirebaseApp.getApps().isEmpty()) {
+            FirebaseApp existingApp = FirebaseApp.getInstance();
+            log.info("Firebase 앱이 이미 초기화되어 있습니다: {}", existingApp.getName());
+            return existingApp;
+        }
+        
         log.info("Firebase 초기화 중");
         log.info("project id: {}", projectId);
         log.info("credentials path: {}", credentialsPath);
@@ -65,18 +71,10 @@ public class FirebaseConfig {
             .setProjectId(projectId)
             .build();
 
-        List<FirebaseApp> firebaseApps = FirebaseApp.getApps();
-        if (firebaseApps != null && !firebaseApps.isEmpty()) {
-            for (FirebaseApp app : firebaseApps) {
-                if (app.getName().equals(FirebaseApp.DEFAULT_APP_NAME)) {
-                    log.info("Firebase가 이미 초기화되어있습니다.");
-                    return app;
-                }
-            }
-        }
+        FirebaseApp app = FirebaseApp.initializeApp(options);
         log.info("FirebaseApp가 초기화되었습니다.");
 
-        return FirebaseApp.initializeApp(options);
+        return app;
     }
 
     @Bean

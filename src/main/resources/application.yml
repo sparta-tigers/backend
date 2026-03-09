@@ -99,7 +99,7 @@ weather:
 # ===============================
 image:
   storage:
-    path: ${IMAGE_STORAGE_PATH:/app/uploads}
+    path: ${IMAGE_STORAGE_PATH:./uploads}
 
 # ===============================
 # OAuth Settings

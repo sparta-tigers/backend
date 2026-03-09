@@ -1,10 +1,12 @@
 package com.sparta.spartatigers.domain.item.dto.response;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.sparta.spartatigers.domain.item.model.Item;
 import com.sparta.spartatigers.domain.item.model.ItemCategory;
 import com.sparta.spartatigers.domain.item.model.ItemStatus;
+import com.sparta.spartatigers.domain.item.service.ItemService;
 import com.sparta.spartatigers.domain.user.dto.UserResponseDto;
 
 public record ReadItemResponseDto(
@@ -13,9 +15,12 @@ public record ReadItemResponseDto(
     ItemCategory category,
     String title,
     ItemStatus status,
+    List<String> imageUrls,
     LocalDateTime createdAt) {
 
-    public static ReadItemResponseDto from(Item item) {
+    public static ReadItemResponseDto from(Item item, ItemService itemService) {
+        // JSON 문자열을 List<String>으로 역직렬화
+        List<String> imageUrls = itemService.deserializeImageUrls(item.getImage());
 
         return new ReadItemResponseDto(
             item.getId(),
@@ -23,6 +28,12 @@ public record ReadItemResponseDto(
             item.getCategory(),
             item.getTitle(),
             item.getStatus(),
+            imageUrls,
             item.getCreatedAt());
+    }
+    
+    // 기존 호환성을 위한 오버로드 (이미지 없는 경우)
+    public static ReadItemResponseDto from(Item item) {
+        return from(item, null);
     }
 }

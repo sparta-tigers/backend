@@ -22,16 +22,15 @@ import lombok.extern.slf4j.Slf4j;
 public class LocalImageStorageServiceImpl implements ImageStorageService {
     
     // 설정 가능한 영구 저장 경로
-    @Value("${image.storage.path:/app/uploads}")
-    private String uploadPath;
-    
+    private final String uploadPath;
     private final String uploadDir;
     
     // 안전한 파일명 패턴 (영숫자와 일부 특수문자만 허용)
     private static final Pattern SAFE_FILENAME_PATTERN = Pattern.compile("[^a-zA-Z0-9._-]");
     
-    public LocalImageStorageServiceImpl() {
+    public LocalImageStorageServiceImpl(@Value("${image.storage.path:./uploads}") String uploadPath) {
         // 생성자에서 디렉토리 경로 설정 및 생성
+        this.uploadPath = uploadPath;
         this.uploadDir = uploadPath;
         try {
             Path uploadDirectory = Paths.get(uploadDir);
