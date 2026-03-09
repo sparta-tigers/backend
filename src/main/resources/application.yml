@@ -83,9 +83,9 @@ cloud:
 # Firebase Settings
 # ===========================================
 firebase:
-  project-id: "sparta-33b05"
+  project-id: ${FIREBASE_PROJECT_ID:sparta-33b05}
   # 로컬: 파일 시스템, 운영: 클래스패스 리소스
-  credentials-path: "firebase-key.json"
+  credentials-path: ${FIREBASE_CREDENTIALS_PATH:firebase-key.json}
 
 # ===============================
 # Weather API
