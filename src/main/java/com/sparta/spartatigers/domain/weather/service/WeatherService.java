@@ -13,7 +13,6 @@ import com.sparta.spartatigers.domain.team.repository.StadiumRepository;
 import com.sparta.spartatigers.domain.weather.api.WeatherApiUrlGenerator;
 import com.sparta.spartatigers.domain.weather.dto.ForeCastResponseDto;
 import com.sparta.spartatigers.domain.weather.dto.NowCastResponseDto;
-import com.sparta.spartatigers.domain.weather.dto.StadiumWeatherRequestDto;
 import com.sparta.spartatigers.domain.weather.model.RainType;
 import com.sparta.spartatigers.domain.weather.model.SkyStatus;
 import com.sparta.spartatigers.domain.weather.model.WindDirection;

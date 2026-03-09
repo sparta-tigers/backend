@@ -40,7 +40,6 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
     );
     
     // 설정 가능한 영구 저장 경로
-    private final String uploadPath;
     private final String uploadDir;
     
     // 안전한 파일명 패턴 (영숫자와 일부 특수문자만 허용)
@@ -48,7 +47,6 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
     
     public LocalImageStorageServiceImpl(@Value("${image.storage.path:./uploads}") String uploadPath) {
         // 생성자에서 디렉토리 경로 설정 및 생성
-        this.uploadPath = uploadPath;
         this.uploadDir = uploadPath;
         try {
             Path uploadDirectory = Paths.get(uploadDir);
@@ -67,9 +65,9 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
 
     @Override
     public List<String> uploadImages(List<MultipartFile> images) {
-        log.info("=== 이미지 업로드 시작 ===");
-        log.info("images 파라미터: {}", images);
-        log.info("uploadDir: {}", uploadDir);
+        log.info("=== 이미지 업로드 시작 (파일 수: {}) ===", images != null ? images.size() : 0);
+        log.debug("images 파라미터: {}", images);
+        log.debug("uploadDir: {}", uploadDir);
         
         if (images == null || images.isEmpty()) {
             log.info("이미지 리스트가 null이거나 비어있음");
@@ -87,7 +85,7 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
 
         try {
             for (MultipartFile file : images) {
-                log.info("처리 중인 파일: {}, 크기: {}, isEmpty: {}", 
+                log.debug("처리 중인 파일: {}, 크기: {}, isEmpty: {}", 
                     file.getOriginalFilename(), file.getSize(), file.isEmpty());
                 
                 if (file.isEmpty()) continue;
@@ -167,8 +165,8 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
             throw new RuntimeException("이미지 저장 중 오류가 발생했습니다.", e);
         }
         
-        log.info("최종 imageUrls: {}", imageUrls);
-        log.info("=== 이미지 업로드 종료 ===");
+        log.debug("최종 imageUrls: {}", imageUrls);
+        log.info("=== 이미지 업로드 종료 (성공: {}) ===", imageUrls.size());
         return imageUrls;
     }
     

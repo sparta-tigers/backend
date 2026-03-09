@@ -1,7 +1,5 @@
 package com.sparta.spartatigers.domain.directRoom.service;
 
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -9,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomCreateResponseDto;
 import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomResponseDto;
-import com.sparta.spartatigers.domain.directRoom.model.DirectMessage;
 import com.sparta.spartatigers.domain.directRoom.model.DirectRoom;
 import com.sparta.spartatigers.domain.directRoom.repository.DirectMessageRepository;
 import com.sparta.spartatigers.domain.directRoom.repository.DirectRoomRepository;
@@ -27,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DirectRoomService {
 
-     private final ExchangeRequestRepository exchangeRequestRepository;
+    private final ExchangeRequestRepository exchangeRequestRepository;
     private final DirectRoomRepository directRoomRepository;
     private final DirectMessageRepository directMessageRepository;
     private final UserConnectService userConnectService;
