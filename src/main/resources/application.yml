@@ -8,6 +8,13 @@ spring:
   application:
     name: sparta-tigers
 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB       # 파일 1개당 최대 크기 (모바일 압축을 고려하여 10MB 제한)
+      max-request-size: 50MB    # 5장(50MB) 제한
+      file-size-threshold: 10KB # 10KB 이상의 파일은 Heap이 아닌 디스크에 임시 저장 (OOM 방어 핵심)
+
   jpa:
     open-in-view: false
     hibernate:

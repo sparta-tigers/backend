@@ -1,7 +1,16 @@
 package com.sparta.spartatigers.domain.item.service;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.sparta.spartatigers.domain.auth.model.TokenClaim;
-import com.sparta.spartatigers.domain.item.dto.request.CreateItemWithLocationRequestDto;
+import com.sparta.spartatigers.domain.item.dto.request.ItemCreateRequest;
 import com.sparta.spartatigers.domain.item.dto.request.UpdateItemRequestDto;
 import com.sparta.spartatigers.domain.item.dto.response.ItemResponseDto;
 import com.sparta.spartatigers.domain.item.dto.response.ReadItemDetailResponseDto;
@@ -12,17 +21,10 @@ import com.sparta.spartatigers.domain.item.repository.ItemRepository;
 import com.sparta.spartatigers.domain.stompchat.service.LocationService;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.repository.UserRepository;
-
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -34,26 +36,27 @@ public class ItemService {
     private final LocationService locationService;
 
     @Transactional
-    public ItemResponseDto createItem(CreateItemWithLocationRequestDto request, TokenClaim tokenClaim) {
-
-        //        LocationRequestDto locationDto = request.getLocationDto();
-        //        boolean isNear =
-        //                locationService.isNearStadium(
-        //                        locationDto.getLongitude(), locationDto.getLatitude());
-        //
-        //        if (!isNear) {
-        //            throw new ServerException(ExceptionCode.LOCATION_NOT_VALID);
-        //        }
-
+    public ItemResponseDto createItemWithImages(ItemCreateRequest request, TokenClaim tokenClaim, List<String> imageUrls) {
         User user = userRepository.findById(tokenClaim.getUserId())
             .orElseThrow(() -> new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
 
-        Item item = Item.of(request.getItemDto(), user, null);
-        itemRepository.save(item);
+        // 이미지 URL 리스트를 쉼표로 구분된 문자열로 변환
+        String imageUrlsString = imageUrls != null && !imageUrls.isEmpty() 
+            ? String.join(",", imageUrls) 
+            : null;
 
-        if (request.getLocationDto() != null) {
-            locationService.updateLocation(request.getLocationDto(), user.getId());
-        }
+        Item item = new Item(
+            request.category(),
+            imageUrlsString,
+            request.seatInfo(),
+            request.title(),
+            request.description(),
+            ItemStatus.REGISTERED,
+            user,
+            LocalDate.now()
+        );
+        
+        itemRepository.save(item);
 
         ReadItemResponseDto newItemDto = ReadItemResponseDto.from(item);
         locationService.notifyUsersNearBy(user.getId(), "ADD_ITEM", newItemDto);
