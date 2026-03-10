@@ -51,17 +51,31 @@ public class ItemService {
         // 이미지 URL 리스트를 JSON으로 안전하게 직렬화
         String imageUrlsJson = serializeImageUrls(imageUrls);
 
+        Double latitude = null;
+        Double longitude = null;
+        String address = null;
+
+        ItemCreateRequest.Location location = request.location();
+        if (location != null) {
+            latitude = location.latitude();
+            longitude = location.longitude();
+            address = location.address();
+        }
+
         Item item = new Item(
             request.category(),
             imageUrlsJson,
             request.seatInfo(),
             request.title(),
             request.description(),
+            latitude,
+            longitude,
+            address,
             ItemStatus.REGISTERED,
             user,
             LocalDate.now()
         );
-        
+
         itemRepository.save(item);
 
         ReadItemResponseDto newItemDto = ReadItemResponseDto.from(item, this);
