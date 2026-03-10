@@ -1,7 +1,5 @@
 package com.sparta.spartatigers.domain.ticketalarm.controller;
 
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;

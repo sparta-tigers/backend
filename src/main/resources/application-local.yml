@@ -12,11 +12,11 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    properties:
-      hibernate:
-        show_sql: true
-        format_sql: true
-        highlight_sql: true
+    # properties:
+      # hibernate:
+      #   show_sql: true
+      #   format_sql: true
+      #   highlight_sql: true
 
   data:
     redis:
@@ -41,3 +41,10 @@ jwt:
 # ===========================================
 discord:
   webhook-url: ${DISCORD_WEBHOOK_LOCAL_URL}
+
+# ===========================================
+# Weather API Settings
+# ===========================================
+weather:
+  api:
+    key: ${WEATHER_API_KEY}

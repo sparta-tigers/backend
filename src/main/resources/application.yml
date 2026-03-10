@@ -8,6 +8,13 @@ spring:
   application:
     name: sparta-tigers
 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB       # 파일 1개당 최대 크기 (모바일 압축을 고려하여 10MB 제한)
+      max-request-size: 50MB    # 5장(50MB) 제한
+      file-size-threshold: 10KB # 10KB 이상의 파일은 Heap이 아닌 디스크에 임시 저장 (OOM 방어 핵심)
+
   jpa:
     open-in-view: false
     hibernate:
@@ -76,7 +83,9 @@ cloud:
 # Firebase Settings
 # ===========================================
 firebase:
-  project-id: "yaguniv-6a1b0"
+  project-id: ${FIREBASE_PROJECT_ID:sparta-33b05}
+  # 로컬: 파일 시스템, 운영: 클래스패스 리소스
+  credentials-path: ${FIREBASE_CREDENTIALS_PATH:firebase-key.json}
 
 # ===============================
 # Weather API
@@ -84,6 +93,13 @@ firebase:
 weather:
   api:
     key: ${WEATHER_API_KEY}
+
+# ===============================
+# Image Storage
+# ===============================
+image:
+  storage:
+    path: ${IMAGE_STORAGE_PATH:./uploads}
 
 # ===============================
 # OAuth Settings

@@ -11,11 +11,11 @@ import lombok.Getter;
 @AllArgsConstructor
 public class DirectRoomMessageResponse {
 
-    private Long messageId;
-    private Long senderId;
-    private String senderNickname;
-    private String message;
-    private LocalDateTime sentAt;
+    private final Long messageId;
+    private final Long senderId;
+    private final String senderNickname;
+    private final String message;
+    private final LocalDateTime sentAt;
 
     public static DirectRoomMessageResponse from(DirectMessage message) {
         return new DirectRoomMessageResponse(

@@ -5,14 +5,10 @@ import java.security.Principal;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 
-import com.sparta.spartatigers.domain.auth.model.Token;
-import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.domain.directRoom.dto.request.ChatMessageRequest;
-import com.sparta.spartatigers.domain.directRoom.dto.request.ReadMessageRequest;
 import com.sparta.spartatigers.domain.directRoom.service.DirectMessageService;
 import com.sparta.spartatigers.domain.stompchat.service.ExchangeChatService;
 import com.sparta.spartatigers.domain.stompchat.interceptor.StompPrincipal;
-import com.sparta.spartatigers.global.aop.Auth;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 public class ExchangeChatController {
 
 	private final ExchangeChatService chatMessageService;
-	private final DirectMessageService directMessageService;
 
 	/**
 	 * 클라이언트가 "/directRoom/send" 경로로 메시지를 보내면 호출 인증 정보를 기반으로 보낸 사용자의 ID를 추출 해당 메시지를 Redis 채널에 발행
@@ -51,6 +46,5 @@ public class ExchangeChatController {
 	//
 	// 	directMessageService.markMessageAsRead(roomId, messageId, userId);
 	// }
-
 
 }

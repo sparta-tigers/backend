@@ -111,3 +111,10 @@ clean {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+// Firebase 키 파일을 리소스로 포함하기 위한 설정
+processResources {
+    from('firebase-key.json') {
+        into '.'
+    }
+}
