@@ -156,4 +156,12 @@ public class Item extends BaseEntity {
         this.status = ItemStatus.COMPLETED;
         this.createdDate = null;
     }
+
+    public void reopen() {
+        this.status = ItemStatus.REGISTERED;
+    }
+
+    public void fail() {
+        this.status = ItemStatus.FAILED;
+    }
 }

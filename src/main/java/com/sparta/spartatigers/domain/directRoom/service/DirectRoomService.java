@@ -6,12 +6,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomCreateResponseDto;
+import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomItemResponseDto;
 import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomResponseDto;
 import com.sparta.spartatigers.domain.directRoom.model.DirectRoom;
 import com.sparta.spartatigers.domain.directRoom.repository.DirectMessageRepository;
 import com.sparta.spartatigers.domain.directRoom.repository.DirectRoomRepository;
 import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeRequest;
 import com.sparta.spartatigers.domain.exchangerequest.repository.ExchangeRequestRepository;
+import com.sparta.spartatigers.domain.item.model.Item;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
@@ -89,6 +91,25 @@ public class DirectRoomService {
 
                     return DirectRoomResponseDto.from(room, unreadCount, currentUserId, isOnline);
                 });
+    }
+
+    @Transactional(readOnly = true)
+    public DirectRoomItemResponseDto getRoomItem(Long directRoomId, Long currentUserId) {
+        DirectRoom room =
+            directRoomRepository
+                .findById(directRoomId)
+                .orElseThrow(() -> new InvalidRequestException(ExceptionCode.CHATROOM_NOT_FOUND));
+
+        boolean isSender = room.getSender().getId().equals(currentUserId);
+        boolean isReceiver = room.getReceiver().getId().equals(currentUserId);
+        if (!isSender && !isReceiver) {
+            throw new InvalidRequestException(ExceptionCode.FORBIDDEN_REQUEST);
+        }
+
+        ExchangeRequest exchangeRequest = room.getExchangeRequest();
+        Item item = exchangeRequest.getItem();
+
+        return DirectRoomItemResponseDto.from(item);
     }
 
     // 유저가 직접 채팅방을 삭제할 수도 있음

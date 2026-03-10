@@ -62,6 +62,11 @@ public class ExchangeChatService {
                     log.warn("[sendMessage] 채팅방 없음 - roomId: {}", roomId);
                     return new InvalidRequestException(ExceptionCode.CHATROOM_NOT_FOUND);});
 
+        if (room.isCompleted()) {
+            log.warn("[sendMessage] 완료된 채팅방 전송 차단 - roomId: {}, senderId: {}", roomId, senderId);
+            throw new InvalidRequestException(ExceptionCode.FORBIDDEN_REQUEST);
+        }
+
         User sender = userRepository.findById(senderId)
                 .orElseThrow(() -> {
                         log.warn("[sendMessage] 사용자 없음 - senderId: {}", senderId);

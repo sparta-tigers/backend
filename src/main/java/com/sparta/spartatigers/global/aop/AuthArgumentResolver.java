@@ -35,9 +35,12 @@ public class AuthArgumentResolver implements HandlerMethodArgumentResolver {
             WebDataBinderFactory binderFactory) {
         HttpServletRequest request = (HttpServletRequest) webRequest.getNativeRequest();
         String bearerToken = request.getHeader("Authorization");
-        String accessToken = bearerToken.split(" ")[1];
+        if (bearerToken == null || bearerToken.isBlank() || !bearerToken.startsWith("Bearer ")) {
+            throw new InvalidRequestException(ExceptionCode.FORBIDDEN_REQUEST);
+        }
 
-        if (accessToken == null) {
+        String accessToken = bearerToken.substring("Bearer ".length()).trim();
+        if (accessToken.isBlank()) {
             throw new InvalidRequestException(ExceptionCode.FORBIDDEN_REQUEST);
         }
 

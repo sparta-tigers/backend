@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.domain.image.service.ImageStorageService;
 import com.sparta.spartatigers.domain.item.dto.request.ItemCreateRequest;
+import com.sparta.spartatigers.domain.item.dto.request.UpdateItemStatusRequestDto;
 import com.sparta.spartatigers.domain.item.dto.request.UpdateItemRequestDto;
 import com.sparta.spartatigers.domain.item.dto.response.ItemResponseDto;
 import com.sparta.spartatigers.domain.item.dto.response.ReadItemDetailResponseDto;
@@ -86,6 +87,14 @@ public class ItemController {
         return ApiResponse.success(response);
     }
 
+    @GetMapping("/my")
+    public ApiResponse<Page<ReadItemResponseDto>> findMyItems(
+        @Auth TokenClaim tokenClaim,
+        @PageableDefault(sort = "createdAt", direction = Direction.DESC) Pageable pageable) {
+        Page<ReadItemResponseDto> response = itemService.findMyItems(tokenClaim, pageable);
+        return ApiResponse.success(response);
+    }
+
     @GetMapping("/{itemId}")
     public ApiResponse<ReadItemDetailResponseDto> findItemById(@PathVariable Long itemId) {
 
@@ -109,5 +118,14 @@ public class ItemController {
         ItemResponseDto response = itemService.updateItem(tokenClaim, itemId, request);
 
         return ApiResponse.success(response);
+    }
+
+    @PatchMapping("/{itemId}/status")
+    public ApiResponse<Void> updateItemStatus(
+        @Auth TokenClaim tokenClaim,
+        @PathVariable Long itemId,
+        @Valid @RequestBody UpdateItemStatusRequestDto request) {
+        itemService.updateItemStatus(tokenClaim, itemId, request);
+        return ApiResponse.success(null);
     }
 }

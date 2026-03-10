@@ -10,12 +10,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.domain.exchangerequest.dto.request.ExchangeRequestDto;
 import com.sparta.spartatigers.domain.exchangerequest.dto.request.UpdateExchangeRequestDto;
+import com.sparta.spartatigers.domain.exchangerequest.dto.response.ExchangeRoomResponseDto;
 import com.sparta.spartatigers.domain.exchangerequest.dto.response.ReceiveRequestResponseDto;
+import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeStatus;
 import com.sparta.spartatigers.domain.exchangerequest.service.ExchangeRequestService;
 import com.sparta.spartatigers.global.aop.Auth;
 import com.sparta.spartatigers.global.response.ApiResponse;
@@ -31,12 +34,11 @@ public class ExchangeRequestController {
     private final ExchangeRequestService exchangeRequestService;
 
     @PostMapping
-    public ApiResponse<?> createExchangeRequest(@Valid @RequestBody ExchangeRequestDto request,
+    public ApiResponse<ExchangeRoomResponseDto> createExchangeRequest(@Valid @RequestBody ExchangeRequestDto request,
         @Auth TokenClaim tokenClaim) {
 
-        exchangeRequestService.createExchangeRequest(request, tokenClaim);
-
-        return ApiResponse.success(null);
+        Long exchangeRequestId = exchangeRequestService.createExchangeRequest(request, tokenClaim);
+        return ApiResponse.success(ExchangeRoomResponseDto.created(exchangeRequestId));
     }
 
     @GetMapping("/receive")
@@ -51,12 +53,11 @@ public class ExchangeRequestController {
     }
 
     @PatchMapping("/{exchangeRequestId}")
-    public ApiResponse<?> updateRequestStatus(@PathVariable Long exchangeRequestId,
+    public ApiResponse<ExchangeRoomResponseDto> updateRequestStatus(@PathVariable Long exchangeRequestId,
         @Valid @RequestBody UpdateExchangeRequestDto request, @Auth TokenClaim tokenClaim) {
 
-        exchangeRequestService.updateRequestStatus(exchangeRequestId, request, tokenClaim);
-
-        return ApiResponse.success(null);
+        ExchangeRoomResponseDto response = exchangeRequestService.updateRequestStatus(exchangeRequestId, request, tokenClaim);
+        return ApiResponse.success(response);
     }
 
     @PatchMapping("/{exchangeRequestId}/complete")
@@ -66,5 +67,18 @@ public class ExchangeRequestController {
         exchangeRequestService.completeExchange(exchangeRequestId, tokenClaim);
 
         return ApiResponse.success(null);
+    }
+
+    @GetMapping("/my")
+    public ApiResponse<Page<ReceiveRequestResponseDto>> findMyExchangeRequests(
+        @RequestParam String role,
+        @RequestParam(required = false) ExchangeStatus status,
+        @Auth TokenClaim tokenClaim,
+        @PageableDefault(sort = "createdAt", direction = Direction.DESC) Pageable pageable) {
+
+        Page<ReceiveRequestResponseDto> response = exchangeRequestService.findMyExchangeRequests(
+            role, status, pageable, tokenClaim);
+
+        return ApiResponse.success(response);
     }
 }

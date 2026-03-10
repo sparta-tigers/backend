@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.domain.item.dto.request.ItemCreateRequest;
 import com.sparta.spartatigers.domain.item.dto.request.UpdateItemRequestDto;
+import com.sparta.spartatigers.domain.item.dto.request.UpdateItemStatusRequestDto;
 import com.sparta.spartatigers.domain.item.dto.response.ItemResponseDto;
 import com.sparta.spartatigers.domain.item.dto.response.ReadItemDetailResponseDto;
 import com.sparta.spartatigers.domain.item.dto.response.ReadItemResponseDto;
@@ -69,6 +70,37 @@ public class ItemService {
         return ItemResponseDto.from(item);
     }
 
+    @Transactional
+    public void updateItemStatus(TokenClaim tokenClaim, Long itemId, UpdateItemStatusRequestDto request) {
+        User user = userRepository.findById(tokenClaim.getUserId())
+            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
+
+        Item item = itemRepository.findById(itemId)
+            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.ITEM_NOT_FOUND));
+        item.validateUserIsOwner(user);
+
+        if (request.status() == ItemStatus.COMPLETED) {
+            item.complete();
+            Map<String, Object> data = Map.of("itemId", item.getId(), "userId", item.getUser().getId());
+            locationService.notifyUsersNearBy(item.getUser().getId(), "REMOVE_ITEM", data);
+            return;
+        }
+
+        if (request.status() == ItemStatus.FAILED) {
+            item.reopen();
+            return;
+        }
+
+        if (request.status() == ItemStatus.DELETED) {
+            item.deleteItem();
+            Map<String, Object> data = Map.of("itemId", item.getId(), "userId", item.getUser().getId());
+            locationService.notifyUsersNearBy(item.getUser().getId(), "REMOVE_ITEM", data);
+            return;
+        }
+
+        throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
+    }
+
     @Transactional(readOnly = true)
     public Page<ReadItemResponseDto> findAllItems(TokenClaim tokenClaim, Pageable pageable) {
 
@@ -80,6 +112,16 @@ public class ItemService {
 
         Page<Item> itemList = itemRepository.findAllItems(ItemStatus.REGISTERED, LocalDate.now(), nearByUserIds, pageable);
 
+        return itemList.map(item -> ReadItemResponseDto.from(item, this));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ReadItemResponseDto> findMyItems(TokenClaim tokenClaim, Pageable pageable) {
+        Long userId = userRepository.findById(tokenClaim.getUserId())
+            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.VALIDATION_ERROR))
+            .getId();
+
+        Page<Item> itemList = itemRepository.findAllMyItems(ItemStatus.REGISTERED, LocalDate.now(), userId, pageable);
         return itemList.map(item -> ReadItemResponseDto.from(item, this));
     }
 
