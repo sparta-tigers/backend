@@ -62,18 +62,10 @@ public class ItemService {
             address = location.address();
         }
 
-        Item item = new Item(
-            request.category(),
-            imageUrlsJson,
-            request.seatInfo(),
-            request.title(),
-            request.description(),
-            ItemStatus.REGISTERED,
-            user,
-            LocalDate.now()
-        );
-        
-        itemRepository.save(item);
+        Item item = new Item(request.category(), imageUrlsJson, request.seatInfo(), 
+                request.title(), request.description(), latitude, longitude, address, ItemStatus.REGISTERED, user, LocalDate.now());
+
+        Item savedItem = itemRepository.save(item);
 
         ReadItemResponseDto newItemDto = ReadItemResponseDto.from(savedItem, this);
         ItemLocationUpdatedEvent event = new ItemLocationUpdatedEvent(user.getId(), "ADD_ITEM", newItemDto);
