@@ -166,11 +166,16 @@ public class ItemService {
     }
 
     private String serializeImageUrls(List<String> imageUrls) {
+        // 1. null 또는 빈 리스트 사전 방어
+        if (imageUrls == null || imageUrls.isEmpty()) {
+            return "[]";
+        }
         try {
             return objectMapper.writeValueAsString(imageUrls);
         } catch (JsonProcessingException e) {
             log.error("이미지 URL 직렬화 실패: {}", e.getMessage());
-            return "[]";
+            // 2 & 3. 조용한 실패를 막고 예외를 던져 트랜잭션 롤백 유도
+            throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
         }
     }
 
