@@ -143,8 +143,8 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
                 // 저장된 파일 경로 추적
                 savedFiles.add(destinationPath);
                 
-                // 컨트롤러 엔드포인트 URL 반환 (/api/v1/images/{fileName})
-                imageUrls.add("/api/v1/images/" + fileName);
+                // 컨트롤러 엔드포인트 URL 반환 (/api/images/{fileName})
+                imageUrls.add("/api/images/" + fileName);
                 log.info("파일 저장 성공: {}", fileName);
             }
         } catch (IOException e) {
