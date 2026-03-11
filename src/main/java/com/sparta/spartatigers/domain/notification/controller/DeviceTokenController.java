@@ -13,6 +13,7 @@ import com.sparta.spartatigers.global.response.ApiResponse;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 클라이언트 디바이스(푸시) 토큰 등록용 컨트롤러.
@@ -21,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/device-tokens")
 @RequiredArgsConstructor
+@Slf4j
 public class DeviceTokenController {
 
     private final DeviceTokenService deviceTokenService;
@@ -31,7 +33,7 @@ public class DeviceTokenController {
         @Auth TokenClaim tokenClaim
     ) {
         deviceTokenService.registerDeviceToken(tokenClaim, request);
-
+        
         return ApiResponse.success("디바이스 토큰이 정상적으로 등록되었습니다.");
     }
 }
