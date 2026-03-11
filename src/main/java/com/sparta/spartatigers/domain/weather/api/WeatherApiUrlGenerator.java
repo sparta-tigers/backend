@@ -1,8 +1,6 @@
 package com.sparta.spartatigers.domain.weather.api;
 import com.sparta.spartatigers.domain.weather.api.ApiTimeCalculator.BaseDateTime;
 
-import java.io.UnsupportedEncodingException;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 

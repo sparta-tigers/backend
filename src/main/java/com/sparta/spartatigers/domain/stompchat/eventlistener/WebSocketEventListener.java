@@ -8,7 +8,6 @@ import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
 
 import com.sparta.spartatigers.domain.directRoom.registry.RedisUserSessionRegistry;
-import com.sparta.spartatigers.domain.directRoom.repository.DirectRoomRepository;
 import com.sparta.spartatigers.domain.stompchat.service.ChatService;
 
 import lombok.RequiredArgsConstructor;
@@ -21,7 +20,6 @@ public class WebSocketEventListener {
 
 	private final ChatService liveBoardService;
 	private final RedisUserSessionRegistry sessionRegistry;
-	private final DirectRoomRepository directRoomRepository;
 
 	// 다이렉트룸 구독 감지
 	@EventListener

@@ -9,12 +9,12 @@ import lombok.Getter;
 @AllArgsConstructor
 public class ChatMessageResponse {
 
-    private Long roomId;
-    private Long senderId;
-    private Long messageId;
-    private String senderNickname;
-    private String message;
-    private LocalDateTime sentAt;
+    private final Long roomId;
+    private final Long senderId;
+    private final Long messageId;
+    private final String senderNickname;
+    private final String message;
+    private final LocalDateTime sentAt;
 
     public static ChatMessageResponse from(RedisMessage message) {
         return new ChatMessageResponse(

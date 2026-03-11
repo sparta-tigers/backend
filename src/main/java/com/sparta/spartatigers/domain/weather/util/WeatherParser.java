@@ -10,13 +10,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
-import com.sparta.spartatigers.domain.team.model.Stadium;
-import com.sparta.spartatigers.domain.weather.dto.NowCastResponseDto;
-import com.sparta.spartatigers.domain.weather.model.RainType;
-import com.sparta.spartatigers.domain.weather.model.SkyStatus;
-import com.sparta.spartatigers.domain.weather.model.WindDirection;
 import com.sparta.spartatigers.domain.weather.response.OriginResponse;
 
 public class WeatherParser {

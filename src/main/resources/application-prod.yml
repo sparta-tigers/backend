@@ -36,3 +36,11 @@ jwt:
 # ===========================================
 discord:
   webhook-url: ${DISCORD_WEBHOOK_PROD_URL}
+
+# ===========================================
+# Firebase Settings (Production)
+# ===========================================
+firebase:
+  project-id: "sparta-33b05"
+  # 운영 환경: JAR 내부 리소스 사용 (클래스패스)
+  credentials-path: "firebase-key.json"

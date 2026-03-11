@@ -3,7 +3,6 @@ package com.sparta.spartatigers.domain.liveboardroom.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardRoom;
 import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardStatus;
 import com.sparta.spartatigers.domain.match.model.Match;
@@ -21,31 +20,28 @@ import lombok.Getter;
 @AllArgsConstructor
 public class LiveBoardRoomResponseDto {
 
-	private String roomId; // null일수 있음
-	private Long matchId;
-	private String title;
-	private LocalDateTime matchTime;
+	private final String roomId; // null일수 있음
+	private final Long matchId;
+	private final String title;
+	private final LocalDateTime matchTime;
 
 	// private double temperature; //기온(TMP) - 초단기실황, 초단기예보
 	// private SkyStatus skyStatus; // 하늘상태(SKY) - 초단기예보, 단기예보
 
-	private LiveBoardStatus liveBoardStatus;
+	private final LiveBoardStatus liveBoardStatus;
 
-	private String awayTeamName;
-	private TeamCode awayTeamCode; // 이미지
-	private String homeTeamName;
-	private TeamCode homeTeamCode; // 이미지
-	private MatchResult matchResult;
-	private String stadium;
-	private Long connectCount;
+	private final String awayTeamName;
+	private final TeamCode awayTeamCode; // 이미지
+	private final String homeTeamName;
+	private final TeamCode homeTeamCode; // 이미지
+	private final MatchResult matchResult;
+	private final String stadium;
+	private final Long connectCount;
 	//@JsonProperty("isTodayMatch")
 	//private boolean isTodayMatch; // TODO : 삭제
 
-	private NowCastResponseDto nowCast;
-	private List<ForeCastResponseDto> foreCast;
-
-
-
+	private final NowCastResponseDto nowCast;
+	private final List<ForeCastResponseDto> foreCast;
 
 	public static LiveBoardRoomResponseDto fromUpcomingMatch(Match match) {
 		return LiveBoardRoomResponseDto.builder()

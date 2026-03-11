@@ -1,20 +1,14 @@
 package com.sparta.spartatigers.domain.item.controller;
 
-import com.sparta.spartatigers.domain.auth.model.TokenClaim;
-import com.sparta.spartatigers.domain.item.dto.request.CreateItemWithLocationRequestDto;
-import com.sparta.spartatigers.domain.item.dto.request.UpdateItemRequestDto;
-import com.sparta.spartatigers.domain.item.dto.response.ItemResponseDto;
-import com.sparta.spartatigers.domain.item.dto.response.ReadItemDetailResponseDto;
-import com.sparta.spartatigers.domain.item.dto.response.ReadItemResponseDto;
-import com.sparta.spartatigers.domain.item.service.ItemService;
-import com.sparta.spartatigers.global.aop.Auth;
-import com.sparta.spartatigers.global.response.ApiResponse;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -22,23 +16,64 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.sparta.spartatigers.domain.auth.model.TokenClaim;
+import com.sparta.spartatigers.domain.image.service.ImageStorageService;
+import com.sparta.spartatigers.domain.item.dto.request.ItemCreateRequest;
+import com.sparta.spartatigers.domain.item.dto.request.UpdateItemRequestDto;
+import com.sparta.spartatigers.domain.item.dto.response.ItemResponseDto;
+import com.sparta.spartatigers.domain.item.dto.response.ReadItemDetailResponseDto;
+import com.sparta.spartatigers.domain.item.dto.response.ReadItemResponseDto;
+import com.sparta.spartatigers.domain.item.service.ItemService;
+import com.sparta.spartatigers.global.aop.Auth;
+import com.sparta.spartatigers.global.response.ApiResponse;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/items")
+@RequestMapping("/api/items")
+@Slf4j
 public class ItemController {
 
     private final ItemService itemService;
+    private final ImageStorageService imageStorageService; 
 
-    @PostMapping
-    public ApiResponse<ItemResponseDto> createItem(
-        @Valid @RequestBody CreateItemWithLocationRequestDto request,
-        @Auth TokenClaim tokenClaim) {
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> createItem(
+            @Auth TokenClaim tokenClaim,
+            // RN에서 'itemRequest' 이름으로 전송되는 JSON 파싱
+            @RequestPart(value = "itemRequest") @Valid ItemCreateRequest request,
+            // RN에서 'images' 이름으로 전송되는 파일 리스트 파싱 (선택적)
+            @RequestPart(value = "images", required = false) List<MultipartFile> images
+    ) {
+        // 디버깅 로그 추가
+        System.out.println("=== 이미지 업로드 디버깅 ===");
+        System.out.println("images 파라미터: " + images);
+        System.out.println("images size: " + (images != null ? images.size() : "null"));
+        
+        // 1. 추상화된 스토리지에 이미지 저장 (현재는 로컬, 나중엔 S3)
+        List<String> storedImageUrls = imageStorageService.uploadImages(images);
+        
+        System.out.println("storedImageUrls: " + storedImageUrls);
+        System.out.println("========================");
 
-        ItemResponseDto response = itemService.createItem(request, tokenClaim);
+        try {
+            // 2. 비즈니스 로직 실행 (DTO에 URL 리스트 추가 전달)
+            itemService.createItemWithImages(request, tokenClaim, storedImageUrls);
+        } catch (Exception e) {
+            // 3. 실패 시 업로드된 파일 삭제 (롤백)
+            log.error("아이템 생성 실패, 업로드된 파일 삭제: {}", storedImageUrls, e);
+            imageStorageService.deleteImages(storedImageUrls);
+            throw e;
+        }
 
-        return ApiResponse.success(response);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @GetMapping

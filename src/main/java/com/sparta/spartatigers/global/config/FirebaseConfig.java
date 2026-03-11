@@ -1,11 +1,14 @@
 package com.sparta.spartatigers.global.config;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.List;
+import java.io.InputStream;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
@@ -21,17 +24,45 @@ public class FirebaseConfig {
     @Value("${firebase.project-id}")
     private String projectId;
 
+    @Value("${firebase.credentials-path:firebase-key.json}")
+    private String credentialsPath;
+
     @Bean
     public FirebaseApp firebaseApp() throws IOException {
+        // 이미 초기화된 Firebase 앱이 있는지 확인
+        if (!FirebaseApp.getApps().isEmpty()) {
+            FirebaseApp existingApp = FirebaseApp.getInstance();
+            log.info("Firebase 앱이 이미 초기화되어 있습니다: {}", existingApp.getName());
+            return existingApp;
+        }
+        
         log.info("Firebase 초기화 중");
         log.info("project id: {}", projectId);
+        log.info("credentials path: {}", credentialsPath);
 
         GoogleCredentials credentials;
         try {
-            credentials = GoogleCredentials.getApplicationDefault();
-            log.info("기본 자격증명으로 구글 애플리케이션을 불러왔습니다.");
+            // 1. 클래스패스에서 먼저 찾기 (JAR 내부 리소스)
+            ClassPathResource resource = new ClassPathResource(credentialsPath);
+            if (resource.exists()) {
+                try (InputStream inputStream = resource.getInputStream()) {
+                    credentials = GoogleCredentials.fromStream(inputStream);
+                    log.info("클래스패스에서 Firebase 크레덴셜을 불러왔습니다: {}", credentialsPath);
+                }
+            } else {
+                // 2. 클래스패스에 없으면 파일 시스템에서 찾기
+                File credentialsFile = new File(credentialsPath);
+                if (!credentialsFile.exists()) {
+                    throw new IOException("Firebase 크레덴셜 파일을 찾을 수 없습니다. 클래스패스와 파일 시스템 모두에서 찾지 못함: " + credentialsPath);
+                }
+                
+                try (FileInputStream fileInputStream = new FileInputStream(credentialsFile)) {
+                    credentials = GoogleCredentials.fromStream(fileInputStream);
+                    log.info("파일 시스템에서 Firebase 크레덴셜을 불러왔습니다: {}", credentialsFile.getAbsolutePath());
+                }
+            }
         } catch (IOException e) {
-            log.error("기본 자격증명으로 구글 애플리케이션을 불러오는 데 실패했습니다: {}", e.getMessage());
+            log.error("Firebase 크레덴셜을 불러오는 데 실패했습니다: {}", e.getMessage());
             throw e;
         }
 
@@ -40,18 +71,10 @@ public class FirebaseConfig {
             .setProjectId(projectId)
             .build();
 
-        List<FirebaseApp> firebaseApps = FirebaseApp.getApps();
-        if (firebaseApps != null && !firebaseApps.isEmpty()) {
-            for (FirebaseApp app : firebaseApps) {
-                if (app.getName().equals(FirebaseApp.DEFAULT_APP_NAME)) {
-                    log.info("Firebase가 이미 초기화되어있습니다.");
-                    return app;
-                }
-            }
-        }
+        FirebaseApp app = FirebaseApp.initializeApp(options);
         log.info("FirebaseApp가 초기화되었습니다.");
 
-        return FirebaseApp.initializeApp(options);
+        return app;
     }
 
     @Bean

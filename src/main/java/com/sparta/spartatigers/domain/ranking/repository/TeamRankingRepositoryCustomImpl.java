@@ -2,24 +2,19 @@ package com.sparta.spartatigers.domain.ranking.repository;
 
 import java.time.LocalDateTime;
 import java.time.Year;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.springframework.stereotype.Repository;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.sparta.spartatigers.domain.match.model.LeagueType;
 import com.sparta.spartatigers.domain.match.model.Match;
 import com.sparta.spartatigers.domain.match.model.MatchResult;
 import com.sparta.spartatigers.domain.match.model.QMatch;
-import com.sparta.spartatigers.domain.match.model.LeagueType;
-import com.sparta.spartatigers.domain.ranking.dto.PostseasonStage;
 import com.sparta.spartatigers.domain.ranking.dto.TeamRankingStat;
 import com.sparta.spartatigers.domain.team.model.QStadium;
 import com.sparta.spartatigers.domain.team.model.QTeam;
@@ -72,6 +67,7 @@ public class TeamRankingRepositoryCustomImpl implements TeamRankingRepositoryCus
 		return merged.values().stream().toList();
 	}
 
+	@Override
 	public List<TeamRankingStat> applyTeamRecordsByYear(int year, LeagueType leagueType) {
 
 		LocalDateTime endOfyear = Year.of(year).atMonth(12).atEndOfMonth().atTime(23,59,59);
@@ -88,6 +84,7 @@ public class TeamRankingRepositoryCustomImpl implements TeamRankingRepositoryCus
 		return merged.values().stream().toList();
 	}
 
+	@Override
 	public List<Match> findAllPostSeasonMatches(int year) {
 		return queryFactory
 			.selectFrom(match)

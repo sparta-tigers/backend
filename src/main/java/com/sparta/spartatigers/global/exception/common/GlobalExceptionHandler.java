@@ -1,15 +1,10 @@
 package com.sparta.spartatigers.global.exception.common;
 
-import com.sparta.spartatigers.global.notification.NotificationSender;
-import com.sparta.spartatigers.global.notification.dto.AlertLevel;
-import com.sparta.spartatigers.global.notification.dto.MessagePayload;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
@@ -21,10 +16,14 @@ import org.springframework.web.context.request.async.AsyncRequestTimeoutExceptio
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.external.ExternalServiceException;
 import com.sparta.spartatigers.global.exception.internal.BaseException;
+import com.sparta.spartatigers.global.notification.NotificationSender;
+import com.sparta.spartatigers.global.notification.dto.AlertLevel;
+import com.sparta.spartatigers.global.notification.dto.MessagePayload;
 import com.sparta.spartatigers.global.response.ApiResponse;
 import com.sparta.spartatigers.global.response.ErrorResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -90,10 +89,10 @@ public class GlobalExceptionHandler {
     // 외부 예외 핸들러
     @ExceptionHandler(ExternalServiceException.class)
     public ResponseEntity<ApiResponse<?>> handleExternalServiceException(ExternalServiceException ex) {
-        String errorSource = ex.getSource();
-        String title = String.format("외부 서비스(%s) 오류 발생", errorSource);
+        // String errorSource = ex.getSource(); // 임시 비활성화
+        // String title = String.format("외부 서비스(%s) 오류 발생", errorSource); // 임시 비활성화
 
-        sendNotificationToDiscord(AlertLevel.CRITICAL, title, ex);
+        // sendNotificationToDiscord(AlertLevel.CRITICAL, title, ex); // 임시 비활성화
 
         return ResponseEntity.status(ex.getStatus())
             .body(ApiResponse.error(ex.getExceptionCode()));
@@ -133,9 +132,9 @@ public class GlobalExceptionHandler {
     // 예상치 못한 예외 핸들러
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<?>> handleGeneralException(Exception ex) {
-        String title = "처리하지 못한 내부 비즈니즈 로직 오류 발생";
+        // String title = "처리하지 못한 내부 비즈니즈 로직 오류 발생"; // 임시 비활성화
 
-        sendNotificationToDiscord(AlertLevel.ERROR, title, ex);
+        // sendNotificationToDiscord(AlertLevel.ERROR, title, ex); // 임시 비활성화
 
         return ResponseEntity.status(ExceptionCode.INTERNAL_SERVER_ERROR.getHttpStatus())
             .body(ApiResponse.error(ExceptionCode.INTERNAL_SERVER_ERROR));
