@@ -57,7 +57,7 @@ public class ExchangeChatService {
         Long roomId = request.getRoomId();
         String messageText = request.getMessage();
 
-        DirectRoom room = directRoomRepository.findById(roomId)
+        DirectRoom room = directRoomRepository.findByIdWithLock(roomId)
                 .orElseThrow(() -> {
                     log.warn("[sendMessage] 채팅방 없음 - roomId: {}", roomId);
                     return new InvalidRequestException(ExceptionCode.CHATROOM_NOT_FOUND);});
