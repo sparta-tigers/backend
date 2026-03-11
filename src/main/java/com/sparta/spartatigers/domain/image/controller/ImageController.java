@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping("/api/v1/images")
+@RequestMapping("/api/images")
 @Slf4j
 public class ImageController {
     
@@ -40,34 +40,33 @@ public class ImageController {
                 log.warn("잘못된 파일 접근 시도: {}", fileName);
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
-            
+
             // 파일 존재 확인
             Resource resource = new UrlResource(filePath.toUri());
             if (!resource.exists() || !resource.isReadable()) {
                 log.warn("파일을 찾을 수 없거나 읽을 수 없음: {}", fileName);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
-            
+
             // MIME 타입 결정
             String contentType = Files.probeContentType(filePath);
             if (contentType == null) {
                 contentType = "application/octet-stream";
             }
-            
+
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileName + "\"")
                     .body(resource);
-                    
+
         } catch (IOException e) {
             log.error("파일 읽기 오류: {}", fileName, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
+
     /**
-     * 업로드 디렉토리 경로를 가져옵니다.
-     * Spring 속성으로 주입된 값을 사용하며, 슬래시 정규화를 보장합니다.
+     * 업로드 디렉토리 경로를 가져옵니다. Spring 속성으로 주입된 값을 사용하며, 슬래시 정규화를 보장합니다.
      */
     private String getUploadDirectory() {
         return uploadDirectory.endsWith("/") ? uploadDirectory : uploadDirectory + "/";
