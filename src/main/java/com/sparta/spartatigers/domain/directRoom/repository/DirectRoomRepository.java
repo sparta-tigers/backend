@@ -35,5 +35,6 @@ public interface DirectRoomRepository extends JpaRepository<DirectRoom, Long> {
     boolean existsBySenderIdAndReceiverId(Long senderId, Long receiverId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select dr from direct_rooms dr where dr.id = :id")
     Optional<DirectRoom> findByIdWithLock(Long id);
 }
