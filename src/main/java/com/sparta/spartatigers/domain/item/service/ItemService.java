@@ -57,6 +57,9 @@ public class ItemService {
 
         ItemCreateRequest.Location location = request.location();
         if (location != null) {
+            if (location.latitude() == null || location.longitude() == null) {
+                throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
+            }
             latitude = location.latitude();
             longitude = location.longitude();
             address = location.address();
