@@ -35,13 +35,13 @@ public class AuthArgumentResolver implements HandlerMethodArgumentResolver {
             WebDataBinderFactory binderFactory) {
         HttpServletRequest request = (HttpServletRequest) webRequest.getNativeRequest();
         String bearerToken = request.getHeader("Authorization");
-        if (bearerToken == null || bearerToken.isBlank() || !bearerToken.toLowerCase().startsWith("bearer ")) {
-            throw new InvalidRequestException(ExceptionCode.FORBIDDEN_REQUEST);
+        if (bearerToken == null || bearerToken.isBlank() || !bearerToken.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            throw new InvalidRequestException(ExceptionCode.UNAUTHORIZED);
         }
 
         String accessToken = bearerToken.substring(7).trim();
         if (accessToken.isBlank()) {
-            throw new InvalidRequestException(ExceptionCode.FORBIDDEN_REQUEST);
+            throw new InvalidRequestException(ExceptionCode.UNAUTHORIZED);
         }
 
         return tokenService.parseAccessToken(accessToken);

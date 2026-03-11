@@ -41,7 +41,7 @@ public class ItemService {
     private final UserRepository userRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final LocationService locationService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     @Transactional
     public ItemResponseDto createItemWithImages(ItemCreateRequest request, TokenClaim tokenClaim, List<String> imageUrls) {
@@ -189,7 +189,10 @@ public class ItemService {
                 if (content.trim().isEmpty()) {
                     return List.of();
                 }
-                return List.of(content.split(","));
+                return java.util.Arrays.stream(content.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .toList();
             }
             return List.of();
         }
