@@ -1,17 +1,19 @@
 package com.sparta.spartatigers.domain.item.service;
 
 import com.sparta.spartatigers.domain.item.dto.request.UpdateItemStatusRequestDto;
+import com.sparta.spartatigers.domain.item.dto.request.UpdateItemRequestDto;
 import com.sparta.spartatigers.domain.item.dto.response.ItemResponseDto;
 import com.sparta.spartatigers.domain.item.dto.response.ReadItemResponseDto;
+import com.sparta.spartatigers.domain.item.dto.response.ReadItemDetailResponseDto;
 import com.sparta.spartatigers.domain.item.event.ItemLocationUpdatedEvent;
 import com.sparta.spartatigers.domain.item.model.Item;
 import com.sparta.spartatigers.domain.item.model.ItemStatus;
 import com.sparta.spartatigers.domain.item.repository.ItemRepository;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.repository.UserRepository;
-import com.sparta.spartatigers.global.aop.Auth;
+import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
-import com.sparta.spartatigers.global.exception.InvalidRequestException;
+import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -19,6 +21,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.sparta.spartatigers.domain.stompchat.service.LocationService;
+import com.sparta.spartatigers.domain.item.dto.request.ItemCreateRequest;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -33,8 +40,8 @@ public class ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
-    private final ObjectMapper objectMapper;
     private final LocationService locationService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Transactional
     public ItemResponseDto createItemWithImages(ItemCreateRequest request, TokenClaim tokenClaim, List<String> imageUrls) {
@@ -55,8 +62,8 @@ public class ItemService {
             address = location.address();
         }
 
-        Item item = new Item(request.title(), request.category(), request.seatInfo(), 
-                request.description(), imageUrlsJson, user, LocalDate.now(), latitude, longitude, address);
+        Item item = new Item(request.category(), imageUrlsJson, request.seatInfo(), 
+                request.title(), request.description(), latitude, longitude, address, ItemStatus.REGISTERED, user, LocalDate.now());
 
         Item savedItem = itemRepository.save(item);
 
@@ -76,26 +83,26 @@ public class ItemService {
         item.validateUserIsOwner(user);
 
         switch (request.action()) {
-            case COMPLETE:
+            case COMPLETE -> {
                 item.complete();
-                ItemLocationUpdatedEvent completeEvent = new ItemLocationUpdatedEvent(item.getUser().getId(), "REMOVE_ITEM", 
-                    Map.of("itemId", item.getId(), "userId", item.getUser().getId()));
+                ItemLocationUpdatedEvent completeEvent = new ItemLocationUpdatedEvent(item.getUser().getId(), "REMOVE_ITEM",
+                        Map.of("itemId", item.getId(), "userId", item.getUser().getId()));
                 applicationEventPublisher.publishEvent(completeEvent);
-                return;
-            case CANCEL:
+            }
+
+            case CANCEL -> {
                 item.reopen();
                 ReadItemResponseDto newItemDto = ReadItemResponseDto.from(item, this);
                 ItemLocationUpdatedEvent cancelEvent = new ItemLocationUpdatedEvent(item.getUser().getId(), "ADD_ITEM", newItemDto);
                 applicationEventPublisher.publishEvent(cancelEvent);
-                return;
-            case DELETE:
+            }
+            case DELETE -> {
                 item.deleteItem();
-                ItemLocationUpdatedEvent deleteEvent = new ItemLocationUpdatedEvent(item.getUser().getId(), "REMOVE_ITEM", 
-                    Map.of("itemId", item.getId(), "userId", item.getUser().getId()));
+                ItemLocationUpdatedEvent deleteEvent = new ItemLocationUpdatedEvent(item.getUser().getId(), "REMOVE_ITEM",
+                        Map.of("itemId", item.getId(), "userId", item.getUser().getId()));
                 applicationEventPublisher.publishEvent(deleteEvent);
-                return;
-            default:
-                throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
+            }
+            default -> throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
         }
     }
 
@@ -108,7 +115,7 @@ public class ItemService {
         List<Long> nearByUserIds = locationService.findUsersNearBy(userId, SEARCH_RADIUS_KM);
         nearByUserIds.add(userId);
 
-        return itemRepository.findAllByStatusAndDateIn(nearByUserIds, pageable)
+        return itemRepository.findAllItems(ItemStatus.REGISTERED, LocalDate.now(), nearByUserIds, pageable)
                 .map(item -> ReadItemResponseDto.from(item, this));
     }
 
@@ -167,7 +174,7 @@ public class ItemService {
         }
     }
 
-    private List<String> deserializeImageUrls(String imageUrlsJson) {
+    public List<String> deserializeImageUrls(String imageUrlsJson) {
         if (imageUrlsJson == null || imageUrlsJson.trim().isEmpty()) {
             return List.of();
         }
