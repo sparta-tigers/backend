@@ -59,6 +59,7 @@ public enum ExceptionCode {
 
     // 채팅방
     CHATROOM_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "채팅방이 존재하지 않습니다.", LogLevel.DEBUG),
+    DIRECT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "1대1 채팅방이 존재하지 않습니다.", LogLevel.DEBUG),
 
     // 1대1 채팅방
     TOO_MANY_MESSAGE(HttpStatus.BAD_REQUEST, ErrorCode.E400, "채팅을 너무 빠르게 입력했습니다. 잠시 후 다시 보내주세요.", LogLevel.DEBUG),

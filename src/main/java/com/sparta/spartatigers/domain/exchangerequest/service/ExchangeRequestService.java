@@ -5,39 +5,46 @@ import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomCreateResponseDto;
 import com.sparta.spartatigers.domain.directRoom.model.DirectRoom;
 import com.sparta.spartatigers.domain.directRoom.repository.DirectRoomRepository;
-import com.sparta.spartatigers.domain.directRoom.service.DirectRoomService;
-import com.sparta.spartatigers.domain.exchangerequest.dto.request.ExchangeRequestDto;
-import com.sparta.spartatigers.domain.exchangerequest.dto.request.UpdateExchangeRequestDto;
-import com.sparta.spartatigers.domain.exchangerequest.dto.response.ExchangeRoomResponseDto;
+import com.sparta.spartatigers.domain.item.event.ItemLocationUpdatedEvent;
+import com.sparta.spartatigers.domain.item.model.Item;
+import com.sparta.spartatigers.domain.item.repository.ItemRepository;
+import com.sparta.spartatigers.domain.exchangerequest.dto.request.ExchangeRequestCreateRequest;
+import com.sparta.spartatigers.domain.exchangerequest.dto.response.ExchangeRequestResponseDto;
 import com.sparta.spartatigers.domain.exchangerequest.dto.response.ReceiveRequestResponseDto;
 import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeRequest;
 import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeStatus;
 import com.sparta.spartatigers.domain.exchangerequest.repository.ExchangeRequestRepository;
-import com.sparta.spartatigers.domain.item.model.Item;
-import com.sparta.spartatigers.domain.item.repository.ItemRepository;
-import com.sparta.spartatigers.domain.stompchat.service.LocationService;
+import com.sparta.spartatigers.domain.stompchat.model.DirectRoom;
+import com.sparta.spartatigers.domain.stompchat.repository.DirectRoomRepository;
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+import com.sparta.spartatigers.global.exception.InvalidRequestException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.repository.UserRepository;
-import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
-import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class ExchangeRequestService {
 
     private final ExchangeRequestRepository exchangeRequestRepository;
-    private final DirectRoomService directRoomService;
     private final DirectRoomRepository directRoomRepository;
     private final UserRepository userRepository;
-    private final LocationService locationService;
+    private final ItemRepository itemRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final ItemRepository itemRepository;
 
     @Transactional
@@ -104,12 +111,13 @@ public class ExchangeRequestService {
 
         exchangeRequest.complete();
 
-        directRoomRepository
-            .findByExchangeRequestId(exchangeRequestId)
-            .ifPresent(DirectRoom::complete);
+        DirectRoom room = directRoomRepository.findByExchangeRequestId(exchangeRequestId)
+                .orElseThrow(() -> new InvalidRequestException(ExceptionCode.DIRECT_ROOM_NOT_FOUND));
+        room.complete();
 
-        Map<String, Object> data = Map.of("itemId", item.getId(), "userId", item.getUser().getId());
-        locationService.notifyUsersNearBy(item.getUser().getId(), "REMOVE_ITEM", data);
+        ItemLocationUpdatedEvent event = new ItemLocationUpdatedEvent(item.getUser().getId(), "REMOVE_ITEM", 
+            Map.of("itemId", item.getId(), "userId", item.getUser().getId()));
+        applicationEventPublisher.publishEvent(event);
     }
 
     @Transactional(readOnly = true)
