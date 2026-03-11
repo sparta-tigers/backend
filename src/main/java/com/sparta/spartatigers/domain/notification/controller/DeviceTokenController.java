@@ -31,10 +31,10 @@ public class DeviceTokenController {
         Long userId = tokenClaim.getUserId();
 
         log.info(
-            "[DeviceToken] userId={}, deviceType={}, tokenPrefix={}",
+            "[DeviceToken] userId={}, deviceType={}, tokenLength={}",
             userId,
             request.deviceType(),
-            request.token().substring(0, Math.min(request.token().length(), 20))
+            request.token().length()
         );
 
         // TODO: 필요 시 DB에 디바이스 토큰 영구 저장 및 중복/만료 관리 추가
