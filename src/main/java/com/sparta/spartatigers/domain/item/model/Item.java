@@ -70,8 +70,14 @@ public class Item extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column (name = "created_date")
+    @Column(name = "created_date")
     private LocalDate createdDate;
+
+    @Column private Double latitude;
+
+    @Column private Double longitude;
+
+    @Column private String address;
 
     @Version private Long version;
 
@@ -81,6 +87,9 @@ public class Item extends BaseEntity {
         String seatInfo,
         String title,
         String description,
+        Double latitude,
+        Double longitude,
+        String address,
         ItemStatus status,
         User user,
         LocalDate createdDate) {
@@ -90,6 +99,9 @@ public class Item extends BaseEntity {
         this.seatInfo = seatInfo;
         this.title = title;
         this.description = description;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.address = address;
         this.status = status;
         this.user = user;
         this.createdDate = createdDate;
@@ -102,6 +114,9 @@ public class Item extends BaseEntity {
             dto.seatInfo(),
             dto.title(),
             dto.description(),
+            null,
+            null,
+            null,
             ItemStatus.REGISTERED,
             user,
             LocalDate.now());
@@ -128,9 +143,8 @@ public class Item extends BaseEntity {
         }
     }
 
-    public void deleteItem() {
-        this.status = ItemStatus.DELETED;
-        this.createdDate = null;
+    public void fail() {
+        this.status = ItemStatus.FAILED;
     }
 
     public void updateItem(UpdateItemRequestDto request) {
@@ -154,6 +168,16 @@ public class Item extends BaseEntity {
 
     public void complete() {
         this.status = ItemStatus.COMPLETED;
-        this.createdDate = null;
+    }
+
+    public void reopen() {
+        this.status = ItemStatus.REGISTERED;
+        if (this.createdDate == null) {
+            this.createdDate = LocalDate.now();
+        }
+    }
+
+    public void deleteItem() {
+        this.status = ItemStatus.DELETED;
     }
 }

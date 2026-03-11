@@ -22,6 +22,18 @@ public interface ExchangeRequestRepository extends JpaRepository<ExchangeRequest
     @Query("select e from exchange_request e where e.receiver.id = :receiverId")
     Page<ExchangeRequest> findAllReceiveRequest(@Param("receiverId") Long receiverId, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"receiver", "sender", "item"})
+    @Query("select e from exchange_request e where e.sender.id = :senderId")
+    Page<ExchangeRequest> findAllSentRequest(@Param("senderId") Long senderId, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"receiver", "sender", "item"})
+    @Query("select e from exchange_request e where e.sender.id = :senderId and e.status = :status")
+    Page<ExchangeRequest> findAllSentRequestWithStatus(@Param("senderId") Long senderId, @Param("status") ExchangeStatus status, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"receiver", "sender", "item"})
+    @Query("select e from exchange_request e where e.receiver.id = :receiverId and e.status = :status")
+    Page<ExchangeRequest> findAllReceiveRequestWithStatus(@Param("receiverId") Long receiverId, @Param("status") ExchangeStatus status, Pageable pageable);
+
     Optional<ExchangeRequest> findByIdAndStatus(
         Long exchangeRequestId, ExchangeStatus status);
 

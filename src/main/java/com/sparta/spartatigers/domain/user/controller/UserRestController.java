@@ -23,7 +23,7 @@ public class UserRestController {
 
     private final UserService userService;
 
-    @PostMapping("/api/v1/users")
+    @PostMapping("/api/users")
     public ApiResponse<?> register(@RequestBody @Valid UserRegisterRequest request) {
         User user = request.toDomain();
         userService.addUser(user);
@@ -31,7 +31,7 @@ public class UserRestController {
         return ApiResponse.success(user);
     }
 
-    @GetMapping("/api/v1/users/me")
+    @GetMapping("/api/users/me")
     public ApiResponse<TokenClaim> me(@Auth TokenClaim tokenClaim) {
         return ApiResponse.success(tokenClaim);
     }

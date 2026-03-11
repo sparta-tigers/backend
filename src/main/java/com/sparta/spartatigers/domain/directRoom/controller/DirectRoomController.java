@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.domain.directRoom.dto.request.CreateDirectRoomRequestDto;
 import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomCreateResponseDto;
+import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomItemResponseDto;
 import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomResponseDto;
 import com.sparta.spartatigers.domain.directRoom.service.DirectRoomService;
 import com.sparta.spartatigers.global.aop.Auth;
@@ -48,6 +49,15 @@ public class DirectRoomController {
         Page<DirectRoomResponseDto> rooms =
             directRoomService.getRoomsForUser(currentUserId, pageable);
         return ApiResponse.success(rooms);
+    }
+
+    @GetMapping("/{directRoomId}/item")
+    public ApiResponse<DirectRoomItemResponseDto> getDirectRoomItem(
+        @PathVariable Long directRoomId,
+        @Auth TokenClaim tokenClaim) {
+        Long currentUserId = tokenClaim.getUserId();
+        DirectRoomItemResponseDto response = directRoomService.getRoomItem(directRoomId, currentUserId);
+        return ApiResponse.success(response);
     }
 
     @DeleteMapping("/{directRoomId}")

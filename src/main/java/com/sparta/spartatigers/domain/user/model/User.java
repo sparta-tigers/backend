@@ -38,7 +38,14 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
+    @Column(name = "device_token")
+    private String deviceToken;
+
     public void changePassword(final String password) {
         this.password = password;
+    }
+
+    public void updateDeviceToken(final String deviceToken) {
+        this.deviceToken = deviceToken;
     }
 }
