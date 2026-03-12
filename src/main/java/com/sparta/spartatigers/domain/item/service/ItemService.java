@@ -110,16 +110,31 @@ public class ItemService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ReadItemResponseDto> findAllItems(TokenClaim tokenClaim, Pageable pageable) {
+    public Page<ReadItemResponseDto> findAllItems(TokenClaim tokenClaim, Pageable pageable, 
+            Double latitude, Double longitude, Double radius) {
 
         Long userId = userRepository.findById(tokenClaim.getUserId())
             .orElseThrow(() ->  new InvalidRequestException(ExceptionCode.VALIDATION_ERROR)).getId();
 
-        List<Long> nearByUserIds = locationService.findUsersNearBy(userId, SEARCH_RADIUS_KM);
-        nearByUserIds.add(userId);
+        // 좌표 기반 검색 여부 확인
+        if (latitude != null && longitude != null) {
+            double searchRadius = radius != null ? radius : 2.0; // 기본 반경 2km
+            return itemRepository.findAllItemsByLocation(
+                ItemStatus.REGISTERED, 
+                LocalDate.now(), 
+                latitude, 
+                longitude, 
+                searchRadius, 
+                pageable
+            ).map(item -> ReadItemResponseDto.from(item, this));
+        } else {
+            // 기존 로직: 근처 사용자 기반 검색
+            List<Long> nearByUserIds = locationService.findUsersNearBy(userId, SEARCH_RADIUS_KM);
+            nearByUserIds.add(userId);
 
-        return itemRepository.findAllItems(ItemStatus.REGISTERED, LocalDate.now(), nearByUserIds, pageable)
-                .map(item -> ReadItemResponseDto.from(item, this));
+            return itemRepository.findAllItems(ItemStatus.REGISTERED, LocalDate.now(), nearByUserIds, pageable)
+                    .map(item -> ReadItemResponseDto.from(item, this));
+        }
     }
 
     @Transactional(readOnly = true)

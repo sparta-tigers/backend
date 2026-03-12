@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -94,9 +95,12 @@ public class ItemController {
     @GetMapping
     public ApiResponse<Page<ReadItemResponseDto>> findAllItems(@Auth TokenClaim tokenClaim,
         @PageableDefault(sort = "createdAt", direction = Direction.DESC)
-        Pageable pageable) {
+        Pageable pageable,
+        @RequestParam(required = false) Double latitude,
+        @RequestParam(required = false) Double longitude,
+        @RequestParam(required = false) Double radius) {
 
-        Page<ReadItemResponseDto> response = itemService.findAllItems(tokenClaim, pageable);
+        Page<ReadItemResponseDto> response = itemService.findAllItems(tokenClaim, pageable, latitude, longitude, radius);
 
         return ApiResponse.success(response);
     }

@@ -26,6 +26,23 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     Page<Item> findAllItems(@Param("itemStatus") ItemStatus itemStatus, @Param("createdDate") LocalDate createdDate, @Param("nearByUserIds") List<Long> nearByUserIds, Pageable pageable);
 
     @EntityGraph(attributePaths = "user")
+    @Query(value = "SELECT i FROM items i WHERE i.status = :itemStatus AND i.createdDate = :createdDate AND " +
+           "(6371 * acos(cos(radians(:latitude)) * cos(radians(i.location.latitude)) * " +
+           "cos(radians(i.location.longitude) - radians(:longitude)) + sin(radians(:latitude)) * " +
+           "sin(radians(i.location.latitude))) <= :radius)", 
+           countQuery = "SELECT count(i) FROM items i WHERE i.status = :itemStatus AND i.createdDate = :createdDate AND " +
+                       "(6371 * acos(cos(radians(:latitude)) * cos(radians(i.location.latitude)) * " +
+                       "cos(radians(i.location.longitude) - radians(:longitude)) + sin(radians(:latitude)) * " +
+                       "sin(radians(i.location.latitude))) <= :radius)")
+    Page<Item> findAllItemsByLocation(
+            @Param("itemStatus") ItemStatus itemStatus, 
+            @Param("createdDate") LocalDate createdDate, 
+            @Param("latitude") Double latitude, 
+            @Param("longitude") Double longitude, 
+            @Param("radius") Double radius, 
+            Pageable pageable);
+
+    @EntityGraph(attributePaths = "user")
     @Query("select i from items i where i.status = :itemStatus and i.createdDate = :createdDate and i.user.id = :userId")
     Page<Item> findAllMyItems(
         @Param("itemStatus") ItemStatus itemStatus,
