@@ -27,13 +27,13 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     @EntityGraph(attributePaths = "user")
     @Query(value = "SELECT i FROM items i WHERE i.status = :itemStatus AND i.createdDate = :createdDate AND " +
-           "(6371 * acos(cos(radians(:latitude)) * cos(radians(i.location.latitude)) * " +
-           "cos(radians(i.location.longitude) - radians(:longitude)) + sin(radians(:latitude)) * " +
-           "sin(radians(i.location.latitude))) <= :radius)", 
+           "(6371 * acos(cos(radians(:latitude)) * cos(radians(i.latitude)) * " +
+           "cos(radians(i.longitude) - radians(:longitude)) + sin(radians(:latitude)) * " +
+           "sin(radians(i.latitude))) <= :radius)", 
            countQuery = "SELECT count(i) FROM items i WHERE i.status = :itemStatus AND i.createdDate = :createdDate AND " +
-                       "(6371 * acos(cos(radians(:latitude)) * cos(radians(i.location.latitude)) * " +
-                       "cos(radians(i.location.longitude) - radians(:longitude)) + sin(radians(:latitude)) * " +
-                       "sin(radians(i.location.latitude))) <= :radius)")
+                       "(6371 * acos(cos(radians(:latitude)) * cos(radians(i.latitude)) * " +
+                       "cos(radians(i.longitude) - radians(:longitude)) + sin(radians(:latitude)) * " +
+                       "sin(radians(i.latitude))) <= :radius)")
     Page<Item> findAllItemsByLocation(
             @Param("itemStatus") ItemStatus itemStatus, 
             @Param("createdDate") LocalDate createdDate, 
