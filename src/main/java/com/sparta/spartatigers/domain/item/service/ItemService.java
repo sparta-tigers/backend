@@ -66,7 +66,7 @@ public class ItemService {
         }
 
         Item item = new Item(request.category(), imageUrlsJson, request.seatInfo(), 
-                request.title(), request.description(), latitude, longitude, address, ItemStatus.REGISTERED, user, LocalDate.now());
+                request.title(), request.description(), latitude, longitude, address, request.desiredItem(), ItemStatus.REGISTERED, user, LocalDate.now());
 
         Item savedItem = itemRepository.save(item);
 

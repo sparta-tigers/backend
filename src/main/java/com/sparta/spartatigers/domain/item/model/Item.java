@@ -79,6 +79,8 @@ public class Item extends BaseEntity {
 
     @Column private String address;
 
+    @Column private String desiredItem;
+
     @Version private Long version;
 
     public Item(
@@ -90,6 +92,7 @@ public class Item extends BaseEntity {
         Double latitude,
         Double longitude,
         String address,
+        String desiredItem,
         ItemStatus status,
         User user,
         LocalDate createdDate) {
@@ -102,6 +105,7 @@ public class Item extends BaseEntity {
         this.latitude = latitude;
         this.longitude = longitude;
         this.address = address;
+        this.desiredItem = desiredItem;
         this.status = status;
         this.user = user;
         this.createdDate = createdDate;
@@ -117,6 +121,7 @@ public class Item extends BaseEntity {
             null,
             null,
             null,
+            dto.desiredItem(),
             ItemStatus.REGISTERED,
             user,
             LocalDate.now());

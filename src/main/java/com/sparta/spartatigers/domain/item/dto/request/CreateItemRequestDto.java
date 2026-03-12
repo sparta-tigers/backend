@@ -9,4 +9,5 @@ public record CreateItemRequestDto(
     @NotNull(message = "카테고리는 필수입니다.") ItemCategory category,
     @NotBlank(message = "제목은 필수입니다.") String title,
     String seatInfo,
-    String description) {}
+    String description,
+    String desiredItem) {}
