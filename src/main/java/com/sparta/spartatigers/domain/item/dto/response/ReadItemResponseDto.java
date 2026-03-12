@@ -16,6 +16,9 @@ public record ReadItemResponseDto(
     String title,
     ItemStatus status,
     List<String> imageUrls,
+    Double latitude,
+    Double longitude,
+    String address,
     LocalDateTime createdAt) {
 
     public static ReadItemResponseDto from(Item item, ItemService itemService) {
@@ -29,6 +32,9 @@ public record ReadItemResponseDto(
             item.getTitle(),
             item.getStatus(),
             imageUrls,
+            item.getLatitude(),
+            item.getLongitude(),
+            item.getAddress(),
             item.getCreatedAt());
     }
     
@@ -44,6 +50,9 @@ public record ReadItemResponseDto(
             item.getTitle(),
             item.getStatus(),
             imageUrls,
+            item.getLatitude(),
+            item.getLongitude(),
+            item.getAddress(),
             item.getCreatedAt());
     }
 }
