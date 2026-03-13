@@ -146,4 +146,9 @@ public class ItemController {
         itemService.updateItemStatus(tokenClaim, itemId, request);
         return ApiResponse.success(null);
     }
+
+    @GetMapping("/check-active")
+    public ApiResponse<Boolean> checkActiveItem(@Auth TokenClaim tokenClaim) {
+        return ApiResponse.success(itemService.hasActiveItem(tokenClaim));
+    }
 }

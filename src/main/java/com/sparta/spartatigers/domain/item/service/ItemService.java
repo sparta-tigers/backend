@@ -188,41 +188,8 @@ public class ItemService {
         return ItemResponseDto.from(item);
     }
 
-    private String serializeImageUrls(List<String> imageUrls) {
-        // 1. null 또는 빈 리스트 사전 방어
-        if (imageUrls == null || imageUrls.isEmpty()) {
-            return "[]";
-        }
-        try {
-            return objectMapper.writeValueAsString(imageUrls);
-        } catch (JsonProcessingException e) {
-            log.error("이미지 URL 직렬화 실패: {}", e.getMessage());
-            // 2 & 3. 조용한 실패를 막고 예외를 던져 트랜잭션 롤백 유도
-            throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
-        }
-    }
-
-    public List<String> deserializeImageUrls(String imageUrlsJson) {
-        if (imageUrlsJson == null || imageUrlsJson.trim().isEmpty()) {
-            return List.of();
-        }
-        
-        try {
-            return objectMapper.readValue(imageUrlsJson, new TypeReference<List<String>>() {});
-        } catch (JsonProcessingException e) {
-            log.error("이미지 URL 역직렬화 실패: {}", imageUrlsJson, e);
-            // 레거시 데이터 호환을 위해 쉼표 구분 처리도 지원
-            if (imageUrlsJson.startsWith("[") && imageUrlsJson.endsWith("]")) {
-                String content = imageUrlsJson.substring(1, imageUrlsJson.length() - 1);
-                if (content.trim().isEmpty()) {
-                    return List.of();
-                }
-                return java.util.Arrays.stream(content.split(","))
-                    .map(String::trim)
-                    .filter(s -> !s.isEmpty())
-                    .toList();
-            }
-            return List.of();
-        }
+    @Transactional(readOnly = true)
+    public boolean hasActiveItem(TokenClaim tokenClaim) {
+        return itemRepository.existsByUserIdAndStatus(tokenClaim.getUserId(), ItemStatus.REGISTERED);
     }
 }
