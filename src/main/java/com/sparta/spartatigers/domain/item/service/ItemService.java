@@ -48,6 +48,11 @@ public class ItemService {
         User user = userRepository.findById(tokenClaim.getUserId())
             .orElseThrow(() -> new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
 
+        // 이미 등록된 활성(REGISTERED) 상태의 아이템이 있는지 확인
+        if (itemRepository.existsByUserIdAndStatus(user.getId(), ItemStatus.REGISTERED)) {
+            throw new InvalidRequestException(ExceptionCode.ITEM_ALREADY_EXISTS);
+        }
+
         // 이미지 URL 리스트를 JSON으로 안전하게 직렬화
         String imageUrlsJson = serializeImageUrls(imageUrls);
 

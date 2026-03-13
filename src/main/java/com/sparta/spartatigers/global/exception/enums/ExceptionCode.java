@@ -75,6 +75,7 @@ public enum ExceptionCode {
     RECEIVER_FORBIDDEN(HttpStatus.FORBIDDEN, ErrorCode.E403, "요청을 받은 사용자만 요청을 수정할 수 있습니다.", LogLevel.DEBUG),
     LOCATION_NOT_VALID(HttpStatus.BAD_REQUEST, ErrorCode.E400, "아이템은 야구장 근처에서만 등록할 수 있습니다.", LogLevel.DEBUG),
     ITEM_FORBIDDEN(HttpStatus.FORBIDDEN, ErrorCode.E403, "아이템의 소유자가 아닙니다.", LogLevel.DEBUG),
+    ITEM_ALREADY_EXISTS(HttpStatus.CONFLICT, ErrorCode.E409, "이미 등록된 활성 아이템이 있습니다.", LogLevel.DEBUG),
 
     // 직관 기록
     WATCH_LIST_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "직관 기록이 존재하지 않습니다.", LogLevel.DEBUG),

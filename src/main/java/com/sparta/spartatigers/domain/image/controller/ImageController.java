@@ -24,8 +24,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ImageController {
     
-    @Value("${image.storage.path:./uploads}")
     private String uploadDirectory;
+ 
+    public ImageController(@Value("${image.storage.path:./uploads}") String uploadPath) {
+        this.uploadDirectory = java.nio.file.Paths.get(uploadPath).toAbsolutePath().normalize().toString();
+    }
 
     @GetMapping("/{fileName}")
     public ResponseEntity<Resource> getImage(@PathVariable String fileName) {

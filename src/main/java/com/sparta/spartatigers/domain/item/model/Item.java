@@ -32,11 +32,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(
-        uniqueConstraints = {
-            @UniqueConstraint(
-                    name = "UNIQUE_USER_ITEM",
-                    columnNames = {"user_id", "created_date"})
-        },
         indexes = {
             @Index(
                     name = "idx_item_user_status_created",

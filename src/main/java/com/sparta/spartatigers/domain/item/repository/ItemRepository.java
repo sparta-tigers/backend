@@ -49,6 +49,8 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
         @Param("createdDate") LocalDate createdDate,
         @Param("userId") Long userId,
         Pageable pageable);
+    
+    boolean existsByUserIdAndStatus(Long userId, ItemStatus status);
 
     Optional<Item> findByIdAndStatusAndCreatedDate(Long id, ItemStatus itemStatus, LocalDate createdDate);
 

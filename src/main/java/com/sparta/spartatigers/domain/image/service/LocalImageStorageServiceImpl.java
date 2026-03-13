@@ -46,10 +46,11 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
     private static final Pattern SAFE_FILENAME_PATTERN = Pattern.compile("[^a-zA-Z0-9._-]");
     
     public LocalImageStorageServiceImpl(@Value("${image.storage.path:./uploads}") String uploadPath) {
-        // 생성자에서 디렉토리 경로 설정 및 생성
-        this.uploadDir = uploadPath;
+        // 생성자에서 디렉토리 경로 설정 및 생성 (절대 경로로 변환하여 Tomcat 등의 임시 경로 혼선 방지)
         try {
-            Path uploadDirectory = Paths.get(uploadDir);
+            Path uploadDirectory = Paths.get(uploadPath).toAbsolutePath().normalize();
+            this.uploadDir = uploadDirectory.toString();
+            
             Files.createDirectories(uploadDirectory);
             
             // 쓰기 권한 확인
@@ -57,9 +58,9 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
                 throw new RuntimeException("업로드 디렉토리에 쓰기 권한이 없습니다: " + uploadDir);
             }
             
-            log.info("업로드 디렉토리 초기화 완료: {}", uploadDirectory.toAbsolutePath());
+            log.info("업로드 디렉토리 초기화 완료: {}", uploadDir);
         } catch (IOException e) {
-            throw new RuntimeException("업로드 디렉토리 생성 실패: " + uploadDir, e);
+            throw new RuntimeException("업로드 디렉토리 생성 실패: " + uploadPath, e);
         }
     }
 
@@ -125,20 +126,19 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
                 String baseName = sanitizeFilename(originalFilename);
                 String fileName = UUID.randomUUID().toString() + "_" + baseName;
                 
-                // 최종 경로 생성 및 경로 순회 공격 방지 검증
-                Path destinationPath = Paths.get(uploadDir, fileName).normalize();
-                Path uploadDirPath = Paths.get(uploadDir).normalize();
+                // 최종 경로 생성 (절대 경로 보장)
+                Path destinationPath = Paths.get(uploadDir, fileName).toAbsolutePath().normalize();
                 
-                // 경로가 업로드 디렉토리 내에 있는지 확인
-                if (!destinationPath.startsWith(uploadDirPath)) {
+                // 보안 검증: 경로 순회 공격 방지
+                if (!destinationPath.startsWith(Paths.get(uploadDir).toAbsolutePath().normalize())) {
                     log.error("경로 순회 공격 시도 감지: {}", destinationPath);
                     throw new RuntimeException("잘못된 파일 경로입니다.");
                 }
                 
-                File destination = destinationPath.toFile();
-                
-                // transferTo는 application.yml의 설정에 따라 임시 파일을 실제 경로로 안전하게 이동시킴
-                file.transferTo(destination);
+                // Files.copy를 사용하여 임시 파일을 실제 경로로 안전하게 복사 (transferTo보다 환경 이식성 높음)
+                try (InputStream inputStream = file.getInputStream()) {
+                    Files.copy(inputStream, destinationPath);
+                }
                 
                 // 저장된 파일 경로 추적
                 savedFiles.add(destinationPath);
