@@ -1,5 +1,6 @@
 package com.sparta.spartatigers.domain.exchangerequest.controller;
 
+import com.sparta.spartatigers.domain.exchangerequest.dto.response.SendRequestResponseDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
@@ -47,6 +48,17 @@ public class ExchangeRequestController {
         @PageableDefault(sort = "createdAt", direction = Direction.DESC) Pageable pageable) {
 
         Page<ReceiveRequestResponseDto> response = exchangeRequestService.findAllReceiveRequest(
+            tokenClaim, pageable);
+
+        return ApiResponse.success(response);
+    }
+
+    @GetMapping("/send")
+    public ApiResponse<Page<SendRequestResponseDto>> findAllSendRequest(
+        @Auth TokenClaim tokenClaim,
+        @PageableDefault(sort = "createdAt", direction = Direction.DESC) Pageable pageable) {
+
+        Page<SendRequestResponseDto> response = exchangeRequestService.findAllSendRequest(
             tokenClaim, pageable);
 
         return ApiResponse.success(response);

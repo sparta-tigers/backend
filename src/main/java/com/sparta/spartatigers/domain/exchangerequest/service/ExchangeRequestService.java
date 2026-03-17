@@ -1,5 +1,6 @@
 package com.sparta.spartatigers.domain.exchangerequest.service;
 
+import com.sparta.spartatigers.domain.exchangerequest.dto.response.SendRequestResponseDto;
 import java.util.Map;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -67,6 +68,16 @@ public class ExchangeRequestService {
             user.getId(), pageable);
 
         return exchangeRequestList.map(ReceiveRequestResponseDto::from);
+    }
+
+    public Page<SendRequestResponseDto> findAllSendRequest(TokenClaim tokenClaim,
+        Pageable pageable) {
+
+        User user = getUser(tokenClaim.getUserId());
+        Page<ExchangeRequest> exchangeRequestList = exchangeRequestRepository.findAllSentRequest(
+            user.getId(), pageable);
+
+        return exchangeRequestList.map(SendRequestResponseDto::from);
     }
 
     @Transactional
