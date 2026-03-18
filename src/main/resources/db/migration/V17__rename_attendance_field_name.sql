@@ -1,0 +1,5 @@
+SET FOREIGN_KEY_CHECKS = 0;
+
+ALTER TABLE attendance_image CHANGE s3url image_url VARCHAR(255);
+
+SET FOREIGN_KEY_CHECKS = 1;
