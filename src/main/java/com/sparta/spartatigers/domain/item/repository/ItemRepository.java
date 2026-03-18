@@ -25,6 +25,14 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     @Query("select i from items i where i.status = :itemStatus and i.createdDate = :createdDate and i.user.id in :nearByUserIds")
     Page<Item> findAllItems(@Param("itemStatus") ItemStatus itemStatus, @Param("createdDate") LocalDate createdDate, @Param("nearByUserIds") List<Long> nearByUserIds, Pageable pageable);
 
+    @EntityGraph(attributePaths = "user")
+    @Query("select i from items i where i.status = :itemStatus and i.createdDate = :createdDate and i.user.id = :userId")
+    Page<Item> findAllMyItems(
+        @Param("itemStatus") ItemStatus itemStatus,
+        @Param("createdDate") LocalDate createdDate,
+        @Param("userId") Long userId,
+        Pageable pageable);
+
     Optional<Item> findByIdAndStatusAndCreatedDate(Long id, ItemStatus itemStatus, LocalDate createdDate);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

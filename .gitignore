@@ -156,3 +156,8 @@ src/main/resources/vision-api-key.json
 # Firebase
 # ================================
 **/firebase-key.json
+
+# ================================
+# Agents docs
+# ================================
+**/**agent**.md

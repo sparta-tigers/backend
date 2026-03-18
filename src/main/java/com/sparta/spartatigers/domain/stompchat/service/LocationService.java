@@ -1,15 +1,9 @@
 package com.sparta.spartatigers.domain.stompchat.service;
-import com.sparta.spartatigers.domain.stompchat.dto.request.LocationRequestDto;
-import com.sparta.spartatigers.domain.stompchat.dto.response.RedisUpdateDto;
-import com.sparta.spartatigers.domain.stompchat.pubsub.RedisLocationPublisher;
-import com.sparta.spartatigers.domain.team.model.Stadium;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import jakarta.annotation.PostConstruct;
 
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -21,10 +15,15 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import com.sparta.spartatigers.domain.stompchat.dto.request.LocationRequestDto;
+import com.sparta.spartatigers.domain.stompchat.dto.response.RedisUpdateDto;
+import com.sparta.spartatigers.domain.stompchat.pubsub.RedisLocationPublisher;
+import com.sparta.spartatigers.domain.team.model.Stadium;
+import com.sparta.spartatigers.domain.team.repository.StadiumRepository;
+
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import com.sparta.spartatigers.domain.team.repository.StadiumRepository;
 
 @Slf4j
 @Service
@@ -126,6 +125,12 @@ public class LocationService {
     }
 
     public boolean isNearStadium(double longitude, double latitude) {
+        // 1. 사전 검증 (Fast-Fail)
+        if (latitude < -90.0 || latitude > 90.0 || longitude < -180.0 || longitude > 180.0) {
+            log.warn("[isNearStadium] 유효하지 않은 좌표값 입력: lat={}, lon={}", latitude, longitude);
+            return false;
+        }
+
         try {
             Point point = new Point(longitude, latitude);
             Distance distance = new Distance(NEAR_STADIUM_KM, Metrics.KILOMETERS);

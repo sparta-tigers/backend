@@ -1,24 +1,30 @@
 package com.sparta.spartatigers.domain.exchangerequest.service;
 
+import java.util.Map;
+
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sparta.spartatigers.domain.auth.model.TokenClaim;
+import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomCreateResponseDto;
+import com.sparta.spartatigers.domain.directRoom.model.DirectRoom;
+import com.sparta.spartatigers.domain.directRoom.repository.DirectRoomRepository;
 import com.sparta.spartatigers.domain.directRoom.service.DirectRoomService;
 import com.sparta.spartatigers.domain.exchangerequest.dto.request.ExchangeRequestDto;
 import com.sparta.spartatigers.domain.exchangerequest.dto.request.UpdateExchangeRequestDto;
+import com.sparta.spartatigers.domain.exchangerequest.dto.response.ExchangeRoomResponseDto;
 import com.sparta.spartatigers.domain.exchangerequest.dto.response.ReceiveRequestResponseDto;
 import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeRequest;
 import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeStatus;
 import com.sparta.spartatigers.domain.exchangerequest.repository.ExchangeRequestRepository;
+import com.sparta.spartatigers.domain.item.event.ItemLocationUpdatedEvent;
 import com.sparta.spartatigers.domain.item.model.Item;
 import com.sparta.spartatigers.domain.item.repository.ItemRepository;
-import com.sparta.spartatigers.domain.stompchat.service.LocationService;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.repository.UserRepository;
-import java.util.Map;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 
@@ -30,12 +36,13 @@ public class ExchangeRequestService {
 
     private final ExchangeRequestRepository exchangeRequestRepository;
     private final DirectRoomService directRoomService;
+    private final DirectRoomRepository directRoomRepository;
     private final UserRepository userRepository;
-    private final LocationService locationService;
     private final ItemRepository itemRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
-    public void createExchangeRequest(ExchangeRequestDto request, TokenClaim tokenClaim) {
+    public Long createExchangeRequest(ExchangeRequestDto request, TokenClaim tokenClaim) {
 
         User sender = getUser(tokenClaim.getUserId());
         User receiver = getUser(request.receiverId());
@@ -49,7 +56,8 @@ public class ExchangeRequestService {
         String have = request.have();
 
         ExchangeRequest exchangeRequest = ExchangeRequest.of(item, sender, receiver, have);
-        exchangeRequestRepository.save(exchangeRequest);
+        ExchangeRequest saved = exchangeRequestRepository.save(exchangeRequest);
+        return saved.getId();
     }
 
     public Page<ReceiveRequestResponseDto> findAllReceiveRequest(TokenClaim tokenClaim, Pageable pageable) {
@@ -62,7 +70,7 @@ public class ExchangeRequestService {
     }
 
     @Transactional
-    public void updateRequestStatus(Long exchangeRequestId, UpdateExchangeRequestDto request,
+    public ExchangeRoomResponseDto updateRequestStatus(Long exchangeRequestId, UpdateExchangeRequestDto request,
         TokenClaim tokenClaim) {
 
         User user = getUser(tokenClaim.getUserId());
@@ -72,12 +80,15 @@ public class ExchangeRequestService {
         exchangeRequest.updateStatus(request.status());
 
         if (exchangeRequest.getStatus() == ExchangeStatus.ACCEPTED) {
-            directRoomService.createRoom(exchangeRequestId, user.getId());
+            DirectRoomCreateResponseDto room = directRoomService.createRoom(exchangeRequestId, user.getId());
+            return ExchangeRoomResponseDto.from(room);
         }
 
         if (exchangeRequest.getStatus() == ExchangeStatus.REJECTED) {
             exchangeRequestRepository.delete(exchangeRequest);
         }
+
+        return null;
     }
 
     @Transactional
@@ -94,8 +105,37 @@ public class ExchangeRequestService {
 
         exchangeRequest.complete();
 
-        Map<String, Object> data = Map.of("itemId", item.getId(), "userId", item.getUser().getId());
-        locationService.notifyUsersNearBy(item.getUser().getId(), "REMOVE_ITEM", data);
+        DirectRoom room = directRoomRepository.findByExchangeRequestId(exchangeRequestId)
+                .orElseThrow(() -> new InvalidRequestException(ExceptionCode.DIRECT_ROOM_NOT_FOUND));
+        room.complete();
+
+        ItemLocationUpdatedEvent event = new ItemLocationUpdatedEvent(item.getUser().getId(), "REMOVE_ITEM", 
+            Map.of("itemId", item.getId(), "userId", item.getUser().getId()));
+        applicationEventPublisher.publishEvent(event);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ReceiveRequestResponseDto> findMyExchangeRequests(String role, ExchangeStatus status, Pageable pageable, TokenClaim tokenClaim) {
+        Long userId = tokenClaim.getUserId();
+        Page<ExchangeRequest> requests;
+
+        if ("sender".equals(role)) {
+            if (status == null) {
+                requests = exchangeRequestRepository.findAllSentRequest(userId, pageable);
+            } else {
+                requests = exchangeRequestRepository.findAllSentRequestWithStatus(userId, status, pageable);
+            }
+        } else if ("receiver".equals(role)) {
+            if (status == null) {
+                requests = exchangeRequestRepository.findAllReceiveRequest(userId, pageable);
+            } else {
+                requests = exchangeRequestRepository.findAllReceiveRequestWithStatus(userId, status, pageable);
+            }
+        } else {
+            throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
+        }
+
+        return requests.map(ReceiveRequestResponseDto::from);
     }
 
     private User getUser(Long userId) {
