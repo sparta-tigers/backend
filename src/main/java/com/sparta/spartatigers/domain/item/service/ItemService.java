@@ -28,6 +28,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -191,5 +192,28 @@ public class ItemService {
     @Transactional(readOnly = true)
     public boolean hasActiveItem(TokenClaim tokenClaim) {
         return itemRepository.existsByUserIdAndStatus(tokenClaim.getUserId(), ItemStatus.REGISTERED);
+    }
+
+    // 이미지 URL 리스트를 JSON 문자열로 직렬화
+    public String serializeImageUrls(List<String> imageUrls) {
+        try {
+            return objectMapper.writeValueAsString(imageUrls);
+        } catch (JsonProcessingException e) {
+            log.error("이미지 URL 직렬화 실패: {}", e.getMessage());
+            return "[]";
+        }
+    }
+
+    // JSON 문자열을 이미지 URL 리스트로 역직렬화
+    public List<String> deserializeImageUrls(String imageUrlsJson) {
+        if (imageUrlsJson == null || imageUrlsJson.isBlank()) {
+            return Collections.emptyList();
+        }
+        try {
+            return objectMapper.readValue(imageUrlsJson, new TypeReference<List<String>>() {});
+        } catch (JsonProcessingException e) {
+            log.error("이미지 URL 역직렬화 실패: {}", e.getMessage());
+            return Collections.emptyList();
+        }
     }
 }

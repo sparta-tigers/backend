@@ -35,11 +35,22 @@ public class AuthArgumentResolver implements HandlerMethodArgumentResolver {
             WebDataBinderFactory binderFactory) {
         HttpServletRequest request = (HttpServletRequest) webRequest.getNativeRequest();
         String bearerToken = request.getHeader("Authorization");
-        if (bearerToken == null || bearerToken.isBlank() || !bearerToken.regionMatches(true, 0, "Bearer ", 0, 7)) {
+        if (bearerToken == null || bearerToken.isBlank()) {
             throw new InvalidRequestException(ExceptionCode.UNAUTHORIZED);
         }
-
-        String accessToken = bearerToken.substring(7).trim();
+        
+        // Bearer 접두사 확인 (대소문자 무시)
+        if (!bearerToken.toLowerCase().startsWith("bearer ")) {
+            throw new InvalidRequestException(ExceptionCode.UNAUTHORIZED);
+        }
+        
+        // 안전한 토큰 추출 (ArrayIndexOutOfBoundsException 방지)
+        String[] parts = bearerToken.split(" ", 2); // 최대 2부분으로 분리
+        if (parts.length != 2 || parts[1].isBlank()) {
+            throw new InvalidRequestException(ExceptionCode.UNAUTHORIZED);
+        }
+        
+        String accessToken = parts[1].trim();
         if (accessToken.isBlank()) {
             throw new InvalidRequestException(ExceptionCode.UNAUTHORIZED);
         }

@@ -1,16 +1,16 @@
 package com.sparta.spartatigers.domain.auth.service;
 
-import com.sparta.spartatigers.domain.auth.model.RefreshToken;
-import com.sparta.spartatigers.domain.auth.repository.RefreshTokenRepository;
 import java.util.Date;
-
 import java.util.concurrent.TimeUnit;
+
 import javax.crypto.SecretKey;
 
 import org.springframework.stereotype.Service;
 
+import com.sparta.spartatigers.domain.auth.model.RefreshToken;
 import com.sparta.spartatigers.domain.auth.model.Token;
 import com.sparta.spartatigers.domain.auth.model.TokenClaim;
+import com.sparta.spartatigers.domain.auth.repository.RefreshTokenRepository;
 import com.sparta.spartatigers.domain.user.model.UserRole;
 import com.sparta.spartatigers.global.config.JwtConfig;
 
@@ -83,24 +83,31 @@ public class JwtTokenService implements TokenService {
 
     @Override
     public TokenClaim parseAccessToken(final String token) {
-        SecretKey secretKey = Keys.hmacShaKeyFor(jwtConfig.getAccessToken().secret().getBytes());
-        Jws<Claims> claimsJws = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token);
+        try {
+            SecretKey secretKey = Keys.hmacShaKeyFor(jwtConfig.getAccessToken().secret().getBytes());
+            Jws<Claims> claimsJws = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token);
 
-        // 한번에 Long으로 받으면에러가 발생함 Number.class로 가져와야 안전
-        final Number userId = claimsJws.getPayload().get("userId", Number.class);
-        final String email = claimsJws.getPayload().get("email", String.class);
-        final String nickname = claimsJws.getPayload().get("nickname", String.class);
-        final String profileImageUrl = claimsJws.getPayload().get("profileImageUrl", String.class);
-        final String userRole = claimsJws.getPayload().get("role", String.class);
+            // 한번에 Long으로 받으면에러가 발생함 Number.class로 가져와야 안전
+            final Number userId = claimsJws.getPayload().get("userId", Number.class);
+            final String email = claimsJws.getPayload().get("email", String.class);
+            final String nickname = claimsJws.getPayload().get("nickname", String.class);
+            final String profileImageUrl = claimsJws.getPayload().get("profileImageUrl", String.class);
+            final String userRole = claimsJws.getPayload().get("role", String.class);
 
-        return TokenClaim.builder()
-            .subject(email)
-            .userId(userId.longValue())
-            .email(email)
-            .nickname(nickname)
-            .profileImageUrl(profileImageUrl)
-            .role(UserRole.from(userRole))
-            .build();
+            return TokenClaim.builder()
+                .subject(email)
+                .userId(userId.longValue())
+                .email(email)
+                .nickname(nickname)
+                .profileImageUrl(profileImageUrl)
+                .role(UserRole.from(userRole))
+                .build();
+        } catch (Exception e) {
+            log.error("JWT 토큰 파싱 실패: {}", e.getMessage());
+            throw new com.sparta.spartatigers.global.exception.internal.InvalidRequestException(
+                com.sparta.spartatigers.global.exception.enums.ExceptionCode.UNAUTHORIZED
+            );
+        }
     }
 
     @Override
