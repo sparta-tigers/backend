@@ -126,8 +126,8 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
                 String fileName = UUID.randomUUID().toString() + "_" + baseName;
                 
                 // 최종 경로 생성 및 경로 순회 공격 방지 검증
-                Path destinationPath = Paths.get(uploadDir, fileName).normalize();
-                Path uploadDirPath = Paths.get(uploadDir).normalize();
+                Path destinationPath = Paths.get(uploadDir, fileName).toAbsolutePath().normalize();
+                Path uploadDirPath = Paths.get(uploadDir).toAbsolutePath().normalize();
                 
                 // 경로가 업로드 디렉토리 내에 있는지 확인
                 if (!destinationPath.startsWith(uploadDirPath)) {
