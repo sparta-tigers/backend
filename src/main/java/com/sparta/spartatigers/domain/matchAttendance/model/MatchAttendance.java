@@ -1,5 +1,6 @@
 package com.sparta.spartatigers.domain.matchAttendance.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
@@ -40,10 +41,33 @@ public class MatchAttendance extends BaseEntity {
 	private String contents;
 
 	@OneToMany(mappedBy = "attendance", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<AttendanceImage> images;
+	private List<AttendanceImage> images = new ArrayList<>();
 
 	private String seat;
 
+	private MatchAttendance(User user, Match match, String contents, String seat) {
+		this.user = user;
+		this.match = match;
+		this.contents = contents;
+		this.seat = seat;
+	}
 
+	public static MatchAttendance create(User user, Match match, String contents, String seat) {
+		return new MatchAttendance(user, match, contents, seat);
+	}
+
+	public void addImage(String imageUrl, AttendanceImageType imageType) {
+		AttendanceImage image = AttendanceImage.create(this,imageUrl, imageType);
+		this.images.add(image);
+	}
+
+	public void update(String contents, String seat) {
+		this.contents = contents;
+		this.seat = seat;
+	}
+
+	public void clearImages() {
+		this.images.clear();
+	}
 
 }
