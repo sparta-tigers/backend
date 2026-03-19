@@ -76,9 +76,6 @@ public enum ExceptionCode {
     LOCATION_NOT_VALID(HttpStatus.BAD_REQUEST, ErrorCode.E400, "아이템은 야구장 근처에서만 등록할 수 있습니다.", LogLevel.DEBUG),
     ITEM_FORBIDDEN(HttpStatus.FORBIDDEN, ErrorCode.E403, "아이템의 소유자가 아닙니다.", LogLevel.DEBUG),
 
-    // 직관 기록
-    WATCH_LIST_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "직관 기록이 존재하지 않습니다.", LogLevel.DEBUG),
-
     // 팀
     TEAM_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "팀이 존재하지 않습니다.", LogLevel.DEBUG),
 
@@ -102,7 +99,7 @@ public enum ExceptionCode {
 
     // 직관기록
     MATCH_ATTENDANCE_NOT_FOUND(HttpStatus.BAD_REQUEST, ErrorCode.E400, "존재하지 않는 직관기록입니다.", LogLevel.DEBUG),
-    MATCH_ATTENDANCE_FORBIDDEN(HttpStatus.BAD_REQUEST, ErrorCode.E400, "권한이 없습니다.", LogLevel.DEBUG),
+    MATCH_ATTENDANCE_FORBIDDEN(HttpStatus.BAD_REQUEST, ErrorCode.E403, "권한이 없습니다.", LogLevel.DEBUG),
     TICKET_OCR_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.E500, "좌석 정보 추출 OCR을 사용할 수 없습니다.", LogLevel.ERROR),
     INVALID_TICKET_IMAGE(HttpStatus.BAD_REQUEST, ErrorCode.E400, "유효하지 않은 티켓 이미지입니다.", LogLevel.DEBUG);
 

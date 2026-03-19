@@ -11,5 +11,5 @@ import com.sparta.spartatigers.domain.matchAttendance.model.MatchAttendance;
 
 public interface MatchAttendanceRepository extends JpaRepository<MatchAttendance, Long> {
 
-	Page<MatchAttendance> findAllByUserId(Long userId, Pageable pageable);
+	Page<MatchAttendance> findAllByUser_Id(Long userId, Pageable pageable);
 }
