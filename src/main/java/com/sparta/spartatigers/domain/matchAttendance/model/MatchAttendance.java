@@ -58,6 +58,7 @@ public class MatchAttendance extends BaseEntity {
 
 	public void addImage(String imageUrl, AttendanceImageType imageType) {
 		AttendanceImage image = AttendanceImage.create(this,imageUrl, imageType);
+		this.images.add(image);
 	}
 
 	public void update(String contents, String seat) {
@@ -66,7 +67,7 @@ public class MatchAttendance extends BaseEntity {
 	}
 
 	public void clearImages() {
-		this.images = null;
+		this.images.clear();
 	}
 
 }
