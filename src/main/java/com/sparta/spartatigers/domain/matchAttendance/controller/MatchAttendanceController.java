@@ -45,6 +45,7 @@ public class MatchAttendanceController {
 
 	@PostMapping("/ticket")
 	public ApiResponse<TicketOcrResponseDto> uploadTicketAndOcr(
+		@Auth TokenClaim tokenClaim,
 		@RequestPart(value = "images", required = true) MultipartFile ticket
 	) {
 		log.info("티켓 좌석 추출 시작 ==");
@@ -70,7 +71,7 @@ public class MatchAttendanceController {
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ApiResponse<MatchAttendanceResponseDto> createAttendance(
 		@Auth TokenClaim tokenClaim,
-		@RequestPart(value = "request", required = true) MatchAttendanceRequestDto request,
+		@RequestPart(value = "request", required = true) @Valid MatchAttendanceRequestDto request,
 		@RequestPart(value = "images", required = false) List<MultipartFile> images
 	) {
 		Long userId = tokenClaim.getUserId();
@@ -115,7 +116,7 @@ public class MatchAttendanceController {
 	public ApiResponse<MatchAttendanceResponseDto> updateAttendance (
 		@Auth TokenClaim tokenClaim,
 		@PathVariable Long attendanceId,
-		@RequestPart (value = "request") MatchAttendanceUpdateRequestDto request,
+		@RequestPart (value = "request") @Valid MatchAttendanceUpdateRequestDto request,
 		@RequestPart(value = "images", required = false) List<MultipartFile> newImages
 	) {
 		Long userId = tokenClaim.getUserId();
