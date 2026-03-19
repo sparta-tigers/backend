@@ -9,11 +9,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.sparta.spartatigers.domain.image.service.ImageStorageService;
 import com.sparta.spartatigers.domain.match.model.Match;
 import com.sparta.spartatigers.domain.match.repository.MatchRepository;
 import com.sparta.spartatigers.domain.matchAttendance.dto.MatchAttendanceRequestDto;
 import com.sparta.spartatigers.domain.matchAttendance.dto.MatchAttendanceResponseDto;
 import com.sparta.spartatigers.domain.matchAttendance.dto.MatchAttendanceUpdateRequestDto;
+import com.sparta.spartatigers.domain.matchAttendance.model.AttendanceImage;
 import com.sparta.spartatigers.domain.matchAttendance.model.AttendanceImageType;
 import com.sparta.spartatigers.domain.matchAttendance.model.MatchAttendance;
 import com.sparta.spartatigers.domain.matchAttendance.repository.MatchAttendanceRepository;
@@ -34,9 +36,10 @@ public class MatchAttendanceService {
 	private final UserRepository userRepository;
 	private final MatchRepository matchRepository;
 	private final OcrService ocrService;
+	private final ImageStorageService imageStorageService;
 
 	@Transactional
-	public MatchAttendanceResponseDto createAttendance (Long userId, MatchAttendanceRequestDto request) {
+	public MatchAttendanceResponseDto createAttendance (Long userId, MatchAttendanceRequestDto request, List<String> uploadedImageUrls) {
 
 		User user = userRepository.findById(userId).orElseThrow(()-> new InvalidRequestException(ExceptionCode.USER_NOT_FOUND));
 		Match match = matchRepository.findById(request.matchId()).orElseThrow(()-> new InvalidRequestException(ExceptionCode.MATCH_NOT_FOUND));
@@ -48,8 +51,8 @@ public class MatchAttendanceService {
 			request.seat()
 		);
 
-		if(request.imageUrls() != null && !request.imageUrls().isEmpty()) {
-			for (String imageUrl : request.imageUrls()) {
+		if(uploadedImageUrls !=null && !uploadedImageUrls.isEmpty()) {
+			for(String imageUrl : uploadedImageUrls) {
 				attendance.addImage(imageUrl, AttendanceImageType.NORMAL);
 			}
 		}
@@ -60,8 +63,12 @@ public class MatchAttendanceService {
 	}
 
 	@Transactional(readOnly = true)
-	public MatchAttendanceResponseDto getAttendance(Long attendanceId) {
+	public MatchAttendanceResponseDto getAttendance(Long userId, Long attendanceId) {
 		MatchAttendance attendance = matchAttendanceRepository.findById(attendanceId).orElseThrow(()-> new InvalidRequestException(ExceptionCode.MATCH_ATTENDANCE_NOT_FOUND));
+		if(!attendance.getUser().getId().equals(userId)) {
+			throw new InvalidRequestException(ExceptionCode.MATCH_ATTENDANCE_FORBIDDEN);
+		}
+
 		return MatchAttendanceResponseDto.from(attendance);
 	}
 
@@ -75,7 +82,7 @@ public class MatchAttendanceService {
 	}
 
 	@Transactional
-	public MatchAttendanceResponseDto updateAttendance(Long userId, Long attendanceId, MatchAttendanceUpdateRequestDto request) {
+	public MatchAttendanceResponseDto updateAttendance(Long userId, Long attendanceId, MatchAttendanceUpdateRequestDto request, List<String> newImageUrls) {
 		MatchAttendance attendance = matchAttendanceRepository.findById(attendanceId).orElseThrow(()->new InvalidRequestException(ExceptionCode.MATCH_ATTENDANCE_NOT_FOUND));
 
 		if(!attendance.getUser().getId().equals(userId)) {
@@ -84,10 +91,30 @@ public class MatchAttendanceService {
 
 		attendance.update(request.contents(), request.seat());
 
-		if(request.imageUrls() !=null) {
-			attendance.clearImages();
-			for(String imageUrl : request.imageUrls()) {
-				attendance.addImage(imageUrl, AttendanceImageType.NORMAL);
+		// 수정 후 없어진 이미지 삭제 로직 ========
+		// 기존 이미지 url
+		List<String> oldImageUrls = attendance.getImages().stream().map(AttendanceImage::getImageUrl).toList();
+
+		// 새로운 request에 없는 url 필터링
+		List<String> urlsToDelete = oldImageUrls.stream().filter(oldUrl-> request.oldImageUrls()==null || !request.oldImageUrls().contains(oldUrl)).toList();
+
+		// 삭제
+		if(!urlsToDelete.isEmpty()) {
+			imageStorageService.deleteImages(urlsToDelete);
+		}
+
+		// 이미지 갱신 로직 ========
+		attendance.clearImages(); // 고아 객체 삭제
+
+		if(request.oldImageUrls() != null) {
+			for(String url : request.oldImageUrls()) {
+				attendance.addImage(url, AttendanceImageType.NORMAL);
+			}
+		}
+
+		if(newImageUrls != null) {
+			for (String url : newImageUrls) {
+				attendance.addImage(url,AttendanceImageType.NORMAL);
 			}
 		}
 
