@@ -8,6 +8,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.sparta.spartatigers.domain.image.service.ImageStorageService;
 import com.sparta.spartatigers.domain.match.model.Match;
@@ -77,7 +79,7 @@ public class MatchAttendanceService {
 		Pageable pageable = PageRequest.of(
 			page-1, size, Sort.by(Sort.Direction.DESC, "createdAt")
 		);
-		Page<MatchAttendance> attendances = matchAttendanceRepository.findAllByUserId(userId, pageable);
+		Page<MatchAttendance> attendances = matchAttendanceRepository.findAllByUser_Id(userId, pageable);
 		return attendances.map(MatchAttendanceResponseDto::from);
 	}
 
@@ -100,7 +102,12 @@ public class MatchAttendanceService {
 
 		// 삭제
 		if(!urlsToDelete.isEmpty()) {
-			imageStorageService.deleteImages(urlsToDelete);
+			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+				@Override
+				public void afterCommit() {
+					imageStorageService.deleteImages(urlsToDelete);
+				}
+			});
 		}
 
 		// 이미지 갱신 로직 ========
@@ -129,6 +136,17 @@ public class MatchAttendanceService {
 			throw new InvalidRequestException(ExceptionCode.MATCH_ATTENDANCE_FORBIDDEN);
 		}
 
+		List<String> urlsToDelete = attendance.getImages().stream().map(AttendanceImage::getImageUrl).toList();
+
 		matchAttendanceRepository.delete(attendance);
+
+		if(!urlsToDelete.isEmpty()) {
+			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+				@Override
+				public void afterCommit() {
+					imageStorageService.deleteImages(urlsToDelete);
+				}
+			});
+		}
 	}
 }
