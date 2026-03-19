@@ -70,7 +70,7 @@ public class MatchAttendanceController {
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ApiResponse<MatchAttendanceResponseDto> createAttendance(
 		@Auth TokenClaim tokenClaim,
-		@RequestPart(value = "request", required = false) MatchAttendanceRequestDto request,
+		@RequestPart(value = "request", required = true) MatchAttendanceRequestDto request,
 		@RequestPart(value = "images", required = false) List<MultipartFile> images
 	) {
 		Long userId = tokenClaim.getUserId();
