@@ -83,9 +83,7 @@ cloud:
 # Firebase Settings
 # ===========================================
 firebase:
-  project-id: ${FIREBASE_PROJECT_ID:sparta-33b05}
-  # 로컬: 파일 시스템, 운영: 클래스패스 리소스
-  credentials-path: ${FIREBASE_CREDENTIALS_PATH:firebase-key.json}
+  project-id: "yaguniv-6a1b0"
 
 # ===============================
 # Weather API
@@ -94,12 +92,15 @@ weather:
   api:
     key: ${WEATHER_API_KEY}
 
-# ===============================
-# Image Storage
-# ===============================
-image:
-  storage:
-    path: ${IMAGE_STORAGE_PATH:./uploads}
+# ===========================================
+# Google Cloud Vision API Setting
+# ===========================================
+google:
+  cloud:
+    vision:
+      credentials:
+        location: ${VISION_API_KEY_PATH:classpath:vision-api-key.json}
+
 
 # ===============================
 # OAuth Settings

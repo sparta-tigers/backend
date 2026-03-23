@@ -143,6 +143,11 @@ nbdist/
 .nb-gradle/
 
 # ================================
+# Google Cloud Vision API Key
+# ================================
+src/main/resources/vision-api-key.json
+
+# ================================
 # VS Code
 # ================================
 .vscode/

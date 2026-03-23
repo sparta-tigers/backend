@@ -86,7 +86,7 @@ public class TicketAlarmService {
 
 	public Page<TicketAlarmResponseDto> getAllAlarms(Long userId, int page, int size) {
 		Pageable pageable = PageRequest.of(
-			page, size, Sort.by(Sort.Direction.ASC, "alarmTime")
+			page-1, size, Sort.by(Sort.Direction.ASC, "alarmTime")
 		);
 		return ticketAlarmRepository.findByUserId(userId, pageable)
 			.map(TicketAlarmResponseDto::from);
