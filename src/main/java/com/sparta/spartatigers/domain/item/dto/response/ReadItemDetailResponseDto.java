@@ -16,9 +16,10 @@ public record ReadItemDetailResponseDto(
     String title,
     String description,
     ItemStatus status,
-    LocalDateTime createdAt) {
+    LocalDateTime createdAt,
+    Integer distance) {
 
-    public static ReadItemDetailResponseDto from(Item item) {
+    public static ReadItemDetailResponseDto from(Item item, Integer distance) {
 
         return new ReadItemDetailResponseDto(
             item.getId(),
@@ -29,6 +30,7 @@ public record ReadItemDetailResponseDto(
             item.getTitle(),
             item.getDescription(),
             item.getStatus(),
-            item.getCreatedAt());
+            item.getCreatedAt(),
+            distance);
     }
 }
