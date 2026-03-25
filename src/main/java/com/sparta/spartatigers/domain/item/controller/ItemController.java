@@ -1,5 +1,6 @@
 package com.sparta.spartatigers.domain.item.controller;
 
+import com.sparta.spartatigers.domain.item.dto.request.FindItemByIdRequestDto;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -96,9 +97,10 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public ApiResponse<ReadItemDetailResponseDto> findItemById(@PathVariable Long itemId) {
+    public ApiResponse<ReadItemDetailResponseDto> findItemById(@PathVariable Long itemId, @Valid @RequestBody
+        FindItemByIdRequestDto request) {
 
-        ReadItemDetailResponseDto response = itemService.findItemById(itemId);
+        ReadItemDetailResponseDto response = itemService.findItemById(itemId, request);
 
         return ApiResponse.success(response);
     }
