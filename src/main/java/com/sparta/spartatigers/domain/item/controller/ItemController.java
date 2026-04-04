@@ -1,5 +1,6 @@
 package com.sparta.spartatigers.domain.item.controller;
 
+import com.sparta.spartatigers.domain.item.dto.request.FindItemByIdRequestDto;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -11,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -96,9 +98,10 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public ApiResponse<ReadItemDetailResponseDto> findItemById(@PathVariable Long itemId) {
+    public ApiResponse<ReadItemDetailResponseDto> findItemById(@PathVariable Long itemId, @Valid @ModelAttribute
+        FindItemByIdRequestDto request) {
 
-        ReadItemDetailResponseDto response = itemService.findItemById(itemId);
+        ReadItemDetailResponseDto response = itemService.findItemById(itemId, request);
 
         return ApiResponse.success(response);
     }
