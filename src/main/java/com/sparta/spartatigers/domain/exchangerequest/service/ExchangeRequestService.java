@@ -28,6 +28,8 @@ import com.sparta.spartatigers.domain.user.repository.UserRepository;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 
+import com.sparta.spartatigers.global.firebase.FCMService;
+
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -40,6 +42,7 @@ public class ExchangeRequestService {
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final FCMService fcmService;
 
     @Transactional
     public Long createExchangeRequest(ExchangeRequestDto request, TokenClaim tokenClaim) {
@@ -81,14 +84,27 @@ public class ExchangeRequestService {
 
         if (exchangeRequest.getStatus() == ExchangeStatus.ACCEPTED) {
             DirectRoomCreateResponseDto room = directRoomService.createRoom(exchangeRequestId, user.getId());
+            sendNotificationToSender(exchangeRequest, "교환 요청 수락", "교환 요청이 수락되었습니다. 채팅방에서 대화를 시작해보세요!");
             return ExchangeRoomResponseDto.from(room);
         }
 
         if (exchangeRequest.getStatus() == ExchangeStatus.REJECTED) {
+            sendNotificationToSender(exchangeRequest, "교환 요청 거절", "아쉽게도 교환 요청이 거절되었습니다.");
             exchangeRequestRepository.delete(exchangeRequest);
         }
 
         return null;
+    }
+
+    private void sendNotificationToSender(ExchangeRequest exchangeRequest, String title, String body) {
+        User sender = exchangeRequest.getSender();
+        if (sender != null && sender.getDeviceToken() != null && !sender.getDeviceToken().isBlank()) {
+            try {
+                fcmService.sendMessageToToken(sender.getDeviceToken(), title, body);
+            } catch (Exception e) {
+                // 알림 발송은 핵심 비즈니스 로직(상태 업데이트)을 중단시키지 않아야 합니다.
+            }
+        }
     }
 
     @Transactional
