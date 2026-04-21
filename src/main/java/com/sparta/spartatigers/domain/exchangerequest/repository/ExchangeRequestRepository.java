@@ -37,6 +37,9 @@ public interface ExchangeRequestRepository extends JpaRepository<ExchangeRequest
     Optional<ExchangeRequest> findByIdAndStatus(
         Long exchangeRequestId, ExchangeStatus status);
 
+    Optional<ExchangeRequest> findByItemIdAndStatus(
+        Long itemId, ExchangeStatus status);
+
     default ExchangeRequest findExchangeRequestByIdOrElseThrow(Long exchangeRequestId) {
         return findByIdAndStatus(exchangeRequestId, ExchangeStatus.PENDING)
             .orElseThrow(() -> new ServerException(ExceptionCode.EXCHANGE_REQUEST_NOT_FOUND));

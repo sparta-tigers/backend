@@ -62,6 +62,10 @@ public class ExchangeRequestService {
 
         ExchangeRequest exchangeRequest = ExchangeRequest.of(item, sender, receiver, have);
         ExchangeRequest saved = exchangeRequestRepository.save(exchangeRequest);
+
+        // 생성 즉시 DirectRoom 맵핑을 생성합니다 (초기에는 PENDING 상태이므로 프론트에서 UI 제어)
+        directRoomService.createRoom(saved.getId(), sender.getId());
+
         return saved.getId();
     }
 
@@ -85,14 +89,15 @@ public class ExchangeRequestService {
         exchangeRequest.updateStatus(request.status());
 
         if (exchangeRequest.getStatus() == ExchangeStatus.ACCEPTED) {
-            DirectRoomCreateResponseDto room = directRoomService.createRoom(exchangeRequestId, user.getId());
+            DirectRoom room = directRoomRepository.findByExchangeRequestId(exchangeRequestId)
+                    .orElseThrow(() -> new InvalidRequestException(ExceptionCode.DIRECT_ROOM_NOT_FOUND));
             sendNotificationToSender(exchangeRequest, "교환 요청 수락", "교환 요청이 수락되었습니다. 채팅방에서 대화를 시작해보세요!");
-            return ExchangeRoomResponseDto.from(room);
+            return ExchangeRoomResponseDto.from(DirectRoomCreateResponseDto.from(room));
         }
 
         if (exchangeRequest.getStatus() == ExchangeStatus.REJECTED) {
             sendNotificationToSender(exchangeRequest, "교환 요청 거절", "아쉽게도 교환 요청이 거절되었습니다.");
-            exchangeRequestRepository.delete(exchangeRequest);
+            // 거절 내역(History) 유지를 위해 삭제하지 않음. DirectRoom 또한 보존하지만 프론트엔드에서 disabled 처리됨.
         }
 
         return null;
@@ -157,14 +162,13 @@ public class ExchangeRequestService {
     }
 
     private Page<ReceiveRequestResponseDto> mapToResponseWithRoomId(Page<ExchangeRequest> requests) {
-        List<Long> acceptedOrCompletedIds = requests.stream()
-            .filter(r -> r.getStatus() == ExchangeStatus.ACCEPTED || r.getStatus() == ExchangeStatus.COMPLETED)
+        List<Long> requestIds = requests.stream()
             .map(ExchangeRequest::getId)
             .collect(Collectors.toList());
 
         Map<Long, Long> roomIdMap = java.util.Collections.emptyMap();
-        if (!acceptedOrCompletedIds.isEmpty()) {
-            List<DirectRoom> rooms = directRoomRepository.findByExchangeRequestIdIn(acceptedOrCompletedIds);
+        if (!requestIds.isEmpty()) {
+            List<DirectRoom> rooms = directRoomRepository.findByExchangeRequestIdIn(requestIds);
             roomIdMap = rooms.stream()
                 .collect(Collectors.toMap(
                     room -> room.getExchangeRequest().getId(),

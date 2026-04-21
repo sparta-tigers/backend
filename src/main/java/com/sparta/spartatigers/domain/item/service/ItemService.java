@@ -26,6 +26,8 @@ import com.sparta.spartatigers.domain.item.dto.request.ItemCreateRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sparta.spartatigers.domain.exchangerequest.repository.ExchangeRequestRepository;
+import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeStatus;
 
 import java.time.LocalDate;
 import java.util.Collections;
@@ -43,6 +45,7 @@ public class ItemService {
     private final ApplicationEventPublisher applicationEventPublisher;
     private final LocationService locationService;
     private final ObjectMapper objectMapper;
+    private final ExchangeRequestRepository exchangeRequestRepository;
 
     @Transactional
     public ItemResponseDto createItemWithImages(ItemCreateRequest request, TokenClaim tokenClaim, List<String> imageUrls) {
@@ -94,6 +97,9 @@ public class ItemService {
         switch (request.action()) {
             case COMPLETE -> {
                 item.complete();
+                exchangeRequestRepository.findByItemIdAndStatus(item.getId(), ExchangeStatus.ACCEPTED)
+                    .ifPresent(req -> req.updateStatus(ExchangeStatus.COMPLETED));
+
                 ItemLocationUpdatedEvent completeEvent = new ItemLocationUpdatedEvent(item.getUser().getId(), "REMOVE_ITEM",
                         Map.of("itemId", item.getId(), "userId", item.getUser().getId()));
                 applicationEventPublisher.publishEvent(completeEvent);
@@ -101,6 +107,9 @@ public class ItemService {
 
             case CANCEL -> {
                 item.reopen();
+                exchangeRequestRepository.findByItemIdAndStatus(item.getId(), ExchangeStatus.ACCEPTED)
+                    .ifPresent(req -> req.updateStatus(ExchangeStatus.REJECTED));
+
                 ReadItemResponseDto newItemDto = ReadItemResponseDto.from(item, this);
                 ItemLocationUpdatedEvent cancelEvent = new ItemLocationUpdatedEvent(item.getUser().getId(), "ADD_ITEM", newItemDto);
                 applicationEventPublisher.publishEvent(cancelEvent);
