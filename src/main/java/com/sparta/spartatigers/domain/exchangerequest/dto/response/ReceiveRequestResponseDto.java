@@ -24,9 +24,10 @@ public record ReceiveRequestResponseDto(
     String title,
     ItemStatus status,
     ExchangeStatus exchangeStatus,
-    LocalDateTime createdAt) {
+    LocalDateTime createdAt,
+    Long directRoomId) {
 
-    public static ReceiveRequestResponseDto from(ExchangeRequest exchangeRequest) {
+    public static ReceiveRequestResponseDto from(ExchangeRequest exchangeRequest, Long directRoomId) {
 
         return new ReceiveRequestResponseDto(
             exchangeRequest.getId(),
@@ -36,6 +37,7 @@ public record ReceiveRequestResponseDto(
             exchangeRequest.getItem().getTitle(),
             exchangeRequest.getItem().getStatus(),
             exchangeRequest.getStatus(),
-            exchangeRequest.getCreatedAt());
+            exchangeRequest.getCreatedAt(),
+            directRoomId);
     }
 }

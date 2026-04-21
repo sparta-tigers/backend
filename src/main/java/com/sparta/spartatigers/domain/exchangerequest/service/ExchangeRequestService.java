@@ -1,6 +1,8 @@
 package com.sparta.spartatigers.domain.exchangerequest.service;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -69,7 +71,7 @@ public class ExchangeRequestService {
         Page<ExchangeRequest> exchangeRequestList = exchangeRequestRepository.findAllReceiveRequest(
             user.getId(), pageable);
 
-        return exchangeRequestList.map(ReceiveRequestResponseDto::from);
+        return mapToResponseWithRoomId(exchangeRequestList);
     }
 
     @Transactional
@@ -151,7 +153,28 @@ public class ExchangeRequestService {
             throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
         }
 
-        return requests.map(ReceiveRequestResponseDto::from);
+        return mapToResponseWithRoomId(requests);
+    }
+
+    private Page<ReceiveRequestResponseDto> mapToResponseWithRoomId(Page<ExchangeRequest> requests) {
+        List<Long> acceptedOrCompletedIds = requests.stream()
+            .filter(r -> r.getStatus() == ExchangeStatus.ACCEPTED || r.getStatus() == ExchangeStatus.COMPLETED)
+            .map(ExchangeRequest::getId)
+            .collect(Collectors.toList());
+
+        Map<Long, Long> roomIdMap = java.util.Collections.emptyMap();
+        if (!acceptedOrCompletedIds.isEmpty()) {
+            List<DirectRoom> rooms = directRoomRepository.findByExchangeRequestIdIn(acceptedOrCompletedIds);
+            roomIdMap = rooms.stream()
+                .collect(Collectors.toMap(
+                    room -> room.getExchangeRequest().getId(),
+                    DirectRoom::getId,
+                    (existing, replacement) -> existing
+                ));
+        }
+
+        Map<Long, Long> finalRoomIdMap = roomIdMap;
+        return requests.map(req -> ReceiveRequestResponseDto.from(req, finalRoomIdMap.getOrDefault(req.getId(), null)));
     }
 
     private User getUser(Long userId) {

@@ -156,3 +156,9 @@ nbdist/
 # Agents docs
 # ================================
 **/**agent**.md
+
+# ================================
+# Repomix
+# ================================
+repomix.config.json
+**/**backend-context**.txt

@@ -1,5 +1,6 @@
 package com.sparta.spartatigers.domain.directRoom.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -31,6 +32,8 @@ public interface DirectRoomRepository extends JpaRepository<DirectRoom, Long> {
     Page<DirectRoom> findBySenderIdOrReceiverIdWithUsersAndItem(Long userId, Pageable pageable);
 
     Optional<DirectRoom> findByExchangeRequestId(Long exchangeRequestId);
+
+    List<DirectRoom> findByExchangeRequestIdIn(List<Long> exchangeRequestIds);
 
     boolean existsBySenderIdAndReceiverId(Long senderId, Long receiverId);
 
