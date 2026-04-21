@@ -19,8 +19,10 @@ public class DirectRoomItemResponseDto {
     private Long ownerId;
     private String ownerNickname;
     private String exchangeStatus;
+    private Long opponentId;
+    private String opponentNickname;
 
-    public static DirectRoomItemResponseDto from(Item item, String exchangeStatus) {
+    public static DirectRoomItemResponseDto from(Item item, String exchangeStatus, Long opponentId, String opponentNickname) {
         return new DirectRoomItemResponseDto(
             item.getId(),
             item.getTitle(),
@@ -29,6 +31,8 @@ public class DirectRoomItemResponseDto {
             item.getStatus().name(),
             item.getUser().getId(),
             item.getUser().getNickname(),
-            exchangeStatus);
+            exchangeStatus,
+            opponentId,
+            opponentNickname);
     }
 }

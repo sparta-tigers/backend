@@ -1,5 +1,6 @@
 package com.sparta.spartatigers.domain.exchangerequest.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -37,7 +38,7 @@ public interface ExchangeRequestRepository extends JpaRepository<ExchangeRequest
     Optional<ExchangeRequest> findByIdAndStatus(
         Long exchangeRequestId, ExchangeStatus status);
 
-    Optional<ExchangeRequest> findByItemIdAndStatus(
+    List<ExchangeRequest> findByItemIdAndStatus(
         Long itemId, ExchangeStatus status);
 
     default ExchangeRequest findExchangeRequestByIdOrElseThrow(Long exchangeRequestId) {

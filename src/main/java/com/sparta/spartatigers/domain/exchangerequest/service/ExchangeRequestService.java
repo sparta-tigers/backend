@@ -89,6 +89,10 @@ public class ExchangeRequestService {
         exchangeRequest.updateStatus(request.status());
 
         if (exchangeRequest.getStatus() == ExchangeStatus.ACCEPTED) {
+            rejectOtherPendingRequests(exchangeRequest.getItem(), exchangeRequest.getId());
+        }
+
+        if (exchangeRequest.getStatus() == ExchangeStatus.ACCEPTED) {
             DirectRoom room = directRoomRepository.findByExchangeRequestId(exchangeRequestId)
                     .orElseThrow(() -> new InvalidRequestException(ExceptionCode.DIRECT_ROOM_NOT_FOUND));
             sendNotificationToSender(exchangeRequest, "교환 요청 수락", "교환 요청이 수락되었습니다. 채팅방에서 대화를 시작해보세요!");
@@ -101,6 +105,15 @@ public class ExchangeRequestService {
         }
 
         return null;
+    }
+
+    private void rejectOtherPendingRequests(Item item, Long acceptedRequestId) {
+        java.util.List<ExchangeRequest> pendingRequests = exchangeRequestRepository.findByItemIdAndStatus(item.getId(), ExchangeStatus.PENDING);
+        for (ExchangeRequest req : pendingRequests) {
+            if (!req.getId().equals(acceptedRequestId)) {
+                req.updateStatus(ExchangeStatus.REJECTED);
+            }
+        }
     }
 
     private void sendNotificationToSender(ExchangeRequest exchangeRequest, String title, String body) {

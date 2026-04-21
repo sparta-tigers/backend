@@ -98,7 +98,7 @@ public class ItemService {
             case COMPLETE -> {
                 item.complete();
                 exchangeRequestRepository.findByItemIdAndStatus(item.getId(), ExchangeStatus.ACCEPTED)
-                    .ifPresent(req -> req.updateStatus(ExchangeStatus.COMPLETED));
+                    .forEach(req -> req.updateStatus(ExchangeStatus.COMPLETED));
 
                 ItemLocationUpdatedEvent completeEvent = new ItemLocationUpdatedEvent(item.getUser().getId(), "REMOVE_ITEM",
                         Map.of("itemId", item.getId(), "userId", item.getUser().getId()));
@@ -108,7 +108,7 @@ public class ItemService {
             case CANCEL -> {
                 item.reopen();
                 exchangeRequestRepository.findByItemIdAndStatus(item.getId(), ExchangeStatus.ACCEPTED)
-                    .ifPresent(req -> req.updateStatus(ExchangeStatus.REJECTED));
+                    .forEach(req -> req.updateStatus(ExchangeStatus.REJECTED));
 
                 ReadItemResponseDto newItemDto = ReadItemResponseDto.from(item, this);
                 ItemLocationUpdatedEvent cancelEvent = new ItemLocationUpdatedEvent(item.getUser().getId(), "ADD_ITEM", newItemDto);

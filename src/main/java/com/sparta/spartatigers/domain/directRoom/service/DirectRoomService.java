@@ -109,7 +109,17 @@ public class DirectRoomService {
         ExchangeRequest exchangeRequest = room.getExchangeRequest();
         Item item = exchangeRequest.getItem();
 
-        return DirectRoomItemResponseDto.from(item, exchangeRequest.getStatus().name());
+        Long opponentId;
+        String opponentNickname;
+        if (currentUserId.equals(exchangeRequest.getSender().getId())) {
+            opponentId = item.getUser().getId();
+            opponentNickname = item.getUser().getNickname();
+        } else {
+            opponentId = exchangeRequest.getSender().getId();
+            opponentNickname = exchangeRequest.getSender().getNickname();
+        }
+
+        return DirectRoomItemResponseDto.from(item, exchangeRequest.getStatus().name(), opponentId, opponentNickname);
     }
 
     // 유저가 직접 채팅방을 삭제할 수도 있음
