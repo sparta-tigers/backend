@@ -16,7 +16,9 @@ import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class StompInterceptor implements ChannelInterceptor {
@@ -35,6 +37,9 @@ public class StompInterceptor implements ChannelInterceptor {
 		StompCommand command = accessor.getCommand();
 
 		if (StompCommand.CONNECT.equals(command)) {
+			// [DEBUG] CONNECT 시도 감지 로그
+			log.info("[StompInterceptor] CONNECT 시도 감지 - sessionId: {}", accessor.getSessionId());
+
 			String domainRaw = accessor.getFirstNativeHeader(CHAT_DOMAIN_TYPE);
 			ChatDomainType domain = resolveDomain(domainRaw);
 
@@ -57,7 +62,13 @@ public class StompInterceptor implements ChannelInterceptor {
 					if(domain.equals(ChatDomainType.EXCHANGE)){
 						userSessionRegistry.registerSession(user.getId(), accessor.getSessionId());
 					}
+				} else {
+					// [FAIL-FAST] 토큰 검증 실패 로그
+					log.warn("[StompInterceptor] 토큰 검증 실패 - sessionId: {}, token이 null이거나 파싱 실패", accessor.getSessionId());
 				}
+			} else {
+				// [FAIL-FAST] 토큰 없음 로그
+				log.warn("[StompInterceptor] 토큰 없음 또는 형식 오류 - sessionId: {}, Authorization 헤더: {}", accessor.getSessionId(), token);
 			}
 		}
 		return message;
