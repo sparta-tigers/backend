@@ -179,19 +179,25 @@ public class ExchangeRequestService {
             .map(ExchangeRequest::getId)
             .collect(Collectors.toList());
 
-        Map<Long, Long> roomIdMap = java.util.Collections.emptyMap();
+        Map<Long, Long> roomIdMap = new java.util.HashMap<>();
         if (!requestIds.isEmpty()) {
             List<DirectRoom> rooms = directRoomRepository.findByExchangeRequestIdIn(requestIds);
-            roomIdMap = rooms.stream()
-                .collect(Collectors.toMap(
-                    room -> room.getExchangeRequest().getId(),
-                    DirectRoom::getId,
-                    (existing, replacement) -> existing
-                ));
+            log.info("[mapToResponseWithRoomId] 조회된 요청 ID 개수: {}, 조회된 채팅방 개수: {}", requestIds.size(), rooms.size());
+            
+            for (DirectRoom room : rooms) {
+                if (room.getExchangeRequest() != null) {
+                    roomIdMap.put(room.getExchangeRequest().getId(), room.getId());
+                }
+            }
         }
 
-        Map<Long, Long> finalRoomIdMap = roomIdMap;
-        return requests.map(req -> ReceiveRequestResponseDto.from(req, finalRoomIdMap.getOrDefault(req.getId(), null)));
+        return requests.map(req -> {
+            Long roomId = roomIdMap.get(req.getId());
+            if (roomId == null) {
+                log.warn("[mapToResponseWithRoomId] 요청 ID {}에 매핑된 채팅방을 찾을 수 없습니다.", req.getId());
+            }
+            return ReceiveRequestResponseDto.from(req, roomId);
+        });
     }
 
     private User getUser(Long userId) {

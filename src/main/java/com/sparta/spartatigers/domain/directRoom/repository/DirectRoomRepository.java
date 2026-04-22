@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.sparta.spartatigers.domain.directRoom.model.DirectRoom;
 import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeRequest;
@@ -33,7 +34,8 @@ public interface DirectRoomRepository extends JpaRepository<DirectRoom, Long> {
 
     Optional<DirectRoom> findByExchangeRequestId(Long exchangeRequestId);
 
-    List<DirectRoom> findByExchangeRequestIdIn(List<Long> exchangeRequestIds);
+    @Query("SELECT dr FROM direct_rooms dr WHERE dr.exchangeRequest.id IN :exchangeRequestIds")
+    List<DirectRoom> findByExchangeRequestIdIn(@Param("exchangeRequestIds") List<Long> exchangeRequestIds);
 
     boolean existsBySenderIdAndReceiverId(Long senderId, Long receiverId);
 
