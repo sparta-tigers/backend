@@ -77,9 +77,6 @@ public enum ExceptionCode {
     ITEM_FORBIDDEN(HttpStatus.FORBIDDEN, ErrorCode.E403, "아이템의 소유자가 아닙니다.", LogLevel.DEBUG),
     ITEM_ALREADY_EXISTS(HttpStatus.CONFLICT, ErrorCode.E409, "이미 등록된 활성 아이템이 있습니다.", LogLevel.DEBUG),
 
-    // 직관 기록
-    WATCH_LIST_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "직관 기록이 존재하지 않습니다.", LogLevel.DEBUG),
-
     // 팀
     TEAM_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "팀이 존재하지 않습니다.", LogLevel.DEBUG),
 
@@ -99,7 +96,13 @@ public enum ExceptionCode {
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.E500, "예상하지 못한 예외가 발생 했습니다.", LogLevel.ERROR),
 
     // 순위
-    POSTSEASON_RANKING_UNAVAILABLE(HttpStatus.BAD_REQUEST, ErrorCode.E400, "포스트시즌은 순위 조회가 불가능합니다.", LogLevel.DEBUG);
+    POSTSEASON_RANKING_UNAVAILABLE(HttpStatus.BAD_REQUEST, ErrorCode.E400, "포스트시즌은 순위 조회가 불가능합니다.", LogLevel.DEBUG),
+
+    // 직관기록
+    MATCH_ATTENDANCE_NOT_FOUND(HttpStatus.BAD_REQUEST, ErrorCode.E400, "존재하지 않는 직관기록입니다.", LogLevel.DEBUG),
+    MATCH_ATTENDANCE_FORBIDDEN(HttpStatus.BAD_REQUEST, ErrorCode.E403, "권한이 없습니다.", LogLevel.DEBUG),
+    TICKET_OCR_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.E500, "좌석 정보 추출 OCR을 사용할 수 없습니다.", LogLevel.ERROR),
+    INVALID_TICKET_IMAGE(HttpStatus.BAD_REQUEST, ErrorCode.E400, "유효하지 않은 티켓 이미지입니다.", LogLevel.DEBUG);
 
 
 

@@ -1,6 +1,7 @@
 package com.sparta.spartatigers.domain.exchangerequest.service;
 
 import java.util.List;
+import com.sparta.spartatigers.domain.exchangerequest.dto.response.SendRequestResponseDto;
 import java.util.Map;
 import java.util.stream.Collectors;
 

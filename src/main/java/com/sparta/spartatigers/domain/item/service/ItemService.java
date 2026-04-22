@@ -1,5 +1,6 @@
 package com.sparta.spartatigers.domain.item.service;
 
+import com.sparta.spartatigers.domain.item.dto.request.FindItemByIdRequestDto;
 import com.sparta.spartatigers.domain.item.dto.request.UpdateItemStatusRequestDto;
 import com.sparta.spartatigers.domain.item.dto.request.UpdateItemRequestDto;
 import com.sparta.spartatigers.domain.item.dto.response.ItemResponseDto;
@@ -163,11 +164,13 @@ public class ItemService {
     }
 
     @Transactional(readOnly = true)
-    public ReadItemDetailResponseDto findItemById(Long itemId) {
+    public ReadItemDetailResponseDto findItemById(Long itemId, FindItemByIdRequestDto request) {
 
         Item item = itemRepository.findByIdAndStatusAndDateOrElseThrow(itemId);
+        Integer distance = locationService.calculateDistance(request.latitude(),
+            request.longitude(), item);
 
-        return ReadItemDetailResponseDto.from(item);
+        return ReadItemDetailResponseDto.from(item, distance);
     }
 
     @Transactional

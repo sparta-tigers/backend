@@ -1,4 +1,5 @@
 package com.sparta.spartatigers.domain.stompchat.service;
+import com.sparta.spartatigers.domain.item.model.Item;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +36,7 @@ public class LocationService {
     private static final String STADIUM_LOCATION_KEY = "STADIUMS:";
     private static final double SEARCH_RADIUS_KM = 0.05;
     private static final double NEAR_STADIUM_KM = 1.0;
+    private static final int EARTH_RADIUS = 6371000;
     private final RedisTemplate<String, Object> redisTemplate;
     private final RedisLocationPublisher locationPublisher;
     private final SimpMessagingTemplate messagingTemplate;
@@ -143,5 +145,31 @@ public class LocationService {
             log.error("[isNearStadium] 야구장 인근 확인 중 예외 발생", e);
             return false;
         }
+    }
+
+    public Integer calculateDistance(Double latitude, Double longitude, Item item) {
+        if (latitude == null || longitude == null ||
+            item.getLatitude() == null || item.getLongitude() == null) {
+            return null;
+        }
+
+        return calculateDistanceMeter(latitude, longitude, item.getLatitude(), item.getLongitude());
+    }
+
+    private int calculateDistanceMeter(double userLat, double userLon, double itemLat,
+        double itemLon) {
+
+        double userRad = Math.toRadians(userLat);
+        double itemRad = Math.toRadians(itemLat);
+        double deltaLat = Math.toRadians(itemLat - userLat);
+        double deltaLon = Math.toRadians(itemLon - userLon);
+
+        double a =
+            Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) + Math.cos(userRad) * Math.cos(itemRad)
+                * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return (int) Math.round(EARTH_RADIUS * c);
     }
 }
