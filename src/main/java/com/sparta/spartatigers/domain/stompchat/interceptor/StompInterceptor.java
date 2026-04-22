@@ -64,10 +64,13 @@ public class StompInterceptor implements ChannelInterceptor {
 	}
 
 	private ChatDomainType resolveDomain(String domainRaw) {
+		if (domainRaw == null || domainRaw.isBlank()) {
+			throw new IllegalArgumentException("ChatDomain 헤더가 필수입니다. 클라이언트 STOMP connectHeaders에 ChatDomain을 명시하세요.");
+		}
 		if ("liveboard".equalsIgnoreCase(domainRaw)) return ChatDomainType.LIVEBOARD;
 		if ("directroom".equalsIgnoreCase(domainRaw)) return ChatDomainType.EXCHANGE;
 		if ("location".equalsIgnoreCase(domainRaw)) return ChatDomainType.LOCATION;
-		throw new RuntimeException("ChatDomain 헤더가 올바르지 않습니다.");
+		throw new IllegalArgumentException("지원하지 않는 ChatDomain: '" + domainRaw + "'. 허용값: liveboard, directroom, location");
 	}
 
 }
