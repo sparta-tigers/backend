@@ -27,10 +27,14 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     @EntityGraph(attributePaths = "user")
     @Query(value = "SELECT i FROM items i WHERE i.status = :itemStatus AND i.createdDate = :createdDate AND " +
+           // [FIX] latitude/longitude가 null인 아이템은 Haversine 식에서 자동 제외되지만,
+           // NULL 좌표 처리 의도를 명시적으로 드러내어 유지보수성을 향상시킵니다.
+           "i.latitude IS NOT NULL AND i.longitude IS NOT NULL AND " +
            "(6371 * acos(cos(radians(:latitude)) * cos(radians(i.latitude)) * " +
            "cos(radians(i.longitude) - radians(:longitude)) + sin(radians(:latitude)) * " +
-           "sin(radians(i.latitude))) <= :radius)", 
+           "sin(radians(i.latitude))) <= :radius)",
            countQuery = "SELECT count(i) FROM items i WHERE i.status = :itemStatus AND i.createdDate = :createdDate AND " +
+                       "i.latitude IS NOT NULL AND i.longitude IS NOT NULL AND " +
                        "(6371 * acos(cos(radians(:latitude)) * cos(radians(i.latitude)) * " +
                        "cos(radians(i.longitude) - radians(:longitude)) + sin(radians(:latitude)) * " +
                        "sin(radians(i.latitude))) <= :radius)")

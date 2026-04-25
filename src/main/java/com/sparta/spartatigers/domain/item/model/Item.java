@@ -74,7 +74,7 @@ public class Item extends BaseEntity {
 
     @Column private String address;
 
-    @Column private String desiredItem;
+    @Column(columnDefinition = "TEXT") private String desiredItem;
 
     @Version private Long version;
 
