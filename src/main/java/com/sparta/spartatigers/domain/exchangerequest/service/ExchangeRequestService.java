@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.sparta.spartatigers.domain.exchangerequest.dto.response.SendRequestResponseDto;
+import com.sparta.spartatigers.global.exception.external.FirebaseException;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -134,10 +135,11 @@ public class ExchangeRequestService {
         if (sender != null && sender.getDeviceToken() != null && !sender.getDeviceToken().isBlank()) {
             try {
                 fcmService.sendMessageToToken(sender.getDeviceToken(), title, body);
-            } catch (Exception e) {
-                // [FIX] 문제 3: 예외를 무시하되 로그는 반드시 남겨 모니터링 사각지대 제거
-                // FCM 실패 원인: 토큰 만료, 디바이스 미등록, Firebase 장애 등
-                // 핵심 비즈니스 로직(상태 업데이트)을 중단시키지 않기 위해 catch하지만 추적은 필수
+            // [FIX] 문제 1: catch(Exception) → catch(FirebaseException)으로 축소
+            // FCMService.sendMessageToToken()은 FirebaseMessagingException을 내부에서
+            // FirebaseException으로 변환하여 throw — 정확한 타입으로 좁혀 NPE 등 런타임 버그가 묻히는 것 방지
+            // InvalidRequestException 등 애플리케이션 예외는 catch하지 않고 그대로 전파
+            } catch (FirebaseException e) {
                 log.warn("[FCM] 알림 발송 실패 - userId: {}, deviceToken: {}, title: {}, error: [{}] {}",
                     sender.getId(),
                     sender.getDeviceToken().substring(0, Math.min(10, sender.getDeviceToken().length())) + "...",

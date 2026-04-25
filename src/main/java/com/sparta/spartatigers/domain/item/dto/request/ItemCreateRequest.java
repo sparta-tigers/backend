@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 // [FIX] ignoreUnknown = false: 클라이언트 오타 필드(예: desiredItems)를 조용히 무시하지 않고
-// JsonProcessingException을 발생시켜 컨트롤러에서 VALIDATION_ERROR로 처리하도록 강제
+// HttpMessageNotReadableException을 발생시켜 GlobalExceptionHandler에서 INVALID_TYPE_EXCEPTION(400)으로 처리하도록 강제
 @JsonIgnoreProperties(ignoreUnknown = false)
 public record ItemCreateRequest(
     @NotNull(message = "카테고리는 필수입니다.") ItemCategory category,

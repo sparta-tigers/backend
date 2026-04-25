@@ -227,8 +227,8 @@ public class ItemService {
         try {
             return objectMapper.writeValueAsString(imageUrls);
         } catch (JsonProcessingException e) {
-            log.error("이미지 URL 직렬화 실패: {}", e.getMessage());
-            return "[]";
+            log.error("이미지 URL 직렬화 실패: {}", e.getMessage(), e);
+            throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
         }
     }
 
