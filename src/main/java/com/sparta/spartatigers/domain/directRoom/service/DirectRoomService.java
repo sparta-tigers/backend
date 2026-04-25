@@ -109,11 +109,14 @@ public class DirectRoomService {
         ExchangeRequest exchangeRequest = room.getExchangeRequest();
         Item item = exchangeRequest.getItem();
 
+        // [FIX] 상대방 정보를 exchangeRequest의 sender/receiver만으로 대칭 처리
+        // 기존: sender면 item.getUser()에서 가져왔으나, 아이템 소유자 분리 시 잘못된 상대방 반환 가능
+        // 개선: exchangeRequest.getReceiver() == 아이템 소유자임이 항상 보장됨
         Long opponentId;
         String opponentNickname;
         if (currentUserId.equals(exchangeRequest.getSender().getId())) {
-            opponentId = item.getUser().getId();
-            opponentNickname = item.getUser().getNickname();
+            opponentId = exchangeRequest.getReceiver().getId();
+            opponentNickname = exchangeRequest.getReceiver().getNickname();
         } else {
             opponentId = exchangeRequest.getSender().getId();
             opponentNickname = exchangeRequest.getSender().getNickname();

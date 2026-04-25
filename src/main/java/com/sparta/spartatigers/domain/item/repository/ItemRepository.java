@@ -30,20 +30,24 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
            // [FIX] latitude/longitude가 null인 아이템은 Haversine 식에서 자동 제외되지만,
            // NULL 좌표 처리 의도를 명시적으로 드러내어 유지보수성을 향상시킵니다.
            "i.latitude IS NOT NULL AND i.longitude IS NOT NULL AND " +
+           // [FIX] 본인 아이템 제외 — findAllItems 경로(nearByUserIds.add(userId))와 동작 일치
+           "i.user.id != :userId AND " +
            "(6371 * acos(cos(radians(:latitude)) * cos(radians(i.latitude)) * " +
            "cos(radians(i.longitude) - radians(:longitude)) + sin(radians(:latitude)) * " +
            "sin(radians(i.latitude))) <= :radius)",
            countQuery = "SELECT count(i) FROM items i WHERE i.status = :itemStatus AND i.createdDate = :createdDate AND " +
                        "i.latitude IS NOT NULL AND i.longitude IS NOT NULL AND " +
+                       "i.user.id != :userId AND " +
                        "(6371 * acos(cos(radians(:latitude)) * cos(radians(i.latitude)) * " +
                        "cos(radians(i.longitude) - radians(:longitude)) + sin(radians(:latitude)) * " +
                        "sin(radians(i.latitude))) <= :radius)")
     Page<Item> findAllItemsByLocation(
-            @Param("itemStatus") ItemStatus itemStatus, 
-            @Param("createdDate") LocalDate createdDate, 
-            @Param("latitude") Double latitude, 
-            @Param("longitude") Double longitude, 
-            @Param("radius") Double radius, 
+            @Param("itemStatus") ItemStatus itemStatus,
+            @Param("createdDate") LocalDate createdDate,
+            @Param("userId") Long userId,
+            @Param("latitude") Double latitude,
+            @Param("longitude") Double longitude,
+            @Param("radius") Double radius,
             Pageable pageable);
 
     @EntityGraph(attributePaths = "user")

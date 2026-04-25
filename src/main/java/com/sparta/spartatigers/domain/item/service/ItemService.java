@@ -98,8 +98,13 @@ public class ItemService {
         switch (request.action()) {
             case COMPLETE -> {
                 item.complete();
+                // ACCEPTED 요청 → COMPLETED로 변경
                 exchangeRequestRepository.findByItemIdAndStatus(item.getId(), ExchangeStatus.ACCEPTED)
                     .forEach(req -> req.updateStatus(ExchangeStatus.COMPLETED));
+                // [FIX] PENDING 요청도 REJECTED 처리 (아이템 완료 시 더 이상 유효하지 않은 요청 정리)
+                // ExchangeRequestService.rejectOtherPendingRequests와 일관성 유지
+                exchangeRequestRepository.findByItemIdAndStatus(item.getId(), ExchangeStatus.PENDING)
+                    .forEach(req -> req.updateStatus(ExchangeStatus.REJECTED));
 
                 ItemLocationUpdatedEvent completeEvent = new ItemLocationUpdatedEvent(item.getUser().getId(), "REMOVE_ITEM",
                         Map.of("itemId", item.getId(), "userId", item.getUser().getId()));
@@ -108,7 +113,11 @@ public class ItemService {
 
             case CANCEL -> {
                 item.reopen();
+                // ACCEPTED 요청 → REJECTED로 변경 (교환 취소)
                 exchangeRequestRepository.findByItemIdAndStatus(item.getId(), ExchangeStatus.ACCEPTED)
+                    .forEach(req -> req.updateStatus(ExchangeStatus.REJECTED));
+                // [FIX] PENDING 요청도 REJECTED 처리 (아이템 재오픈 시 기존 PENDING 요청은 무효화)
+                exchangeRequestRepository.findByItemIdAndStatus(item.getId(), ExchangeStatus.PENDING)
                     .forEach(req -> req.updateStatus(ExchangeStatus.REJECTED));
 
                 ReadItemResponseDto newItemDto = ReadItemResponseDto.from(item, this);
@@ -136,11 +145,12 @@ public class ItemService {
         if (latitude != null && longitude != null) {
             double searchRadius = radius != null ? radius : 2.0; // 기본 반경 2km
             return itemRepository.findAllItemsByLocation(
-                ItemStatus.REGISTERED, 
-                LocalDate.now(), 
-                latitude, 
-                longitude, 
-                searchRadius, 
+                ItemStatus.REGISTERED,
+                LocalDate.now(),
+                userId,
+                latitude,
+                longitude,
+                searchRadius,
                 pageable
             ).map(item -> ReadItemResponseDto.from(item, this));
         } else {

@@ -98,11 +98,10 @@ public class ExchangeRequestService {
         exchangeRequest.validateReceiverIsOwner(user);
         exchangeRequest.updateStatus(request.status());
 
+        // [FIX] 중복 ACCEPTED 분기 통합
         if (exchangeRequest.getStatus() == ExchangeStatus.ACCEPTED) {
+            // 다른 PENDING 요청 자동 거절 (내부에서 거절 알림도 함께 발송)
             rejectOtherPendingRequests(exchangeRequest.getItem(), exchangeRequest.getId());
-        }
-
-        if (exchangeRequest.getStatus() == ExchangeStatus.ACCEPTED) {
             DirectRoom room = directRoomRepository.findByExchangeRequestId(exchangeRequestId)
                     .orElseThrow(() -> new InvalidRequestException(ExceptionCode.DIRECT_ROOM_NOT_FOUND));
             sendNotificationToSender(exchangeRequest, "교환 요청 수락", "교환 요청이 수락되었습니다. 채팅방에서 대화를 시작해보세요!");
@@ -118,10 +117,12 @@ public class ExchangeRequestService {
     }
 
     private void rejectOtherPendingRequests(Item item, Long acceptedRequestId) {
-        java.util.List<ExchangeRequest> pendingRequests = exchangeRequestRepository.findByItemIdAndStatus(item.getId(), ExchangeStatus.PENDING);
+        List<ExchangeRequest> pendingRequests = exchangeRequestRepository.findByItemIdAndStatus(item.getId(), ExchangeStatus.PENDING);
         for (ExchangeRequest req : pendingRequests) {
             if (!req.getId().equals(acceptedRequestId)) {
                 req.updateStatus(ExchangeStatus.REJECTED);
+                // [FIX] 자동 거절된 요청자에게도 알림 발송 (수동 거절과 사용자 경험 통일)
+                sendNotificationToSender(req, "교환 요청 거절", "아쉽게도 교환 요청이 거절되었습니다.");
             }
         }
     }
