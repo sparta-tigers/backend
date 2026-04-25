@@ -2,6 +2,8 @@ package com.sparta.spartatigers.domain.item.controller;
 
 import com.sparta.spartatigers.domain.item.dto.request.FindItemByIdRequestDto;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -68,11 +70,11 @@ public class ItemController {
             ItemCreateRequest request = objectMapper.readValue(itemRequestJson, ItemCreateRequest.class);
 
             // [FIX] 수동 파싱 경로에서 우회되던 Bean Validation을 Validator로 명시적 실행
-            java.util.Set<ConstraintViolation<ItemCreateRequest>> violations = validator.validate(request);
+            Set<ConstraintViolation<ItemCreateRequest>> violations = validator.validate(request);
             if (!violations.isEmpty()) {
                 String errorMessages = violations.stream()
                     .map(v -> v.getPropertyPath() + ": " + v.getMessage())
-                    .collect(java.util.stream.Collectors.joining(", "));
+                    .collect(Collectors.joining(", "));
                 log.warn("[createItem] 입력 검증 실패: {}", errorMessages);
                 throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
             }
