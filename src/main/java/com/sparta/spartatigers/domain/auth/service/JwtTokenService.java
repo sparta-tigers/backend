@@ -13,9 +13,12 @@ import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.domain.auth.repository.RefreshTokenRepository;
 import com.sparta.spartatigers.domain.user.model.UserRole;
 import com.sparta.spartatigers.global.config.JwtConfig;
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
@@ -102,11 +105,13 @@ public class JwtTokenService implements TokenService {
                 .profileImageUrl(profileImageUrl)
                 .role(UserRole.from(userRole))
                 .build();
-        } catch (Exception e) {
-            log.error("JWT 토큰 파싱 실패: {}", e.getMessage());
-            throw new com.sparta.spartatigers.global.exception.internal.InvalidRequestException(
-                com.sparta.spartatigers.global.exception.enums.ExceptionCode.UNAUTHORIZED
-            );
+        // [FIX] 문제 1-1: catch(Exception) → JWT 관련 예외만 좌게 잡아 NPE 등 런타임 버그가 UNAUTHORIZED로 둔갑하는 문제 수정
+        // JwtException: ExpiredJwtException, MalformedJwtException, SignatureException 등을 모두 포함하는 부모 타입
+        } catch (JwtException | IllegalArgumentException e) {
+            // [FIX] 문제 1-2: e.getMessage()만 로깅하면 스택트레이스 손실 — SLF4J 관례대로 마지막 인자에 e 전달
+            log.warn("JWT 토큰 파싱 실패 [{}]: {}", e.getClass().getSimpleName(), e.getMessage(), e);
+            // [FIX] 문제 1-3: FQN 제거 — 파일 상단 import로 정리
+            throw new InvalidRequestException(ExceptionCode.UNAUTHORIZED);
         }
     }
 

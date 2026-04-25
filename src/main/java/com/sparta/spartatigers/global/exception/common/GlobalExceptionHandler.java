@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
@@ -81,6 +82,16 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.badRequest()
             .body(ApiResponse.error(ExceptionCode.INVALID_TYPE_EXCEPTION));
+    }
+
+    // [FIX] 문제 2: check-then-act 경합으로 DataIntegrityViolationException 발생 시 ITEM_ALREADY_EXISTS 매핑
+    // existsByUserIdAndStatus 검사 통과 후 동시 요청이 UK_ACTIVE_ITEM_PER_USER 위반 시
+    // 기존: 500 INTERNAL_SERVER_ERROR → 개선: 409 CONFLICT + ITEM_ALREADY_EXISTS
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<?>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        log.warn("DB 무결성 제약 위반 (동시 요청 가능성): {}", ex.getMessage());
+        return ResponseEntity.status(ExceptionCode.ITEM_ALREADY_EXISTS.getHttpStatus())
+            .body(ApiResponse.error(ExceptionCode.ITEM_ALREADY_EXISTS));
     }
 
     /**

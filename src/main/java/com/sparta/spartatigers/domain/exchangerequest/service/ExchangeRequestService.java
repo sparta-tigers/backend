@@ -133,7 +133,15 @@ public class ExchangeRequestService {
             try {
                 fcmService.sendMessageToToken(sender.getDeviceToken(), title, body);
             } catch (Exception e) {
-                // 알림 발송은 핵심 비즈니스 로직(상태 업데이트)을 중단시키지 않아야 합니다.
+                // [FIX] 문제 3: 예외를 무시하되 로그는 반드시 남겨 모니터링 사각지대 제거
+                // FCM 실패 원인: 토큰 만료, 디바이스 미등록, Firebase 장애 등
+                // 핵심 비즈니스 로직(상태 업데이트)을 중단시키지 않기 위해 catch하지만 추적은 필수
+                log.warn("[FCM] 알림 발송 실패 - userId: {}, deviceToken: {}, title: {}, error: [{}] {}",
+                    sender.getId(),
+                    sender.getDeviceToken().substring(0, Math.min(10, sender.getDeviceToken().length())) + "...",
+                    title,
+                    e.getClass().getSimpleName(),
+                    e.getMessage());
             }
         }
     }
