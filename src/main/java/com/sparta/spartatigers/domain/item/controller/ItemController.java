@@ -77,6 +77,9 @@ public class ItemController {
                 throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
             }
 
+            // [FIX] 문제 3: 중복 아이템 검증을 이미지 업로드 이전에 수행하여 불필요한 디스크 I/O 방지
+            itemService.validateCanCreateItem(tokenClaim);
+
             // 1. 추상화된 스토리지에 이미지 저장 (현재는 로컬, 나중엔 S3)
             List<String> storedImageUrls = imageStorageService.uploadImages(images);
 

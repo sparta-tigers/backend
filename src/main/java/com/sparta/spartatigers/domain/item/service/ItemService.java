@@ -53,6 +53,16 @@ public class ItemService {
     private final ExchangeRequestRepository exchangeRequestRepository;
     private final DirectRoomRepository directRoomRepository;
 
+    @Transactional(readOnly = true)
+    public void validateCanCreateItem(TokenClaim tokenClaim) {
+        User user = userRepository.findById(tokenClaim.getUserId())
+            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
+            
+        if (itemRepository.existsByUserIdAndStatus(user.getId(), ItemStatus.REGISTERED)) {
+            throw new InvalidRequestException(ExceptionCode.ITEM_ALREADY_EXISTS);
+        }
+    }
+
     @Transactional
     public ItemResponseDto createItemWithImages(ItemCreateRequest request, TokenClaim tokenClaim, List<String> imageUrls) {
         User user = userRepository.findById(tokenClaim.getUserId())

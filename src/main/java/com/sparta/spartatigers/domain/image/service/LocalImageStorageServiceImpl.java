@@ -20,6 +20,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -103,14 +106,14 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
                 String contentType = file.getContentType();
                 if (contentType == null || !ALLOWED_MIME_TYPES.contains(contentType.toLowerCase())) {
                     log.error("허용되지 않는 MIME 타입: {} (파일: {})", contentType, originalFilename);
-                    throw new RuntimeException("허용되지 않는 파일 타입입니다: " + contentType);
+                    throw new InvalidRequestException(ExceptionCode.INVALID_FILE_FORMAT);
                 }
                 
                 // 보안 검증: 파일 확장자 확인
                 String fileExtension = getFileExtension(originalFilename).toLowerCase();
                 if (!ALLOWED_EXTENSIONS.contains(fileExtension)) {
                     log.error("허용되지 않는 파일 확장자: {} (파일: {})", fileExtension, originalFilename);
-                    throw new RuntimeException("허용되지 않는 파일 확장자입니다: " + fileExtension);
+                    throw new InvalidRequestException(ExceptionCode.INVALID_FILE_EXTENSION);
                 }
                 
                 // 보안 검증: 실제 이미지 파일인지 확인
@@ -118,7 +121,7 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
                     BufferedImage image = ImageIO.read(inputStream);
                     if (image == null) {
                         log.error("이미지 디코딩 실패: {}", originalFilename);
-                        throw new RuntimeException("유효하지 않은 이미지 파일입니다: " + originalFilename);
+                        throw new InvalidRequestException(ExceptionCode.INVALID_FILE_FORMAT);
                     }
                     log.info("이미지 검증 성공: {}x{}", image.getWidth(), image.getHeight());
                 }
@@ -133,7 +136,7 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
                 // 보안 검증: 경로 순회 공격 방지
                 if (!destinationPath.startsWith(uploadDirPath)) {
                     log.error("경로 순회 공격 시도 감지: {}", destinationPath);
-                    throw new RuntimeException("잘못된 파일 경로입니다.");
+                    throw new InvalidRequestException(ExceptionCode.INVALID_FILE_FORMAT);
                 }
 
                 // [FIX] 문제 2: UUID prefix로 충돌 가능성은 극히 낮지만,
@@ -159,8 +162,7 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
             // 저장된 파일들 삭제 (롤백)
             for (Path savedFile : savedFiles) {
                 try {
-                    if (Files.exists(savedFile)) {
-                        Files.delete(savedFile);
+                    if (Files.deleteIfExists(savedFile)) {
                         log.info("롤백: 파일 삭제 성공 - {}", savedFile);
                     }
                 } catch (IOException deleteException) {
@@ -168,6 +170,14 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
                 }
             }
 
+            // [FIX] 문제 2: 예외 원인 보존 및 인터럽트 복구
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("이미지 저장 중 인터럽트가 발생했습니다.", e);
+            }
+            if (e instanceof InvalidRequestException) {
+                throw (InvalidRequestException) e;
+            }
             throw new RuntimeException("이미지 저장 중 오류가 발생했습니다.", e);
         }
         
@@ -230,6 +240,7 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
         
         for (String imageUrl : imageUrls) {
             try {
+                if (imageUrl == null) continue;
                 String fileName = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
                 // [FIX] 문제 3: 캐싱된 uploadDirPath 사용
                 Path filePath = uploadDirPath.resolve(fileName).normalize();
@@ -240,11 +251,11 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
                     continue;
                 }
 
-                File file = filePath.toFile();
-                if (file.exists() && file.delete()) {
+                // [FIX] 문제 1: deleteIfExists 통일 및 삭제 실패 로깅 최소화
+                if (Files.deleteIfExists(filePath)) {
                     log.info("파일 삭제 성공: {}", fileName);
                 } else {
-                    log.warn("파일 삭제 실패: {}", fileName);
+                    log.debug("삭제 대상 파일이 존재하지 않음: {}", fileName);
                 }
             } catch (Exception e) {
                 log.error("파일 삭제 중 오류 발생: {}", imageUrl, e);
