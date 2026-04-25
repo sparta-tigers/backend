@@ -74,7 +74,11 @@ public class ExchangeChatService {
         if (exchangeStatus != ExchangeStatus.ACCEPTED) {
             log.warn("[sendMessage] 비수락 상태 채팅방 전송 차단 - roomId: {}, senderId: {}, exchangeStatus: {}",
                 roomId, senderId, exchangeStatus);
-            throw new InvalidRequestException(ExceptionCode.FORBIDDEN_REQUEST);
+            // [FIX] 문제 2: FORBIDDEN_REQUEST로 퉁치지 않고 상태별 상세 사유 메시지 반환
+            ExceptionCode code = exchangeStatus == ExchangeStatus.PENDING 
+                ? ExceptionCode.EXCHANGE_NOT_ACCEPTED_PENDING 
+                : ExceptionCode.EXCHANGE_NOT_ACCEPTED_REJECTED;
+            throw new InvalidRequestException(code);
         }
 
         User sender = userRepository.findById(senderId)

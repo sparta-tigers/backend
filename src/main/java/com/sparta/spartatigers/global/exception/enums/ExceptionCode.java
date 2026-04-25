@@ -67,6 +67,8 @@ public enum ExceptionCode {
     // 교환 요청
     EXCHANGE_REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "교환 요청을 찾을 수 없습니다.", LogLevel.DEBUG),
     EXCHANGE_REQUEST_DUPLICATED(HttpStatus.BAD_REQUEST, ErrorCode.E400, "이미 교환 요청을 보냈습니다.", LogLevel.DEBUG),
+    EXCHANGE_NOT_ACCEPTED_PENDING(HttpStatus.FORBIDDEN, ErrorCode.E403, "수락 대기 중인 교환입니다.", LogLevel.DEBUG),
+    EXCHANGE_NOT_ACCEPTED_REJECTED(HttpStatus.FORBIDDEN, ErrorCode.E403, "거절되거나 완료된 교환입니다.", LogLevel.DEBUG),
 
     // 아이템
     ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "아이템을 찾을 수 없습니다.", LogLevel.DEBUG),

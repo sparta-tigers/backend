@@ -100,13 +100,16 @@ public class DirectRoomService {
                 .findById(directRoomId)
                 .orElseThrow(() -> new InvalidRequestException(ExceptionCode.CHATROOM_NOT_FOUND));
 
-        boolean isSender = room.getSender().getId().equals(currentUserId);
-        boolean isReceiver = room.getReceiver().getId().equals(currentUserId);
+        ExchangeRequest exchangeRequest = room.getExchangeRequest();
+        
+        // [FIX] 문제 1: 권한 검사 시에도 room이 아닌 exchangeRequest.getSender() / getReceiver()를 
+        // 사용하여 추후 발생할 수 있는 검증 불일치 방지 및 대칭성 보장
+        boolean isSender = exchangeRequest.getSender().getId().equals(currentUserId);
+        boolean isReceiver = exchangeRequest.getReceiver().getId().equals(currentUserId);
         if (!isSender && !isReceiver) {
             throw new InvalidRequestException(ExceptionCode.FORBIDDEN_REQUEST);
         }
 
-        ExchangeRequest exchangeRequest = room.getExchangeRequest();
         Item item = exchangeRequest.getItem();
 
         // [FIX] 상대방 정보를 exchangeRequest의 sender/receiver만으로 대칭 처리

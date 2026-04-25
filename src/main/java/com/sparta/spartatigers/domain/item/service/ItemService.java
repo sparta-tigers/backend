@@ -27,6 +27,7 @@ import com.sparta.spartatigers.domain.item.dto.request.ItemCreateRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sparta.spartatigers.domain.directRoom.repository.DirectRoomRepository;
 import com.sparta.spartatigers.domain.exchangerequest.repository.ExchangeRequestRepository;
 import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeStatus;
 
@@ -50,6 +51,7 @@ public class ItemService {
     private final LocationService locationService;
     private final ObjectMapper objectMapper;
     private final ExchangeRequestRepository exchangeRequestRepository;
+    private final DirectRoomRepository directRoomRepository;
 
     @Transactional
     public ItemResponseDto createItemWithImages(ItemCreateRequest request, TokenClaim tokenClaim, List<String> imageUrls) {
@@ -103,7 +105,12 @@ public class ItemService {
                 item.complete();
                 // ACCEPTED 요청 → COMPLETED로 변경
                 exchangeRequestRepository.findByItemIdAndStatus(item.getId(), ExchangeStatus.ACCEPTED)
-                    .forEach(req -> req.updateStatus(ExchangeStatus.COMPLETED));
+                    .forEach(req -> {
+                        req.updateStatus(ExchangeStatus.COMPLETED);
+                        // [FIX] 문제 4: DirectRoom 상태 업데이트 누락 — ExchangeRequest 완료 시 연결된 DirectRoom도 함께 완료 처리하여 일관성 유지
+                        directRoomRepository.findByExchangeRequestId(req.getId())
+                            .ifPresent(com.sparta.spartatigers.domain.directRoom.model.DirectRoom::complete);
+                    });
                 // [FIX] PENDING 요청도 REJECTED 처리 (아이템 완료 시 더 이상 유효하지 않은 요청 정리)
                 // ExchangeRequestService.rejectOtherPendingRequests와 일관성 유지
                 exchangeRequestRepository.findByItemIdAndStatus(item.getId(), ExchangeStatus.PENDING)

@@ -13,6 +13,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomCreateResponseDto;
@@ -107,12 +109,25 @@ public class ExchangeRequestService {
             rejectOtherPendingRequests(exchangeRequest.getItem(), exchangeRequest.getId());
             DirectRoom room = directRoomRepository.findByExchangeRequestId(exchangeRequestId)
                     .orElseThrow(() -> new InvalidRequestException(ExceptionCode.DIRECT_ROOM_NOT_FOUND));
-            sendNotificationToSender(exchangeRequest, "교환 요청 수락", "교환 요청이 수락되었습니다. 채팅방에서 대화를 시작해보세요!");
+            
+            // [FIX] 문제 3: 트랜잭션 롤백 시 알림만 남는 문제 방지 — 커밋 보장 후 알림 발송
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    sendNotificationToSender(exchangeRequest, "교환 요청 수락", "교환 요청이 수락되었습니다. 채팅방에서 대화를 시작해보세요!");
+                }
+            });
             return ExchangeRoomResponseDto.from(DirectRoomCreateResponseDto.from(room));
         }
 
         if (exchangeRequest.getStatus() == ExchangeStatus.REJECTED) {
-            sendNotificationToSender(exchangeRequest, "교환 요청 거절", "아쉽게도 교환 요청이 거절되었습니다.");
+            // [FIX] 문제 3: 트랜잭션 롤백 시 알림만 남는 문제 방지 — 커밋 보장 후 알림 발송
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    sendNotificationToSender(exchangeRequest, "교환 요청 거절", "아쉽게도 교환 요청이 거절되었습니다.");
+                }
+            });
             // 거절 내역(History) 유지를 위해 삭제하지 않음. DirectRoom 또한 보존하지만 프론트엔드에서 disabled 처리됨.
         }
 
@@ -125,7 +140,13 @@ public class ExchangeRequestService {
             if (!req.getId().equals(acceptedRequestId)) {
                 req.updateStatus(ExchangeStatus.REJECTED);
                 // [FIX] 자동 거절된 요청자에게도 알림 발송 (수동 거절과 사용자 경험 통일)
-                sendNotificationToSender(req, "교환 요청 거절", "아쉽게도 교환 요청이 거절되었습니다.");
+                // [FIX] 문제 3: 트랜잭션 롤백 시 알림만 남는 문제 방지 — 커밋 보장 후 알림 발송
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        sendNotificationToSender(req, "교환 요청 거절", "아쉽게도 교환 요청이 거절되었습니다.");
+                    }
+                });
             }
         }
     }
