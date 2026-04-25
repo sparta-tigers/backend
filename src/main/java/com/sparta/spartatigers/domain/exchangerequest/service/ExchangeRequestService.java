@@ -73,12 +73,19 @@ public class ExchangeRequestService {
     }
 
     public Page<ReceiveRequestResponseDto> findAllReceiveRequest(TokenClaim tokenClaim, Pageable pageable) {
-
         User user = getUser(tokenClaim.getUserId());
         Page<ExchangeRequest> exchangeRequestList = exchangeRequestRepository.findAllReceiveRequest(
             user.getId(), pageable);
 
-        return mapToResponseWithRoomId(exchangeRequestList);
+        return mapToReceiveResponse(exchangeRequestList);
+    }
+
+    public Page<SendRequestResponseDto> findAllSendRequest(TokenClaim tokenClaim, Pageable pageable) {
+        User user = getUser(tokenClaim.getUserId());
+        Page<ExchangeRequest> exchangeRequestList = exchangeRequestRepository.findAllSentRequest(
+            user.getId(), pageable);
+
+        return mapToSendResponse(exchangeRequestList);
     }
 
     @Transactional
@@ -174,10 +181,20 @@ public class ExchangeRequestService {
             throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
         }
 
-        return mapToResponseWithRoomId(requests);
+        return mapToReceiveResponse(requests);
     }
 
-    private Page<ReceiveRequestResponseDto> mapToResponseWithRoomId(Page<ExchangeRequest> requests) {
+    private Page<ReceiveRequestResponseDto> mapToReceiveResponse(Page<ExchangeRequest> requests) {
+        Map<Long, Long> roomIdMap = getRoomIdMap(requests);
+        return requests.map(req -> ReceiveRequestResponseDto.from(req, roomIdMap.get(req.getId())));
+    }
+
+    private Page<SendRequestResponseDto> mapToSendResponse(Page<ExchangeRequest> requests) {
+        Map<Long, Long> roomIdMap = getRoomIdMap(requests);
+        return requests.map(req -> SendRequestResponseDto.from(req, roomIdMap.get(req.getId())));
+    }
+
+    private Map<Long, Long> getRoomIdMap(Page<ExchangeRequest> requests) {
         List<Long> requestIds = requests.stream()
             .map(ExchangeRequest::getId)
             .collect(Collectors.toList());
@@ -185,22 +202,13 @@ public class ExchangeRequestService {
         Map<Long, Long> roomIdMap = new java.util.HashMap<>();
         if (!requestIds.isEmpty()) {
             List<DirectRoom> rooms = directRoomRepository.findByExchangeRequestIdIn(requestIds);
-            log.info("[mapToResponseWithRoomId] 조회된 요청 ID 개수: {}, 조회된 채팅방 개수: {}", requestIds.size(), rooms.size());
-            
             for (DirectRoom room : rooms) {
                 if (room.getExchangeRequest() != null) {
                     roomIdMap.put(room.getExchangeRequest().getId(), room.getId());
                 }
             }
         }
-
-        return requests.map(req -> {
-            Long roomId = roomIdMap.get(req.getId());
-            if (roomId == null) {
-                log.warn("[mapToResponseWithRoomId] 요청 ID {}에 매핑된 채팅방을 찾을 수 없습니다.", req.getId());
-            }
-            return ReceiveRequestResponseDto.from(req, roomId);
-        });
+        return roomIdMap;
     }
 
     private User getUser(Long userId) {
