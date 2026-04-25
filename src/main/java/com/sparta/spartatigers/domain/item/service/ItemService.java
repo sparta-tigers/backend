@@ -22,6 +22,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import com.sparta.spartatigers.domain.stompchat.service.LocationService;
 import com.sparta.spartatigers.domain.item.dto.request.ItemCreateRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -29,7 +31,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.spartatigers.domain.directRoom.repository.DirectRoomRepository;
 import com.sparta.spartatigers.domain.exchangerequest.repository.ExchangeRequestRepository;
+import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeRequest;
 import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeStatus;
+import com.sparta.spartatigers.global.firebase.FCMService;
+import com.sparta.spartatigers.global.exception.external.FirebaseException;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -52,6 +57,7 @@ public class ItemService {
     private final ObjectMapper objectMapper;
     private final ExchangeRequestRepository exchangeRequestRepository;
     private final DirectRoomRepository directRoomRepository;
+    private final FCMService fcmService;
 
     @Transactional(readOnly = true)
     public void validateCanCreateItem(TokenClaim tokenClaim) {
@@ -113,18 +119,21 @@ public class ItemService {
         switch (request.action()) {
             case COMPLETE -> {
                 item.complete();
-                // ACCEPTED 요청 → COMPLETED로 변경
-                exchangeRequestRepository.findByItemIdAndStatus(item.getId(), ExchangeStatus.ACCEPTED)
-                    .forEach(req -> {
+                // [FIX] 문제 2: 상태별 개별 조회를 없애고 IN 쿼리로 한 번에 메모리에 적재하여 N+1 이슈 완화
+                List<ExchangeRequest> activeRequests = exchangeRequestRepository.findByItemIdAndStatusIn(
+                    item.getId(), List.of(ExchangeStatus.ACCEPTED, ExchangeStatus.PENDING));
+
+                for (ExchangeRequest req : activeRequests) {
+                    if (req.getStatus() == ExchangeStatus.ACCEPTED) {
                         req.updateStatus(ExchangeStatus.COMPLETED);
-                        // [FIX] 문제 4: DirectRoom 상태 업데이트 누락 — ExchangeRequest 완료 시 연결된 DirectRoom도 함께 완료 처리하여 일관성 유지
                         directRoomRepository.findByExchangeRequestId(req.getId())
                             .ifPresent(com.sparta.spartatigers.domain.directRoom.model.DirectRoom::complete);
-                    });
-                // [FIX] PENDING 요청도 REJECTED 처리 (아이템 완료 시 더 이상 유효하지 않은 요청 정리)
-                // ExchangeRequestService.rejectOtherPendingRequests와 일관성 유지
-                exchangeRequestRepository.findByItemIdAndStatus(item.getId(), ExchangeStatus.PENDING)
-                    .forEach(req -> req.updateStatus(ExchangeStatus.REJECTED));
+                    } else if (req.getStatus() == ExchangeStatus.PENDING) {
+                        req.updateStatus(ExchangeStatus.REJECTED);
+                        // [FIX] 자동 거절되는 PENDING 요청자들에게도 알림 발송 (ExchangeRequestService와 정책 통일)
+                        sendNotificationSafely(req, "교환 요청 거절", "다른 사용자와 교환이 완료되어 요청이 거절되었습니다.");
+                    }
+                }
 
                 ItemLocationUpdatedEvent completeEvent = new ItemLocationUpdatedEvent(item.getUser().getId(), "REMOVE_ITEM",
                         Map.of("itemId", item.getId(), "userId", item.getUser().getId()));
@@ -133,12 +142,14 @@ public class ItemService {
 
             case CANCEL -> {
                 item.reopen();
-                // ACCEPTED 요청 → REJECTED로 변경 (교환 취소)
-                exchangeRequestRepository.findByItemIdAndStatus(item.getId(), ExchangeStatus.ACCEPTED)
-                    .forEach(req -> req.updateStatus(ExchangeStatus.REJECTED));
-                // [FIX] PENDING 요청도 REJECTED 처리 (아이템 재오픈 시 기존 PENDING 요청은 무효화)
-                exchangeRequestRepository.findByItemIdAndStatus(item.getId(), ExchangeStatus.PENDING)
-                    .forEach(req -> req.updateStatus(ExchangeStatus.REJECTED));
+                List<ExchangeRequest> activeRequests = exchangeRequestRepository.findByItemIdAndStatusIn(
+                    item.getId(), List.of(ExchangeStatus.ACCEPTED, ExchangeStatus.PENDING));
+
+                for (ExchangeRequest req : activeRequests) {
+                    req.updateStatus(ExchangeStatus.REJECTED);
+                    // PENDING 및 ACCEPTED 상태였던 사용자들에게 교환 취소(재오픈) 알림 발송
+                    sendNotificationSafely(req, "교환 취소", "상대방의 사정으로 교환이 취소되었습니다.");
+                }
 
                 ReadItemResponseDto newItemDto = ReadItemResponseDto.from(item, this);
                 ItemLocationUpdatedEvent cancelEvent = new ItemLocationUpdatedEvent(item.getUser().getId(), "ADD_ITEM", newItemDto);
@@ -260,5 +271,25 @@ public class ItemService {
             log.error("이미지 URL 역직렬화 실패: {}", e.getMessage());
             return Collections.emptyList();
         }
+    }
+
+    private void sendNotificationSafely(ExchangeRequest exchangeRequest, String title, String body) {
+        User sender = exchangeRequest.getSender();
+        if (sender == null || sender.getDeviceToken() == null || sender.getDeviceToken().isBlank()) {
+            return;
+        }
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                try {
+                    fcmService.sendMessageToToken(sender.getDeviceToken(), title, body);
+                } catch (FirebaseException e) {
+                    log.warn("[FCM 발송 실패] 수신자: {}, 사유: {}", sender.getId(), e.getMessage());
+                } catch (Exception e) {
+                    log.error("[FCM 처리 중 에러] 수신자: {}", sender.getId(), e);
+                }
+            }
+        });
     }
 }
