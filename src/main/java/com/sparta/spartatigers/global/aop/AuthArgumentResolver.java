@@ -39,9 +39,10 @@ public class AuthArgumentResolver implements HandlerMethodArgumentResolver {
             throw new InvalidRequestException(ExceptionCode.UNAUTHORIZED);
         }
         
-        // [FIX] toLowerCase().startsWith() → regionMatches(true, ...) 로 교체
-        // 이유: toLowerCase()는 매 호출마다 새 String 객체를 할당 — regionMatches는 할당 없이 직접 비교
-        if (!bearerToken.regionMatches(true, 0, "Bearer ", 0, 7)) {
+        // [FIX] regionMatches(true, ...) → startsWith("Bearer ")로 변경
+        // RFC 6750 §2.1: Bearer 스킴은 정확히 "Bearer"(대소문자 구분)이어야 함
+        // StompInterceptor(L48)도 startsWith("Bearer ")로 검증 — 양쪽 RFC 준수 방식으로 통일
+        if (!bearerToken.startsWith("Bearer ")) {
             throw new InvalidRequestException(ExceptionCode.UNAUTHORIZED);
         }
 
