@@ -1,9 +1,11 @@
 package com.sparta.spartatigers.domain.exchangerequest.service;
 
+import java.util.HashMap;
 import java.util.List;
-import com.sparta.spartatigers.domain.exchangerequest.dto.response.SendRequestResponseDto;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import com.sparta.spartatigers.domain.exchangerequest.dto.response.SendRequestResponseDto;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -208,7 +210,8 @@ public class ExchangeRequestService {
             .map(ExchangeRequest::getId)
             .collect(Collectors.toList());
 
-        Map<Long, Long> roomIdMap = new java.util.HashMap<>();
+        // [FIX] 문제 5: FQCN new java.util.HashMap<>() → import로 정리
+        Map<Long, Long> roomIdMap = new HashMap<>();
         if (!requestIds.isEmpty()) {
             List<DirectRoom> rooms = directRoomRepository.findByExchangeRequestIdIn(requestIds);
             for (DirectRoom room : rooms) {

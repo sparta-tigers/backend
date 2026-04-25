@@ -31,6 +31,7 @@ import com.sparta.spartatigers.domain.exchangerequest.repository.ExchangeRequest
 import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeStatus;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,8 @@ import java.util.Map;
 public class ItemService {
 
     private static final double SEARCH_RADIUS_KM = 0.05;
+    // [FIX] 문제 4: 기본 반경 매직 넘버 2.0 상수 추출 — 운영 중 정책 변경 시 일관 수정 용이
+    private static final double DEFAULT_LOCATION_SEARCH_RADIUS_KM = 2.0;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
@@ -143,7 +146,8 @@ public class ItemService {
 
         // 좌표 기반 검색 여부 확인
         if (latitude != null && longitude != null) {
-            double searchRadius = radius != null ? radius : 2.0; // 기본 반경 2km
+            // [FIX] 문제 4: 2.0 값을 DEFAULT_LOCATION_SEARCH_RADIUS_KM 상수로 대체
+            double searchRadius = radius != null ? radius : DEFAULT_LOCATION_SEARCH_RADIUS_KM;
             return itemRepository.findAllItemsByLocation(
                 ItemStatus.REGISTERED,
                 LocalDate.now(),
@@ -155,7 +159,9 @@ public class ItemService {
             ).map(item -> ReadItemResponseDto.from(item, this));
         } else {
             // 기존 로직: 근처 사용자 기반 검색
-            List<Long> nearByUserIds = locationService.findUsersNearBy(userId, SEARCH_RADIUS_KM);
+            // [FIX] 문제 3: locationService.findUsersNearBy()가 불변 List(List.of 등)를 반환하는 경우 add() 호출 시 UnsupportedOperationException 발생
+            // 방어적으로 ArrayList로 복사하여 수정 가능한 리스트로 보장
+            List<Long> nearByUserIds = new ArrayList<>(locationService.findUsersNearBy(userId, SEARCH_RADIUS_KM));
             nearByUserIds.add(userId);
 
             return itemRepository.findAllItems(ItemStatus.REGISTERED, LocalDate.now(), nearByUserIds, pageable)

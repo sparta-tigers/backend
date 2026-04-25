@@ -39,21 +39,21 @@ public class AuthArgumentResolver implements HandlerMethodArgumentResolver {
             throw new InvalidRequestException(ExceptionCode.UNAUTHORIZED);
         }
         
-        // Bearer 접두사 확인 (대소문자 무시)
-        if (!bearerToken.toLowerCase().startsWith("bearer ")) {
+        // [FIX] toLowerCase().startsWith() → regionMatches(true, ...) 로 교체
+        // 이유: toLowerCase()는 매 호출마다 새 String 객체를 할당 — regionMatches는 할당 없이 직접 비교
+        if (!bearerToken.regionMatches(true, 0, "Bearer ", 0, 7)) {
             throw new InvalidRequestException(ExceptionCode.UNAUTHORIZED);
         }
-        
+
         // 안전한 토큰 추출 (ArrayIndexOutOfBoundsException 방지)
-        String[] parts = bearerToken.split(" ", 2); // 최대 2부분으로 분리
+        String[] parts = bearerToken.split(" ", 2);
         if (parts.length != 2 || parts[1].isBlank()) {
             throw new InvalidRequestException(ExceptionCode.UNAUTHORIZED);
         }
-        
+
+        // [FIX] trim().isBlank() 중복 검사 제거
+        // parts[1].isBlank() 통과 시 trim()해도 blank 불가 — 도달 불가능한 분기 제거
         String accessToken = parts[1].trim();
-        if (accessToken.isBlank()) {
-            throw new InvalidRequestException(ExceptionCode.UNAUTHORIZED);
-        }
 
         return tokenService.parseAccessToken(accessToken);
     }
