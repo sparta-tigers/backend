@@ -86,7 +86,13 @@ public class ItemController {
             } catch (Exception e) {
                 // 3. 실패 시 업로드된 파일 삭제 (롤백)
                 log.error("아이템 생성 실패, 업로드된 파일 삭제: {}", storedImageUrls, e);
-                imageStorageService.deleteImages(storedImageUrls);
+                // [FIX] 문제 5: deleteImages()가 예외를 던지면 원래 비즈니스 실패 원인(e)이 가려짐
+                // 롤백 보조 동작은 try-catch로 격리하여 원인 예외가 우선 전파되도록 보장
+                try {
+                    imageStorageService.deleteImages(storedImageUrls);
+                } catch (Exception cleanupEx) {
+                    log.error("업로드 이미지 정리 실패 (원인 예외와 별개): {}", storedImageUrls, cleanupEx);
+                }
                 throw e;
             }
 

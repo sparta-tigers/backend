@@ -41,23 +41,27 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
     
     // 설정 가능한 영구 저장 경로
     private final String uploadDir;
-    
+
+    // [FIX] 문제 3: uploadDirPath를 필드로 캐싱 — 매 업로드/삭제마다 Paths.get().toAbsolutePath().normalize() 재계산 방지
+    private final Path uploadDirPath;
+
     // 안전한 파일명 패턴 (영숫자와 일부 특수문자만 허용)
     private static final Pattern SAFE_FILENAME_PATTERN = Pattern.compile("[^a-zA-Z0-9._-]");
-    
+
     public LocalImageStorageServiceImpl(@Value("${image.storage.path:./uploads}") String uploadPath) {
         // 생성자에서 디렉토리 경로 설정 및 생성 (절대 경로로 변환하여 Tomcat 등의 임시 경로 혼선 방지)
         try {
             Path uploadDirectory = Paths.get(uploadPath).toAbsolutePath().normalize();
             this.uploadDir = uploadDirectory.toString();
-            
+            this.uploadDirPath = uploadDirectory; // [FIX] 필드에 캐싱
+
             Files.createDirectories(uploadDirectory);
-            
+
             // 쓰기 권한 확인
             if (!Files.isWritable(uploadDirectory)) {
                 throw new RuntimeException("업로드 디렉토리에 쓰기 권한이 없습니다: " + uploadDir);
             }
-            
+
             log.info("업로드 디렉토리 초기화 완료: {}", uploadDir);
         } catch (IOException e) {
             throw new RuntimeException("업로드 디렉토리 생성 실패: " + uploadPath, e);
@@ -77,12 +81,9 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
 
         List<String> imageUrls = new ArrayList<>();
         List<Path> savedFiles = new ArrayList<>(); // 저장된 파일 경로 추적
-        
-        File directory = new File(uploadDir);
-        if (!directory.exists()) {
-            log.info("디렉토리 생성: {}", directory.getAbsolutePath());
-            directory.mkdirs();
-        }
+
+        // [FIX] 문제 3: 생성자에서 이미 Files.createDirectories()로 초기화 완료
+        // 매 업로드마다 directory.mkdirs()를 반복 호출하는 불필요한 중복 제거
 
         try {
             for (MultipartFile file : images) {
@@ -126,16 +127,18 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
                 String baseName = sanitizeFilename(originalFilename);
                 String fileName = UUID.randomUUID().toString() + "_" + baseName;
                 
-                // 최종 경로 생성 (절대 경로 보장)
-                Path destinationPath = Paths.get(uploadDir, fileName).toAbsolutePath().normalize();
-                
+                // [FIX] 문제 3: 캐싱된 uploadDirPath 사용 (매 반복 Paths.get().normalize() 재계산 제거)
+                Path destinationPath = uploadDirPath.resolve(fileName);
+
                 // 보안 검증: 경로 순회 공격 방지
-                if (!destinationPath.startsWith(Paths.get(uploadDir).toAbsolutePath().normalize())) {
+                if (!destinationPath.startsWith(uploadDirPath)) {
                     log.error("경로 순회 공격 시도 감지: {}", destinationPath);
                     throw new RuntimeException("잘못된 파일 경로입니다.");
                 }
-                
-                // Files.copy를 사용하여 임시 파일을 실제 경로로 안전하게 복사 (transferTo보다 환경 이식성 높음)
+
+                // [FIX] 문제 2: UUID prefix로 충돌 가능성은 극히 낮지만,
+                // 정책상 동일 파일명 존재 시 덮어쓰지 않고 실패(FileAlreadyExistsException)시킵니다.
+                // 의도된 동작: 업로드 실패 → 클라이언트에 오류 반환
                 try (InputStream inputStream = file.getInputStream()) {
                     Files.copy(inputStream, destinationPath);
                 }
@@ -147,9 +150,12 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
                 imageUrls.add("/api/images/" + fileName);
                 log.info("파일 저장 성공: {}", fileName);
             }
-        } catch (IOException e) {
+        // [FIX] 문제 1: catch (IOException e) → catch (Exception e)
+        // 기존에는 MIME/확장자/이미지 디코딩/경로 순회 검증에서 발생하는 RuntimeException을 잡지 않아
+        // N번째 파일 검증 실패 시 이전 N-1개 저장 파일이 롤백되지 않고 디스크에 남는 문제 수정
+        } catch (Exception e) {
             log.error("이미지 업로드 중 오류 발생, 저장된 파일 롤백 시작", e);
-            
+
             // 저장된 파일들 삭제 (롤백)
             for (Path savedFile : savedFiles) {
                 try {
@@ -161,7 +167,7 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
                     log.error("롤백: 파일 삭제 실패 - {}", savedFile, deleteException);
                 }
             }
-            
+
             throw new RuntimeException("이미지 저장 중 오류가 발생했습니다.", e);
         }
         
@@ -224,17 +230,16 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
         
         for (String imageUrl : imageUrls) {
             try {
-                // "/api/v1/images/" 접두사 제거
                 String fileName = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
-                Path filePath = Paths.get(uploadDir, fileName).normalize();
-                
+                // [FIX] 문제 3: 캐싱된 uploadDirPath 사용
+                Path filePath = uploadDirPath.resolve(fileName).normalize();
+
                 // 경로 순회 공격 방지 확인
-                Path uploadDirPath = Paths.get(uploadDir).normalize();
                 if (!filePath.startsWith(uploadDirPath)) {
                     log.warn("잘못된 파일 삭제 시도: {}", imageUrl);
                     continue;
                 }
-                
+
                 File file = filePath.toFile();
                 if (file.exists() && file.delete()) {
                     log.info("파일 삭제 성공: {}", fileName);
