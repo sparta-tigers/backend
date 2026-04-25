@@ -116,23 +116,31 @@ public class ItemController {
         @RequestParam(required = false) Double longitude,
         @RequestParam(required = false) Double radius) {
 
-        // [FIX] 문제 4: 좌표 파라미터 범위 검증 — Haversine 식에서 NaN 또는 잘못된 결과 방지
+        // [FIX] 문제 2: NaN 검증 우회 방지 + radius 단독 전달 거부
+        // IEEE 754 규칙: NaN < -90, NaN > 90 모두 false → 기존 범위 검증을 그대로 통과
+        // NaN이 Haversine 식에 전달되면 acos(NaN) = NaN → 검색 결과 비거나 예외 없는 오동작
         if (latitude != null || longitude != null) {
             if (latitude == null || longitude == null) {
                 throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
             }
-            if (latitude < -90 || latitude > 90) {
+            // [FIX] isNaN() 선검사 — NaN은 범위 비교에서 항상 false이므로 별도 검사 필수
+            if (latitude.isNaN() || latitude < -90 || latitude > 90) {
                 log.warn("[findAllItems] 유효하지 않은 위도 값: {}", latitude);
                 throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
             }
-            if (longitude < -180 || longitude > 180) {
+            if (longitude.isNaN() || longitude < -180 || longitude > 180) {
                 log.warn("[findAllItems] 유효하지 않은 경도 값: {}", longitude);
                 throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
             }
-            if (radius != null && radius <= 0) {
+            if (radius != null && (radius.isNaN() || radius <= 0)) {
                 log.warn("[findAllItems] 유효하지 않은 반경 값: {}", radius);
                 throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
             }
+        } else if (radius != null) {
+            // [FIX] 좌표 없이 radius만 전달된 경우 서비스에서 조용히 무시되던 것을 명시적 거부
+            // ?radius=5 단독 전달 시 위치 기반 검색이 작동하지 않음에도 200 반환하는 혼란 방지
+            log.warn("[findAllItems] 좌표 없이 radius만 전달됨: {}", radius);
+            throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
         }
 
         Page<ReadItemResponseDto> response = itemService.findAllItems(tokenClaim, pageable, latitude, longitude, radius);

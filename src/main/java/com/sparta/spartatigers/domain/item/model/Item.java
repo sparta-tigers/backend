@@ -3,7 +3,6 @@ package com.sparta.spartatigers.domain.item.model;
 import java.time.LocalDate;
 
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
-import com.sparta.spartatigers.domain.item.dto.request.ItemCreateRequest;
 import com.sparta.spartatigers.domain.item.dto.request.UpdateItemRequestDto;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
@@ -106,22 +105,12 @@ public class Item extends BaseEntity {
         this.createdDate = createdDate;
     }
 
-    // [FIX] CreateItemRequestDto 제거 — ItemCreateRequest로 통일 (필드 불일치 방지)
-    public static Item of(ItemCreateRequest dto, User user, String image) {
-        return new Item(
-            dto.category(),
-            image,
-            dto.seatInfo(),
-            dto.title(),
-            dto.description(),
-            null,
-            null,
-            null,
-            dto.desiredItem(),
-            ItemStatus.REGISTERED,
-            user,
-            LocalDate.now());
-    }
+    // [REMOVED] Item.of(ItemCreateRequest, User, String) 팩토리 메서드
+    // 제거 이유:
+    // 1. 코드베이스 전체에서 호출처 없음 (dead code)
+    // 2. dto.location()의 위도/경도/주소를 모두 null로 무시 — ItemCreateRequest 필드 손실
+    // 3. ItemService.createItemWithImages()가 직접 생성자 호출로 location을 올바르게 전달 중
+    // → 유지 시 미래 호출자가 location 없는 아이템을 생성하는 버그 유발 가능성 제거
 
     public void validateUserIsOwner(User user) {
 
