@@ -3,7 +3,7 @@ package com.sparta.spartatigers.domain.item.model;
 import java.time.LocalDate;
 
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
-import com.sparta.spartatigers.domain.item.dto.request.CreateItemRequestDto;
+import com.sparta.spartatigers.domain.item.dto.request.ItemCreateRequest;
 import com.sparta.spartatigers.domain.item.dto.request.UpdateItemRequestDto;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
@@ -106,7 +106,8 @@ public class Item extends BaseEntity {
         this.createdDate = createdDate;
     }
 
-    public static Item of(CreateItemRequestDto dto, User user, String image) {
+    // [FIX] CreateItemRequestDto 제거 — ItemCreateRequest로 통일 (필드 불일치 방지)
+    public static Item of(ItemCreateRequest dto, User user, String image) {
         return new Item(
             dto.category(),
             image,

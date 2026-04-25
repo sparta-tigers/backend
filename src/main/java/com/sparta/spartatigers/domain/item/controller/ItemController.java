@@ -39,7 +39,9 @@ import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 import com.sparta.spartatigers.global.response.ApiResponse;
 
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Valid;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,28 +53,32 @@ public class ItemController {
 
     private final ItemService itemService;
     private final ImageStorageService imageStorageService;
-    private final ObjectMapper objectMapper; 
+    private final ObjectMapper objectMapper;
+    private final Validator validator; // [FIX] 수동 파싱 후 Bean Validation 명시적 실행용
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> createItem(
             @Auth TokenClaim tokenClaim,
-            @RequestPart(value = "itemRequest") String itemRequestJson, // String으로 안전하게 수신
+            @RequestPart(value = "itemRequest") String itemRequestJson,
             @RequestPart(value = "images", required = false) List<MultipartFile> images
     ) {
         try {
-            // ObjectMapper를 통해 수동 파싱 및 검증
+            // [FIX] @JsonIgnoreProperties(ignoreUnknown = false)로 오타 필드를 명시적으로 거부
+            // + 파싱 후 Validator로 Bean Validation(@NotNull, @NotBlank 등) 명시적 수행
             ItemCreateRequest request = objectMapper.readValue(itemRequestJson, ItemCreateRequest.class);
 
-            // 디버깅 로그 추가
-            System.out.println("=== 이미지 업로드 디버깅 ===");
-            System.out.println("images 파라미터: " + images);
-            System.out.println("images size: " + (images != null ? images.size() : "null"));
-            
+            // [FIX] 수동 파싱 경로에서 우회되던 Bean Validation을 Validator로 명시적 실행
+            java.util.Set<ConstraintViolation<ItemCreateRequest>> violations = validator.validate(request);
+            if (!violations.isEmpty()) {
+                String errorMessages = violations.stream()
+                    .map(v -> v.getPropertyPath() + ": " + v.getMessage())
+                    .collect(java.util.stream.Collectors.joining(", "));
+                log.warn("[createItem] 입력 검증 실패: {}", errorMessages);
+                throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
+            }
+
             // 1. 추상화된 스토리지에 이미지 저장 (현재는 로컬, 나중엔 S3)
             List<String> storedImageUrls = imageStorageService.uploadImages(images);
-            
-            System.out.println("storedImageUrls: " + storedImageUrls);
-            System.out.println("========================");
 
             try {
                 // 2. 비즈니스 로직 실행 (DTO에 URL 리스트 추가 전달)
@@ -86,8 +92,10 @@ public class ItemController {
 
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (JsonProcessingException e) {
-            log.error("JSON 파싱 에러: {}", e.getMessage());
+            log.error("[createItem] JSON 파싱 에러 (알 수 없는 필드 또는 형식 오류): {}", e.getMessage());
             throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
+        } catch (InvalidRequestException e) {
+            throw e;
         } catch (Exception e) {
             log.error("아이템 생성 중 예외 발생: {}", e.getMessage(), e);
             throw e;
@@ -101,6 +109,25 @@ public class ItemController {
         @RequestParam(required = false) Double latitude,
         @RequestParam(required = false) Double longitude,
         @RequestParam(required = false) Double radius) {
+
+        // [FIX] 문제 4: 좌표 파라미터 범위 검증 — Haversine 식에서 NaN 또는 잘못된 결과 방지
+        if (latitude != null || longitude != null) {
+            if (latitude == null || longitude == null) {
+                throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
+            }
+            if (latitude < -90 || latitude > 90) {
+                log.warn("[findAllItems] 유효하지 않은 위도 값: {}", latitude);
+                throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
+            }
+            if (longitude < -180 || longitude > 180) {
+                log.warn("[findAllItems] 유효하지 않은 경도 값: {}", longitude);
+                throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
+            }
+            if (radius != null && radius <= 0) {
+                log.warn("[findAllItems] 유효하지 않은 반경 값: {}", radius);
+                throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
+            }
+        }
 
         Page<ReadItemResponseDto> response = itemService.findAllItems(tokenClaim, pageable, latitude, longitude, radius);
 
