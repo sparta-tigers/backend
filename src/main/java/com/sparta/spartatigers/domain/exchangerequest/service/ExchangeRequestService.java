@@ -129,9 +129,11 @@ public class ExchangeRequestService {
                 }
             });
             // 거절 내역(History) 유지를 위해 삭제하지 않음. DirectRoom 또한 보존하지만 프론트엔드에서 disabled 처리됨.
+            return ExchangeRoomResponseDto.rejected(exchangeRequestId);
         }
 
-        return null;
+        // 기본적으로 null 대신 rejected 또는 적절한 DTO 반환하여 호출부 NPE 방어
+        return ExchangeRoomResponseDto.rejected(exchangeRequestId);
     }
 
     private void rejectOtherPendingRequests(Item item, Long acceptedRequestId) {

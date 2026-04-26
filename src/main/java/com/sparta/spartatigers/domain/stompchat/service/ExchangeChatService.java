@@ -75,9 +75,14 @@ public class ExchangeChatService {
             log.warn("[sendMessage] 비수락 상태 채팅방 전송 차단 - roomId: {}, senderId: {}, exchangeStatus: {}",
                 roomId, senderId, exchangeStatus);
             // [FIX] 문제 2: FORBIDDEN_REQUEST로 퉁치지 않고 상태별 상세 사유 메시지 반환
-            ExceptionCode code = exchangeStatus == ExchangeStatus.PENDING 
-                ? ExceptionCode.EXCHANGE_NOT_ACCEPTED_PENDING 
-                : ExceptionCode.EXCHANGE_NOT_ACCEPTED_REJECTED;
+            ExceptionCode code;
+            if (exchangeStatus == ExchangeStatus.PENDING) {
+                code = ExceptionCode.EXCHANGE_NOT_ACCEPTED_PENDING;
+            } else if (exchangeStatus == ExchangeStatus.COMPLETED) {
+                code = ExceptionCode.EXCHANGE_ALREADY_COMPLETED;
+            } else {
+                code = ExceptionCode.EXCHANGE_ALREADY_REJECTED;
+            }
             throw new InvalidRequestException(code);
         }
 

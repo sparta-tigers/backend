@@ -276,7 +276,7 @@ public class ItemService {
         try {
             return objectMapper.readValue(imageUrlsJson, new TypeReference<List<String>>() {});
         } catch (JsonProcessingException e) {
-            log.error("이미지 URL 역직렬화 실패: {}", e.getMessage());
+            log.error("이미지 URL 역직렬화 실패: ", e);
             return Collections.emptyList();
         }
     }
@@ -294,8 +294,6 @@ public class ItemService {
                     fcmService.sendMessageToToken(sender.getDeviceToken(), title, body);
                 } catch (FirebaseException e) {
                     log.warn("[FCM 발송 실패] 수신자: {}, 사유: {}", sender.getId(), e.getMessage());
-                } catch (Exception e) {
-                    log.error("[FCM 처리 중 에러] 수신자: {}", sender.getId(), e);
                 }
             }
         });

@@ -130,8 +130,14 @@ public class OrphanImageCleanupScheduler {
                         extractFileName(url, fileNames);
                     }
                 } catch (Exception e) {
-                    // JSON 파싱 실패 시 단일 문자열로 시도
-                    extractFileName(imageField, fileNames);
+                    // JSON 파싱 실패 시 콤마 분리 폴백 시도 (대괄호/따옴표 제거 후 split)
+                    log.warn("[OrphanImageCleanup] JSON 파싱 실패, 콤마 분리 폴백 시도: {}", imageField);
+                    String cleaned = imageField.replace("[", "").replace("]", "").replace("\"", "").trim();
+                    if (!cleaned.isEmpty()) {
+                        for (String url : cleaned.split(",")) {
+                            extractFileName(url.trim(), fileNames);
+                        }
+                    }
                 }
             } else if (imageField.contains(",")) {
                 // 콤마 구분자 형태인 경우

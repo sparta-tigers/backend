@@ -21,4 +21,8 @@ public class ExchangeRoomResponseDto {
     public static ExchangeRoomResponseDto from(DirectRoomCreateResponseDto directRoom) {
         return new ExchangeRoomResponseDto(directRoom.getDirectRoomId(), directRoom.getExchangeRequestId());
     }
+
+    public static ExchangeRoomResponseDto rejected(Long exchangeRequestId) {
+        return new ExchangeRoomResponseDto(null, exchangeRequestId);
+    }
 }
