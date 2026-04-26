@@ -1,5 +1,10 @@
 package com.sparta.spartatigers.domain.directRoom.service;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -7,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomCreateResponseDto;
 import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomItemResponseDto;
+import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomMessageResponse;
 import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomResponseDto;
 import com.sparta.spartatigers.domain.directRoom.model.DirectRoom;
 import com.sparta.spartatigers.domain.directRoom.repository.DirectMessageRepository;
@@ -34,20 +40,19 @@ public class DirectRoomService {
     @Transactional
     public DirectRoomCreateResponseDto createRoom(Long exchangeRequestId, Long currentUserId) {
         log.info(
-            "[createRoom] 교환요청 기반 채팅방 생성 시도 - exchangeRequestId: {}, currentUserId: {}",
-            exchangeRequestId,
-            currentUserId);
-        ExchangeRequest exchangeRequest =
-            exchangeRequestRepository.findByIdOrElseThrow(exchangeRequestId);
+                "[createRoom] 교환요청 기반 채팅방 생성 시도 - exchangeRequestId: {}, currentUserId: {}",
+                exchangeRequestId,
+                currentUserId);
+        ExchangeRequest exchangeRequest = exchangeRequestRepository.findByIdOrElseThrow(exchangeRequestId);
 
         // 권한 확인: 요청한 사람이 교환 요청의 sender 또는 receiver여야 함
         if (!exchangeRequest.getSender().getId().equals(currentUserId)
-            && !exchangeRequest.getReceiver().getId().equals(currentUserId)) {
+                && !exchangeRequest.getReceiver().getId().equals(currentUserId)) {
             log.warn(
-                "[createRoom] 권한 없음 - 요청자 ID: {}, 교환요청 sender: {}, receiver: {}",
-                currentUserId,
-                exchangeRequest.getSender().getId(),
-                exchangeRequest.getReceiver().getId());
+                    "[createRoom] 권한 없음 - 요청자 ID: {}, 교환요청 sender: {}, receiver: {}",
+                    currentUserId,
+                    exchangeRequest.getSender().getId(),
+                    exchangeRequest.getReceiver().getId());
             throw new InvalidRequestException(ExceptionCode.UNAUTHORIZED);
         }
 
@@ -55,14 +60,12 @@ public class DirectRoomService {
         User sender = exchangeRequest.getSender();
         User receiver = exchangeRequest.getReceiver();
 
-        DirectRoom room =
-            directRoomRepository
+        DirectRoom room = directRoomRepository
                 .findByExchangeRequest(exchangeRequest)
                 .orElseGet(
-                    () ->
-                        directRoomRepository.save(
-                            DirectRoom.create(
-                                exchangeRequest, sender, receiver)));
+                        () -> directRoomRepository.save(
+                                DirectRoom.create(
+                                        exchangeRequest, sender, receiver)));
 
         log.info("[createRoom] 채팅방 생성 완료 - roomId: {}", room.getId());
         return DirectRoomCreateResponseDto.from(room);
@@ -70,51 +73,53 @@ public class DirectRoomService {
 
     public Page<DirectRoomResponseDto> getRoomsForUser(Long currentUserId, Pageable pageable) {
         log.info("[getRoomsForUser] 채팅방 목록 조회 - 사용자 ID: {}", currentUserId);
-        Page<DirectRoom> rooms = directRoomRepository.findBySenderIdOrReceiverIdWithUsersAndItem(currentUserId, pageable);
+        Page<DirectRoom> rooms = directRoomRepository.findBySenderIdOrReceiverIdWithUsersAndItem(currentUserId,
+                pageable);
 
         if (rooms.isEmpty()) {
             return Page.empty(pageable);
         }
 
-        java.util.List<Long> roomIds = rooms.stream().map(DirectRoom::getId).toList();
-        java.util.List<Long> opponentIds = rooms.stream()
-            .map(room -> room.getSender().getId().equals(currentUserId) ? room.getReceiver().getId() : room.getSender().getId())
-            .toList();
+        List<Long> roomIds = rooms.stream().map(DirectRoom::getId).toList();
+        List<Long> opponentIds = rooms.stream()
+                .map(room -> room.getSender().getId().equals(currentUserId) ? room.getReceiver().getId()
+                        : room.getSender().getId())
+                .toList();
 
         // Batch fetch unread counts
-        java.util.List<Object[]> unreadCountsResult = directMessageRepository.countUnreadMsgInBatch(roomIds, currentUserId);
-        java.util.Map<Long, Long> unreadCountsMap = new java.util.HashMap<>();
+        List<Object[]> unreadCountsResult = directMessageRepository.countUnreadMsgInBatch(roomIds, currentUserId);
+        Map<Long, Long> unreadCountsMap = new HashMap<>();
         for (Object[] row : unreadCountsResult) {
             unreadCountsMap.put((Long) row[0], (Long) row[1]);
         }
 
         // Batch fetch online statuses
-        java.util.Map<Long, Boolean> onlineStatusesMap = userConnectService.getOnlineStatuses(opponentIds);
+        Map<Long, Boolean> onlineStatusesMap = userConnectService.getOnlineStatuses(opponentIds);
 
         return rooms.map(
-            room -> {
-                Long opponentId = room.getSender().getId().equals(currentUserId)
-                    ? room.getReceiver().getId()
-                    : room.getSender().getId();
+                room -> {
+                    Long opponentId = room.getSender().getId().equals(currentUserId)
+                            ? room.getReceiver().getId()
+                            : room.getSender().getId();
 
-                boolean isOnline = onlineStatusesMap.getOrDefault(opponentId, false);
-                Long unreadCount = unreadCountsMap.getOrDefault(room.getId(), 0L);
+                    boolean isOnline = onlineStatusesMap.getOrDefault(opponentId, false);
+                    Long unreadCount = unreadCountsMap.getOrDefault(room.getId(), 0L);
 
-                log.debug("[getRoomsForUser] 채팅방 ID: {}, 상대방 ID: {}, 상대방 온라인 여부: {}", room.getId(), opponentId, isOnline);
-                return DirectRoomResponseDto.from(room, unreadCount, currentUserId, isOnline);
-            });
+                    log.debug("[getRoomsForUser] 채팅방 ID: {}, 상대방 ID: {}, 상대방 온라인 여부: {}", room.getId(), opponentId,
+                            isOnline);
+                    return DirectRoomResponseDto.from(room, unreadCount, currentUserId, isOnline);
+                });
     }
 
     @Transactional(readOnly = true)
     public DirectRoomItemResponseDto getRoomItem(Long directRoomId, Long currentUserId) {
-        DirectRoom room =
-            directRoomRepository
+        DirectRoom room = directRoomRepository
                 .findById(directRoomId)
                 .orElseThrow(() -> new InvalidRequestException(ExceptionCode.CHATROOM_NOT_FOUND));
 
         ExchangeRequest exchangeRequest = room.getExchangeRequest();
-        
-        // [FIX] 문제 1: 권한 검사 시에도 room이 아닌 exchangeRequest.getSender() / getReceiver()를 
+
+        // [FIX] 문제 1: 권한 검사 시에도 room이 아닌 exchangeRequest.getSender() / getReceiver()를
         // 사용하여 추후 발생할 수 있는 검증 불일치 방지 및 대칭성 보장
         boolean isSender = exchangeRequest.getSender().getId().equals(currentUserId);
         boolean isReceiver = exchangeRequest.getReceiver().getId().equals(currentUserId);
@@ -146,15 +151,14 @@ public class DirectRoomService {
     public void deleteRoom(Long directRoomId, Long currentUserId) {
         log.info("[deleteRoom] 채팅방 삭제 요청 - roomId: {}, userId: {}", directRoomId, currentUserId);
 
-        DirectRoom room =
-            directRoomRepository
+        DirectRoom room = directRoomRepository
                 .findById(directRoomId)
                 .orElseThrow(
-                    () -> {
-                        log.warn("[deleteRoom] 채팅방 존재하지 않음 - roomId: {}", directRoomId);
-                        return new InvalidRequestException(
-                            ExceptionCode.CHATROOM_NOT_FOUND);
-                    });
+                        () -> {
+                            log.warn("[deleteRoom] 채팅방 존재하지 않음 - roomId: {}", directRoomId);
+                            return new InvalidRequestException(
+                                    ExceptionCode.CHATROOM_NOT_FOUND);
+                        });
 
         boolean isSender = room.getSender().getId().equals(currentUserId);
         boolean isReceiver = room.getReceiver().getId().equals(currentUserId);
@@ -173,19 +177,18 @@ public class DirectRoomService {
     @Transactional
     public void deleteRoomByExchangeRequestId(Long exchangeRequestId) {
         log.info(
-            "[deleteRoomByExchangeRequestId] 교환요청 기반 채팅방 삭제 - exchangeRequestId: {}",
-            exchangeRequestId);
-        DirectRoom room =
-            directRoomRepository
+                "[deleteRoomByExchangeRequestId] 교환요청 기반 채팅방 삭제 - exchangeRequestId: {}",
+                exchangeRequestId);
+        DirectRoom room = directRoomRepository
                 .findByExchangeRequestId(exchangeRequestId)
                 .orElseThrow(
-                    () -> {
-                        log.warn(
-                            "[deleteRoomByExchangeRequestId] 채팅방 존재하지 않음 - exchangeRequestId: {}",
-                            exchangeRequestId);
-                        return new InvalidRequestException(
-                            ExceptionCode.CHATROOM_NOT_FOUND);
-                    });
+                        () -> {
+                            log.warn(
+                                    "[deleteRoomByExchangeRequestId] 채팅방 존재하지 않음 - exchangeRequestId: {}",
+                                    exchangeRequestId);
+                            return new InvalidRequestException(
+                                    ExceptionCode.CHATROOM_NOT_FOUND);
+                        });
 
         directMessageRepository.deleteAllByDirectRoomId(room.getId());
         directRoomRepository.delete(room);
@@ -193,12 +196,13 @@ public class DirectRoomService {
     }
 
     @Transactional(readOnly = true)
-    public java.util.List<com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomMessageResponse> getMessagesAfter(
-            Long roomId, java.time.LocalDateTime afterTimestamp, Long currentUserId) {
-        log.info("[getMessagesAfter] 누락 메시지 조회 - roomId: {}, after: {}, userId: {}", roomId, afterTimestamp, currentUserId);
+    public List<DirectRoomMessageResponse> getMessagesAfter(
+            Long roomId, LocalDateTime afterTimestamp, Long currentUserId) {
+        log.info("[getMessagesAfter] 누락 메시지 조회 - roomId: {}, after: {}, userId: {}", roomId, afterTimestamp,
+                currentUserId);
 
         DirectRoom room = directRoomRepository.findById(roomId)
-            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.CHATROOM_NOT_FOUND));
+                .orElseThrow(() -> new InvalidRequestException(ExceptionCode.CHATROOM_NOT_FOUND));
 
         // 권한 검증
         boolean isSender = room.getSender().getId().equals(currentUserId);
@@ -208,8 +212,8 @@ public class DirectRoomService {
         }
 
         return directMessageRepository.findMessagesAfterTimestamp(roomId, afterTimestamp)
-            .stream()
-            .map(com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomMessageResponse::from)
-            .toList();
+                .stream()
+                .map(DirectRoomMessageResponse::from)
+                .toList();
     }
 }

@@ -2,6 +2,9 @@ package com.sparta.spartatigers.domain.directRoom.registry;
 
 import java.time.Duration;
 import java.util.Set;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -60,9 +63,10 @@ public class RedisUserSessionRegistry {
         return Boolean.TRUE.equals(redisTemplate.hasKey(userKey));
     }
 
-    public java.util.Map<Long, Boolean> areUsersConnected(java.util.List<Long> userIds) {
-        java.util.Map<Long, Boolean> result = new java.util.HashMap<>();
-        if (userIds == null || userIds.isEmpty()) return result;
+    public Map<Long, Boolean> areUsersConnected(List<Long> userIds) {
+        Map<Long, Boolean> result = new HashMap<>();
+        if (userIds == null || userIds.isEmpty())
+            return result;
 
         // 파이프라인 대신 간단히 여러 키의 존재 여부를 순회 검사
         // in-memory 연산이므로 50건 미만의 N은 성능 이슈 거의 없음
@@ -72,7 +76,6 @@ public class RedisUserSessionRegistry {
 
         return result;
     }
-
 
     public Long getUserIdBySessionId(String sessionId) {
         String sessionKey = "session-user:" + sessionId;
@@ -85,12 +88,12 @@ public class RedisUserSessionRegistry {
         return redisTemplate.opsForSet().members(userKey);
     }
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // 유저 입장시
     public void registerUserInRoom(Long roomId, Long userId) {
         String key = ROOM_USERS_KEY_PREFIX + roomId;
         redisTemplate.opsForSet().add(key, String.valueOf(userId));
-        redisTemplate.expire(key,Duration.ofHours(6)); // TODO: 일단 태정님하고 똑같이 6시간,,,
+        redisTemplate.expire(key, Duration.ofHours(6)); // TODO: 일단 태정님하고 똑같이 6시간,,,
     }
 
     // 유저 퇴장시
@@ -101,7 +104,7 @@ public class RedisUserSessionRegistry {
 
     // 방에 유저 있는지 확인
     public boolean isUserInRoom(Long roomId, Long userId) {
-        String key = ROOM_USERS_KEY_PREFIX +roomId;
-        return Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(key,String.valueOf(userId)));
+        String key = ROOM_USERS_KEY_PREFIX + roomId;
+        return Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(key, String.valueOf(userId)));
     }
 }

@@ -20,7 +20,6 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,13 +29,10 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(
-        indexes = {
-            @Index(
-                    name = "idx_item_user_status_created",
-                    columnList = "user_id, status, created_at DESC"),
-            @Index(name = "idx_item_status_created_date", columnList = "status, created_date")
-        })
+@Table(indexes = {
+        @Index(name = "idx_item_user_status_created", columnList = "user_id, status, created_at DESC"),
+        @Index(name = "idx_item_status_created_date", columnList = "status, created_date")
+})
 public class Item extends BaseEntity {
 
     @Id
@@ -50,9 +46,11 @@ public class Item extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String image;
 
-    @Column private String seatInfo;
+    @Column
+    private String seatInfo;
 
-    @Column private String title;
+    @Column
+    private String title;
 
     @Column
     private String description;
@@ -67,29 +65,34 @@ public class Item extends BaseEntity {
     @Column(name = "created_date")
     private LocalDate createdDate;
 
-    @Column private Double latitude;
+    @Column
+    private Double latitude;
 
-    @Column private Double longitude;
+    @Column
+    private Double longitude;
 
-    @Column private String address;
+    @Column
+    private String address;
 
-    @Column(columnDefinition = "TEXT") private String desiredItem;
+    @Column(columnDefinition = "TEXT")
+    private String desiredItem;
 
-    @Version private Long version;
+    @Version
+    private Long version;
 
     public Item(
-        ItemCategory category,
-        String image,
-        String seatInfo,
-        String title,
-        String description,
-        Double latitude,
-        Double longitude,
-        String address,
-        String desiredItem,
-        ItemStatus status,
-        User user,
-        LocalDate createdDate) {
+            ItemCategory category,
+            String image,
+            String seatInfo,
+            String title,
+            String description,
+            Double latitude,
+            Double longitude,
+            String address,
+            String desiredItem,
+            ItemStatus status,
+            User user,
+            LocalDate createdDate) {
 
         this.category = category;
         this.image = image;
@@ -104,13 +107,6 @@ public class Item extends BaseEntity {
         this.user = user;
         this.createdDate = createdDate;
     }
-
-    // [REMOVED] Item.of(ItemCreateRequest, User, String) 팩토리 메서드
-    // 제거 이유:
-    // 1. 코드베이스 전체에서 호출처 없음 (dead code)
-    // 2. dto.location()의 위도/경도/주소를 모두 null로 무시 — ItemCreateRequest 필드 손실
-    // 3. ItemService.createItemWithImages()가 직접 생성자 호출로 location을 올바르게 전달 중
-    // → 유지 시 미래 호출자가 location 없는 아이템을 생성하는 버그 유발 가능성 제거
 
     public void validateUserIsOwner(User user) {
 
