@@ -1,5 +1,6 @@
 package com.sparta.spartatigers.domain.exchangerequest.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -36,6 +37,20 @@ public interface ExchangeRequestRepository extends JpaRepository<ExchangeRequest
 
     Optional<ExchangeRequest> findByIdAndStatus(
         Long exchangeRequestId, ExchangeStatus status);
+
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT e FROM exchange_request e WHERE e.id = :id")
+    Optional<ExchangeRequest> findByIdForUpdate(@Param("id") Long id);
+
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT e FROM exchange_request e WHERE e.item.id = :itemId AND e.status = :status")
+    List<ExchangeRequest> findByItemIdAndStatusForUpdate(@Param("itemId") Long itemId, @Param("status") ExchangeStatus status);
+
+    List<ExchangeRequest> findByItemIdAndStatus(
+        Long itemId, ExchangeStatus status);
+
+    List<ExchangeRequest> findByItemIdAndStatusIn(
+        Long itemId, List<ExchangeStatus> statuses);
 
     default ExchangeRequest findExchangeRequestByIdOrElseThrow(Long exchangeRequestId) {
         return findByIdAndStatus(exchangeRequestId, ExchangeStatus.PENDING)

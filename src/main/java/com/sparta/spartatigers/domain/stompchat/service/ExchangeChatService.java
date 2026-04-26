@@ -12,6 +12,7 @@ import com.sparta.spartatigers.domain.directRoom.model.DirectRoom;
 import com.sparta.spartatigers.domain.directRoom.registry.RedisUserSessionRegistry;
 import com.sparta.spartatigers.domain.directRoom.repository.DirectMessageRepository;
 import com.sparta.spartatigers.domain.directRoom.repository.DirectRoomRepository;
+import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeStatus;
 import com.sparta.spartatigers.domain.stompchat.pubsub.RedisDirectMessagePublisher;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.repository.UserRepository;
@@ -65,6 +66,31 @@ public class ExchangeChatService {
         if (room.isCompleted()) {
             log.warn("[sendMessage] 완료된 채팅방 전송 차단 - roomId: {}, senderId: {}", roomId, senderId);
             throw new InvalidRequestException(ExceptionCode.FORBIDDEN_REQUEST);
+        }
+
+        // [FIX] PENDING 상태에서 메시지 전송 차단 — 프론트 UI 제어에만 의존하지 말고 백엔드에서 강제
+        // 교환 요청이 ACCEPTED 상태여야만 메시지 전송 가능
+        ExchangeStatus exchangeStatus = room.getExchangeRequest().getStatus();
+        
+        // [FIX] 문제 3: switch 문을 통해 모든 도메인 상태를 명시적으로 매핑하여 모호함 제거
+        switch (exchangeStatus) {
+            case ACCEPTED -> { /* 전송 허용 */ }
+            case PENDING -> {
+                log.warn("[sendMessage] 비수락(PENDING) 상태 채팅방 전송 차단 - roomId: {}, senderId: {}", roomId, senderId);
+                throw new InvalidRequestException(ExceptionCode.EXCHANGE_NOT_ACCEPTED_PENDING);
+            }
+            case COMPLETED -> {
+                log.warn("[sendMessage] 완료(COMPLETED) 상태 채팅방 전송 차단 - roomId: {}, senderId: {}", roomId, senderId);
+                throw new InvalidRequestException(ExceptionCode.EXCHANGE_ALREADY_COMPLETED);
+            }
+            case REJECTED -> {
+                log.warn("[sendMessage] 거절(REJECTED) 상태 채팅방 전송 차단 - roomId: {}, senderId: {}", roomId, senderId);
+                throw new InvalidRequestException(ExceptionCode.EXCHANGE_ALREADY_REJECTED);
+            }
+            default -> {
+                log.error("[sendMessage] 알 수 없는 상태 - roomId: {}, status: {}", roomId, exchangeStatus);
+                throw new InvalidRequestException(ExceptionCode.INVALID_EXCHANGE_STATUS);
+            }
         }
 
         User sender = userRepository.findById(senderId)

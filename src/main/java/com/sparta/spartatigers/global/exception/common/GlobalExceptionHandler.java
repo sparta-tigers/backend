@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
@@ -81,6 +82,27 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.badRequest()
             .body(ApiResponse.error(ExceptionCode.INVALID_TYPE_EXCEPTION));
+    }
+
+    // [FIX] 문제 2: check-then-act 경합으로 DataIntegrityViolationException 발생 시 
+    // 무조건 ITEM_ALREADY_EXISTS 매핑하던 것을 UK_ACTIVE_ITEM_PER_USER 제약조건 위반인 경우에 한해 409로 분기. 
+    // 그 외(NOT NULL, 길이 초과 등)는 500 처리
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<?>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        String rootMessage = ex.getMostSpecificCause() != null
+            ? String.valueOf(ex.getMostSpecificCause().getMessage())
+            : "";
+        log.warn("DB 무결성 제약 위반: {}", rootMessage);
+
+        // UK_ACTIVE_ITEM_PER_USER 위반에 한해 ITEM_ALREADY_EXISTS로 매핑
+        if (rootMessage != null && rootMessage.toUpperCase().contains("UK_ACTIVE_ITEM_PER_USER")) {
+            return ResponseEntity.status(ExceptionCode.ITEM_ALREADY_EXISTS.getHttpStatus())
+                .body(ApiResponse.error(ExceptionCode.ITEM_ALREADY_EXISTS));
+        }
+
+        // 그 외 무결성 위반은 일반 처리
+        return ResponseEntity.status(ExceptionCode.INTERNAL_SERVER_ERROR.getHttpStatus())
+            .body(ApiResponse.error(ExceptionCode.INTERNAL_SERVER_ERROR));
     }
 
     /**

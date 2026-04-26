@@ -35,14 +35,26 @@ public class AuthArgumentResolver implements HandlerMethodArgumentResolver {
             WebDataBinderFactory binderFactory) {
         HttpServletRequest request = (HttpServletRequest) webRequest.getNativeRequest();
         String bearerToken = request.getHeader("Authorization");
-        if (bearerToken == null || bearerToken.isBlank() || !bearerToken.regionMatches(true, 0, "Bearer ", 0, 7)) {
+        if (bearerToken == null || bearerToken.isBlank()) {
+            throw new InvalidRequestException(ExceptionCode.UNAUTHORIZED);
+        }
+        
+        // [FIX] regionMatches(true, ...) → startsWith("Bearer ")로 변경
+        // RFC 6750 §2.1: Bearer 스킴은 정확히 "Bearer"(대소문자 구분)이어야 함
+        // StompInterceptor(L48)도 startsWith("Bearer ")로 검증 — 양쪽 RFC 준수 방식으로 통일
+        if (!bearerToken.startsWith("Bearer ")) {
             throw new InvalidRequestException(ExceptionCode.UNAUTHORIZED);
         }
 
-        String accessToken = bearerToken.substring(7).trim();
-        if (accessToken.isBlank()) {
+        // 안전한 토큰 추출 (ArrayIndexOutOfBoundsException 방지)
+        String[] parts = bearerToken.split(" ", 2);
+        if (parts.length != 2 || parts[1].isBlank()) {
             throw new InvalidRequestException(ExceptionCode.UNAUTHORIZED);
         }
+
+        // [FIX] trim().isBlank() 중복 검사 제거
+        // parts[1].isBlank() 통과 시 trim()해도 blank 불가 — 도달 불가능한 분기 제거
+        String accessToken = parts[1].trim();
 
         return tokenService.parseAccessToken(accessToken);
     }

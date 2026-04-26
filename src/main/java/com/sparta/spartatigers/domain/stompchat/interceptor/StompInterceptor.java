@@ -16,7 +16,9 @@ import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class StompInterceptor implements ChannelInterceptor {
@@ -35,39 +37,59 @@ public class StompInterceptor implements ChannelInterceptor {
 		StompCommand command = accessor.getCommand();
 
 		if (StompCommand.CONNECT.equals(command)) {
+			// [DEBUG] CONNECT 시도 감지 로그
+			log.info("[StompInterceptor] CONNECT 시도 감지 - sessionId: {}", accessor.getSessionId());
+
+			// [FIX] 인증(Authentication)을 도메인 검증(Authorization)보다 먼저 수행
+			// 순서: 1. 토큰 추출 및 검증 → 2. 도메인 해석
+			String rawToken = accessor.getFirstNativeHeader("Authorization");
+
+			// [FIX] 토큰 없음 또는 형식 오류 → 명시적 예외로 CONNECT 거절 (인증 우회 방지)
+			if (rawToken == null || !rawToken.startsWith("Bearer ")) {
+				log.warn("[StompInterceptor] 토큰 없음 또는 형식 오류 - sessionId: {}, Authorization 헤더: {}", accessor.getSessionId(), rawToken);
+				throw new IllegalArgumentException("WebSocket CONNECT 시 Authorization Bearer 토큰이 필요합니다.");
+			}
+
+			String token = rawToken.substring(7);
+
+			// [FIX] parseAccessToken은 실패 시 항상 InvalidRequestException을 throw하므로
+			// try-catch로 감싸 일관된 예외 처리를 보장한다 (dead code였던 null 체크 제거)
+			TokenClaim claims;
+			try {
+				claims = jwtTokenService.parseAccessToken(token);
+			} catch (Exception e) {
+				log.warn("[StompInterceptor] JWT 검증 실패 - sessionId: {}, 원인: {}", accessor.getSessionId(), e.getMessage());
+				throw new IllegalArgumentException("WebSocket CONNECT 토큰 검증에 실패했습니다.");
+			}
+
+			String email = claims.getSubject();
+			User user = userRepository.findByEmail(email).orElseThrow();
+			String userId = String.valueOf(user.getId());
+			String nickname = user.getNickname();
+
+			// 웹소켓에 사용자 등록
+			StompPrincipal principal = new StompPrincipal(userId, nickname);
+			accessor.setUser(principal);
+
+			// [FIX] 인증 완료 후 도메인 해석 (인증 → 인가 순서 준수)
 			String domainRaw = accessor.getFirstNativeHeader(CHAT_DOMAIN_TYPE);
 			ChatDomainType domain = resolveDomain(domainRaw);
 
-			String token = accessor.getFirstNativeHeader("Authorization");
-
-			// 토큰 있음
-			if (token != null && token.startsWith("Bearer ")) {
-				token = token.substring(7);
-				TokenClaim claims = jwtTokenService.parseAccessToken(token);
-				if (claims != null) {
-					String email = claims.getSubject();
-					User user = userRepository.findByEmail(email).orElseThrow();
-					String userId = String.valueOf(user.getId());
-					String nickname = user.getNickname();
-
-					// 웹소켓에 사용자 등록
-					StompPrincipal principal = new StompPrincipal(userId, nickname);
-					accessor.setUser(principal);
-
-					if(domain.equals(ChatDomainType.EXCHANGE)){
-						userSessionRegistry.registerSession(user.getId(), accessor.getSessionId());
-					}
-				}
+			if (domain.equals(ChatDomainType.EXCHANGE)) {
+				userSessionRegistry.registerSession(user.getId(), accessor.getSessionId());
 			}
 		}
 		return message;
 	}
 
 	private ChatDomainType resolveDomain(String domainRaw) {
+		if (domainRaw == null || domainRaw.isBlank()) {
+			throw new IllegalArgumentException("ChatDomain 헤더가 필수입니다. 클라이언트 STOMP connectHeaders에 ChatDomain을 명시하세요.");
+		}
 		if ("liveboard".equalsIgnoreCase(domainRaw)) return ChatDomainType.LIVEBOARD;
 		if ("directroom".equalsIgnoreCase(domainRaw)) return ChatDomainType.EXCHANGE;
 		if ("location".equalsIgnoreCase(domainRaw)) return ChatDomainType.LOCATION;
-		throw new RuntimeException("ChatDomain 헤더가 올바르지 않습니다.");
+		throw new IllegalArgumentException("지원하지 않는 ChatDomain: '" + domainRaw + "'. 허용값: liveboard, directroom, location");
 	}
 
 }

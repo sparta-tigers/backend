@@ -3,7 +3,6 @@ package com.sparta.spartatigers.domain.item.model;
 import java.time.LocalDate;
 
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
-import com.sparta.spartatigers.domain.item.dto.request.CreateItemRequestDto;
 import com.sparta.spartatigers.domain.item.dto.request.UpdateItemRequestDto;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
@@ -21,7 +20,6 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,18 +29,10 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(
-        uniqueConstraints = {
-            @UniqueConstraint(
-                    name = "UNIQUE_USER_ITEM",
-                    columnNames = {"user_id", "created_date"})
-        },
-        indexes = {
-            @Index(
-                    name = "idx_item_user_status_created",
-                    columnList = "user_id, status, created_at DESC"),
-            @Index(name = "idx_item_status_created_date", columnList = "status, created_date")
-        })
+@Table(indexes = {
+        @Index(name = "idx_item_user_status_created", columnList = "user_id, status, created_at DESC"),
+        @Index(name = "idx_item_status_created_date", columnList = "status, created_date")
+})
 public class Item extends BaseEntity {
 
     @Id
@@ -56,9 +46,11 @@ public class Item extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String image;
 
-    @Column private String seatInfo;
+    @Column
+    private String seatInfo;
 
-    @Column private String title;
+    @Column
+    private String title;
 
     @Column
     private String description;
@@ -73,26 +65,34 @@ public class Item extends BaseEntity {
     @Column(name = "created_date")
     private LocalDate createdDate;
 
-    @Column private Double latitude;
+    @Column
+    private Double latitude;
 
-    @Column private Double longitude;
+    @Column
+    private Double longitude;
 
-    @Column private String address;
+    @Column
+    private String address;
 
-    @Version private Long version;
+    @Column(columnDefinition = "TEXT")
+    private String desiredItem;
+
+    @Version
+    private Long version;
 
     public Item(
-        ItemCategory category,
-        String image,
-        String seatInfo,
-        String title,
-        String description,
-        Double latitude,
-        Double longitude,
-        String address,
-        ItemStatus status,
-        User user,
-        LocalDate createdDate) {
+            ItemCategory category,
+            String image,
+            String seatInfo,
+            String title,
+            String description,
+            Double latitude,
+            Double longitude,
+            String address,
+            String desiredItem,
+            ItemStatus status,
+            User user,
+            LocalDate createdDate) {
 
         this.category = category;
         this.image = image;
@@ -102,24 +102,10 @@ public class Item extends BaseEntity {
         this.latitude = latitude;
         this.longitude = longitude;
         this.address = address;
+        this.desiredItem = desiredItem;
         this.status = status;
         this.user = user;
         this.createdDate = createdDate;
-    }
-
-    public static Item of(CreateItemRequestDto dto, User user, String image) {
-        return new Item(
-            dto.category(),
-            image,
-            dto.seatInfo(),
-            dto.title(),
-            dto.description(),
-            null,
-            null,
-            null,
-            ItemStatus.REGISTERED,
-            user,
-            LocalDate.now());
     }
 
     public void validateUserIsOwner(User user) {

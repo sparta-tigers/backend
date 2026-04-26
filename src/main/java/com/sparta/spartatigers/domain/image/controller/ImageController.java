@@ -24,8 +24,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ImageController {
     
-    @Value("${image.storage.path:./uploads}")
-    private String uploadDirectory;
+    // [FIX] 문제 4: 생성자에서만 할당되므로 final로 불변성 보장
+    // LocalImageStorageServiceImpl도 동일한 ${image.storage.path} 프로퍼티를 정규화하므로
+    // 향후 경로 정책 변경 시 한쪽만 바뀌는 위험이 있음 — UploadPathProvider 공유 빈으로의 추출도 고려 가능
+    private final String uploadDirectory;
+
+    public ImageController(@Value("${image.storage.path:./uploads}") String uploadPath) {
+        this.uploadDirectory = java.nio.file.Paths.get(uploadPath).toAbsolutePath().normalize().toString();
+    }
 
     @GetMapping("/{fileName}")
     public ResponseEntity<Resource> getImage(@PathVariable String fileName) {

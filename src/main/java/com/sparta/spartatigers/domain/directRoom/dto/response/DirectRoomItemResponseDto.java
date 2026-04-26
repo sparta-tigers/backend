@@ -18,8 +18,11 @@ public class DirectRoomItemResponseDto {
     private String status;
     private Long ownerId;
     private String ownerNickname;
+    private String exchangeStatus;
+    private Long opponentId;
+    private String opponentNickname;
 
-    public static DirectRoomItemResponseDto from(Item item) {
+    public static DirectRoomItemResponseDto from(Item item, String exchangeStatus, Long opponentId, String opponentNickname) {
         return new DirectRoomItemResponseDto(
             item.getId(),
             item.getTitle(),
@@ -27,6 +30,9 @@ public class DirectRoomItemResponseDto {
             item.getCategory().name(),
             item.getStatus().name(),
             item.getUser().getId(),
-            item.getUser().getNickname());
+            item.getUser().getNickname(),
+            exchangeStatus,
+            opponentId,
+            opponentNickname);
     }
 }

@@ -67,6 +67,10 @@ public enum ExceptionCode {
     // 교환 요청
     EXCHANGE_REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "교환 요청을 찾을 수 없습니다.", LogLevel.DEBUG),
     EXCHANGE_REQUEST_DUPLICATED(HttpStatus.BAD_REQUEST, ErrorCode.E400, "이미 교환 요청을 보냈습니다.", LogLevel.DEBUG),
+    EXCHANGE_NOT_ACCEPTED_PENDING(HttpStatus.FORBIDDEN, ErrorCode.E403, "수락 대기 중인 교환입니다.", LogLevel.DEBUG),
+    EXCHANGE_ALREADY_COMPLETED(HttpStatus.FORBIDDEN, ErrorCode.E403, "이미 교환 완료된 아이템입니다.", LogLevel.DEBUG),
+    EXCHANGE_ALREADY_REJECTED(HttpStatus.FORBIDDEN, ErrorCode.E403, "이미 거절된 교환 요청입니다.", LogLevel.DEBUG),
+    INVALID_EXCHANGE_STATUS(HttpStatus.BAD_REQUEST, ErrorCode.E400, "올바르지 않은 교환 상태입니다.", LogLevel.DEBUG),
 
     // 아이템
     ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "아이템을 찾을 수 없습니다.", LogLevel.DEBUG),
@@ -75,6 +79,7 @@ public enum ExceptionCode {
     RECEIVER_FORBIDDEN(HttpStatus.FORBIDDEN, ErrorCode.E403, "요청을 받은 사용자만 요청을 수정할 수 있습니다.", LogLevel.DEBUG),
     LOCATION_NOT_VALID(HttpStatus.BAD_REQUEST, ErrorCode.E400, "아이템은 야구장 근처에서만 등록할 수 있습니다.", LogLevel.DEBUG),
     ITEM_FORBIDDEN(HttpStatus.FORBIDDEN, ErrorCode.E403, "아이템의 소유자가 아닙니다.", LogLevel.DEBUG),
+    ITEM_ALREADY_EXISTS(HttpStatus.CONFLICT, ErrorCode.E409, "이미 등록된 활성 아이템이 있습니다.", LogLevel.DEBUG),
 
     // 팀
     TEAM_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "팀이 존재하지 않습니다.", LogLevel.DEBUG),
