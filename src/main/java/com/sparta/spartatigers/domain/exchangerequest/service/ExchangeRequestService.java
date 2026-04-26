@@ -77,6 +77,7 @@ public class ExchangeRequestService {
         return saved.getId();
     }
 
+    @Transactional(readOnly = true)
     public Page<ReceiveRequestResponseDto> findAllReceiveRequest(TokenClaim tokenClaim, Pageable pageable) {
         User user = getUser(tokenClaim.getUserId());
         Page<ExchangeRequest> exchangeRequestList = exchangeRequestRepository.findAllReceiveRequest(
@@ -85,6 +86,7 @@ public class ExchangeRequestService {
         return mapToReceiveResponse(exchangeRequestList);
     }
 
+    @Transactional(readOnly = true)
     public Page<SendRequestResponseDto> findAllSendRequest(TokenClaim tokenClaim, Pageable pageable) {
         User user = getUser(tokenClaim.getUserId());
         Page<ExchangeRequest> exchangeRequestList = exchangeRequestRepository.findAllSentRequest(
@@ -111,10 +113,14 @@ public class ExchangeRequestService {
             DirectRoomCreateResponseDto roomCreateDto = directRoomService.createRoom(exchangeRequestId, user.getId());
             
             // [FIX] 문제 3: 트랜잭션 롤백 시 알림만 남는 문제 방지 — 커밋 보장 후 알림 발송
+            // [FIX] Detached 상태에서의 Lazy 로딩 방지를 위해 필요한 값 미리 추출
+            final String deviceToken = exchangeRequest.getSender().getDeviceToken();
+            final Long senderId = exchangeRequest.getSender().getId();
+
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    sendNotificationToSender(exchangeRequest, "교환 요청 수락", "교환 요청이 수락되었습니다. 채팅방에서 대화를 시작해보세요!");
+                    sendNotificationToSenderDirectly(deviceToken, senderId, "교환 요청 수락", "교환 요청이 수락되었습니다. 채팅방에서 대화를 시작해보세요!");
                 }
             });
             return ExchangeRoomResponseDto.from(roomCreateDto);
@@ -122,10 +128,14 @@ public class ExchangeRequestService {
 
         if (exchangeRequest.getStatus() == ExchangeStatus.REJECTED) {
             // [FIX] 문제 3: 트랜잭션 롤백 시 알림만 남는 문제 방지 — 커밋 보장 후 알림 발송
+            // [FIX] Detached 상태에서의 Lazy 로딩 방지를 위해 필요한 값 미리 추출
+            final String deviceToken = exchangeRequest.getSender().getDeviceToken();
+            final Long senderId = exchangeRequest.getSender().getId();
+
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    sendNotificationToSender(exchangeRequest, "교환 요청 거절", "아쉽게도 교환 요청이 거절되었습니다.");
+                    sendNotificationToSenderDirectly(deviceToken, senderId, "교환 요청 거절", "아쉽게도 교환 요청이 거절되었습니다.");
                 }
             });
             // 거절 내역(History) 유지를 위해 삭제하지 않음. DirectRoom 또한 보존하지만 프론트엔드에서 disabled 처리됨.
@@ -137,38 +147,32 @@ public class ExchangeRequestService {
     }
 
     private void rejectOtherPendingRequests(Item item, Long acceptedRequestId) {
-        List<ExchangeRequest> pendingRequests = exchangeRequestRepository.findByItemIdAndStatus(item.getId(), ExchangeStatus.PENDING);
+        // [FIX] 동시 수락/요청 시 정합성 보장을 위해 비관적 락(PESSIMISTIC_WRITE) 적용
+        List<ExchangeRequest> pendingRequests = exchangeRequestRepository.findByItemIdAndStatusForUpdate(item.getId(), ExchangeStatus.PENDING);
         for (ExchangeRequest req : pendingRequests) {
             if (!req.getId().equals(acceptedRequestId)) {
                 req.updateStatus(ExchangeStatus.REJECTED);
-                // [FIX] 자동 거절된 요청자에게도 알림 발송 (수동 거절과 사용자 경험 통일)
-                // [FIX] 문제 3: 트랜잭션 롤백 시 알림만 남는 문제 방지 — 커밋 보장 후 알림 발송
+                // [FIX] 자동 거절된 요청자에게도 알림 발송
+                final String deviceToken = req.getSender().getDeviceToken();
+                final Long senderId = req.getSender().getId();
+                
                 TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                     @Override
                     public void afterCommit() {
-                        sendNotificationToSender(req, "교환 요청 거절", "아쉽게도 교환 요청이 거절되었습니다.");
+                        sendNotificationToSenderDirectly(deviceToken, senderId, "교환 요청 거절", "아쉽게도 교환 요청이 거절되었습니다.");
                     }
                 });
             }
         }
     }
 
-    private void sendNotificationToSender(ExchangeRequest exchangeRequest, String title, String body) {
-        User sender = exchangeRequest.getSender();
-        if (sender != null && sender.getDeviceToken() != null && !sender.getDeviceToken().isBlank()) {
+    private void sendNotificationToSenderDirectly(String deviceToken, Long senderId, String title, String body) {
+        if (deviceToken != null && !deviceToken.isBlank()) {
             try {
-                fcmService.sendMessageToToken(sender.getDeviceToken(), title, body);
-            // [FIX] 문제 1: catch(Exception) → catch(FirebaseException)으로 축소
-            // FCMService.sendMessageToToken()은 FirebaseMessagingException을 내부에서
-            // FirebaseException으로 변환하여 throw — 정확한 타입으로 좁혀 NPE 등 런타임 버그가 묻히는 것 방지
-            // InvalidRequestException 등 애플리케이션 예외는 catch하지 않고 그대로 전파
+                fcmService.sendMessageToToken(deviceToken, title, body);
             } catch (FirebaseException e) {
-                log.warn("[FCM] 알림 발송 실패 - userId: {}, deviceToken: {}, title: {}, error: [{}] {}",
-                    sender.getId(),
-                    sender.getDeviceToken().substring(0, Math.min(10, sender.getDeviceToken().length())) + "...",
-                    title,
-                    e.getClass().getSimpleName(),
-                    e.getMessage());
+                log.warn("[FCM] 알림 발송 실패 - userId: {}, title: {}, error: [{}] {}",
+                    senderId, title, e.getClass().getSimpleName(), e.getMessage());
             }
         }
     }

@@ -38,6 +38,10 @@ public interface ExchangeRequestRepository extends JpaRepository<ExchangeRequest
     Optional<ExchangeRequest> findByIdAndStatus(
         Long exchangeRequestId, ExchangeStatus status);
 
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT e FROM exchange_request e WHERE e.item.id = :itemId AND e.status = :status")
+    List<ExchangeRequest> findByItemIdAndStatusForUpdate(@Param("itemId") Long itemId, @Param("status") ExchangeStatus status);
+
     List<ExchangeRequest> findByItemIdAndStatus(
         Long itemId, ExchangeStatus status);
 

@@ -287,13 +287,17 @@ public class ItemService {
             return;
         }
 
+        // [FIX] 트랜잭션 종료(Detached) 후 Lazy 로딩 방지를 위해 필요한 값 미리 캡처
+        final String deviceToken = sender.getDeviceToken();
+        final Long senderId = sender.getId();
+
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
                 try {
-                    fcmService.sendMessageToToken(sender.getDeviceToken(), title, body);
+                    fcmService.sendMessageToToken(deviceToken, title, body);
                 } catch (FirebaseException e) {
-                    log.warn("[FCM 발송 실패] 수신자: {}, 사유: {}", sender.getId(), e.getMessage());
+                    log.warn("[FCM 발송 실패] 수신자: {}, 사유: {}", senderId, e.getMessage());
                 }
             }
         });

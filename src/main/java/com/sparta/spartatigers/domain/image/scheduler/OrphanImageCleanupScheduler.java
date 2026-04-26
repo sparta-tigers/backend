@@ -55,7 +55,7 @@ public class OrphanImageCleanupScheduler {
     /**
      * 매일 새벽 3시에 실행: DB에 참조되지 않는 고아 이미지 파일을 삭제한다.
      */
-    @Scheduled(cron = "0 0 3 * * *")
+    @Scheduled(cron = "0 0 3 * * *", zone = "Asia/Seoul")
     public void cleanupOrphanImages() {
         log.info("[OrphanImageCleanup] 고아 이미지 정리 시작 - 디렉토리: {}", uploadDirPath);
 

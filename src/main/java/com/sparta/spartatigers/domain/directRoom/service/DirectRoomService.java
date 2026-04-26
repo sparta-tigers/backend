@@ -71,6 +71,7 @@ public class DirectRoomService {
         return DirectRoomCreateResponseDto.from(room);
     }
 
+    @Transactional(readOnly = true)
     public Page<DirectRoomResponseDto> getRoomsForUser(Long currentUserId, Pageable pageable) {
         log.info("[getRoomsForUser] 채팅방 목록 조회 - 사용자 ID: {}", currentUserId);
         Page<DirectRoom> rooms = directRoomRepository.findBySenderIdOrReceiverIdWithUsersAndItem(currentUserId,
@@ -84,6 +85,7 @@ public class DirectRoomService {
         List<Long> opponentIds = rooms.stream()
                 .map(room -> room.getSender().getId().equals(currentUserId) ? room.getReceiver().getId()
                         : room.getSender().getId())
+                .distinct()
                 .toList();
 
         // Batch fetch unread counts
