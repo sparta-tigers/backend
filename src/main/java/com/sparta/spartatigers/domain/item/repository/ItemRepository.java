@@ -28,26 +28,29 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     @EntityGraph(attributePaths = "user")
     @Query(value = "SELECT i FROM items i WHERE i.status = :itemStatus AND i.createdDate = :createdDate AND " +
-           // [FIX] latitude/longitude가 null인 아이템은 Haversine 식에서 자동 제외되지만,
-           // NULL 좌표 처리 의도를 명시적으로 드러내어 유지보수성을 향상시킵니다.
-           "i.latitude IS NOT NULL AND i.longitude IS NOT NULL AND " +
-           // [FIX] 본인 아이템 제외 — findAllItems 경로(nearByUserIds.add(userId))와 동작 일치
+           // [FIX] 공간 쿼리 최적화: 삼각함수 연산 전 인덱스를 탈 수 있는 Bounding Box Prefilter 적용
+           "i.latitude BETWEEN :minLat AND :maxLat AND i.longitude BETWEEN :minLon AND :maxLon AND " +
            "i.user.id != :userId AND " +
-           "(6371 * acos(cos(radians(:latitude)) * cos(radians(i.latitude)) * " +
+           // [FIX] 부동소수점 오차 방어: acos() 인자가 1.0을 초과하지 않도록 LEAST(1.0, ...) 처리
+           "(6371 * acos(LEAST(1.0, cos(radians(:latitude)) * cos(radians(i.latitude)) * " +
            "cos(radians(i.longitude) - radians(:longitude)) + sin(radians(:latitude)) * " +
-           "sin(radians(i.latitude))) <= :radius)",
+           "sin(radians(i.latitude)))) <= :radius)",
            countQuery = "SELECT count(i) FROM items i WHERE i.status = :itemStatus AND i.createdDate = :createdDate AND " +
-                       "i.latitude IS NOT NULL AND i.longitude IS NOT NULL AND " +
-                       "i.user.id != :userId AND " +
-                       "(6371 * acos(cos(radians(:latitude)) * cos(radians(i.latitude)) * " +
-                       "cos(radians(i.longitude) - radians(:longitude)) + sin(radians(:latitude)) * " +
-                       "sin(radians(i.latitude))) <= :radius)")
+                        "i.latitude BETWEEN :minLat AND :maxLat AND i.longitude BETWEEN :minLon AND :maxLon AND " +
+                        "i.user.id != :userId AND " +
+                        "(6371 * acos(LEAST(1.0, cos(radians(:latitude)) * cos(radians(i.latitude)) * " +
+                        "cos(radians(i.longitude) - radians(:longitude)) + sin(radians(:latitude)) * " +
+                        "sin(radians(i.latitude)))) <= :radius)")
     Page<Item> findAllItemsByLocation(
             @Param("itemStatus") ItemStatus itemStatus,
             @Param("createdDate") LocalDate createdDate,
             @Param("userId") Long userId,
             @Param("latitude") Double latitude,
             @Param("longitude") Double longitude,
+            @Param("minLat") Double minLat,
+            @Param("maxLat") Double maxLat,
+            @Param("minLon") Double minLon,
+            @Param("maxLon") Double maxLon,
             @Param("radius") Double radius,
             Pageable pageable);
 

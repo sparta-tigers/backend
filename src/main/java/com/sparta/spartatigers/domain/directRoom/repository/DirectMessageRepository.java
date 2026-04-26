@@ -38,14 +38,19 @@ public interface DirectMessageRepository extends JpaRepository<DirectMessage, Lo
     List<DirectMessage> findUnreadMsg(@Param("roomId")Long roomId, @Param("userId")Long userId);
 
     @Query("""
-        SELECT m.directRoom.id, COUNT(m)
+        SELECT m.directRoom.id AS roomId, COUNT(m) AS count
         FROM direct_message m
         WHERE m.directRoom.id IN :roomIds
             AND m.sender.id <> :userId
             AND m.isRead = false
         GROUP BY m.directRoom.id
         """)
-    List<Object[]> countUnreadMsgInBatch(@Param("roomIds") List<Long> roomIds, @Param("userId") Long userId);
+    List<UnreadCountProjection> countUnreadMsgInBatch(@Param("roomIds") List<Long> roomIds, @Param("userId") Long userId);
+
+    interface UnreadCountProjection {
+        Long getRoomId();
+        Long getCount();
+    }
 
     @Query("""
         SELECT m FROM direct_message m

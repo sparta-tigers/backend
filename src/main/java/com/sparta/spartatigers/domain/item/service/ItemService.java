@@ -187,12 +187,26 @@ public class ItemService {
         if (latitude != null && longitude != null) {
             // [FIX] 문제 4: 2.0 값을 DEFAULT_LOCATION_SEARCH_RADIUS_KM 상수로 대체
             double searchRadius = radius != null ? radius : DEFAULT_LOCATION_SEARCH_RADIUS_KM;
+
+            // [FIX] 공간 쿼리 최적화: Bounding Box 계산 (1도 위도 ~= 111km)
+            double latDiff = searchRadius / 111.0;
+            double lonDiff = searchRadius / (111.0 * Math.cos(Math.toRadians(latitude)));
+
+            double minLat = latitude - latDiff;
+            double maxLat = latitude + latDiff;
+            double minLon = longitude - lonDiff;
+            double maxLon = longitude + lonDiff;
+
             return itemRepository.findAllItemsByLocation(
                 ItemStatus.REGISTERED,
                 LocalDate.now(),
                 userId,
                 latitude,
                 longitude,
+                minLat,
+                maxLat,
+                minLon,
+                maxLon,
                 searchRadius,
                 pageable
             ).map(item -> ReadItemResponseDto.from(item, this));

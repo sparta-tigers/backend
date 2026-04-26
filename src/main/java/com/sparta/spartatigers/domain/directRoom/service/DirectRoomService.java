@@ -88,11 +88,11 @@ public class DirectRoomService {
                 .distinct()
                 .toList();
 
-        // Batch fetch unread counts
-        List<Object[]> unreadCountsResult = directMessageRepository.countUnreadMsgInBatch(roomIds, currentUserId);
+        // [FIX] 문제 2: Object[] 원시 배열 대신 명시적인 Projection 인터페이스 사용 (타입 안정성 확보)
+        List<DirectMessageRepository.UnreadCountProjection> unreadCountsResult = directMessageRepository.countUnreadMsgInBatch(roomIds, currentUserId);
         Map<Long, Long> unreadCountsMap = new HashMap<>();
-        for (Object[] row : unreadCountsResult) {
-            unreadCountsMap.put((Long) row[0], (Long) row[1]);
+        for (DirectMessageRepository.UnreadCountProjection row : unreadCountsResult) {
+            unreadCountsMap.put(row.getRoomId(), row.getCount());
         }
 
         // Batch fetch online statuses
