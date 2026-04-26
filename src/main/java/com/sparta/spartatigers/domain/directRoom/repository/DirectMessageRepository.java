@@ -1,5 +1,6 @@
 package com.sparta.spartatigers.domain.directRoom.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -55,5 +56,6 @@ public interface DirectMessageRepository extends JpaRepository<DirectMessage, Lo
         """)
     List<DirectMessage> findMessagesAfterTimestamp(
         @Param("roomId") Long roomId,
-        @Param("afterTimestamp") java.time.LocalDateTime afterTimestamp);
+        @Param("afterTimestamp") LocalDateTime afterTimestamp,
+        Pageable pageable);
 }

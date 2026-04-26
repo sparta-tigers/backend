@@ -115,39 +115,40 @@ public class OrphanImageCleanupScheduler {
      * DB의 item.image 필드에서 참조 중인 모든 파일명을 추출한다.
      * image 필드는 JSON 배열(["url1", "url2"]) 또는 단일 URL 문자열일 수 있다.
      */
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     private Set<String> collectReferencedFileNames() {
         Set<String> fileNames = new HashSet<>();
-        List<String> allImageUrls = itemRepository.findAllImageUrls();
-
-        for (String imageField : allImageUrls) {
-            if (imageField == null || imageField.isBlank()) continue;
-
-            // JSON 배열 형태인 경우
-            if (imageField.startsWith("[")) {
-                try {
-                    List<String> urls = objectMapper.readValue(imageField, new TypeReference<List<String>>() {});
-                    for (String url : urls) {
-                        extractFileName(url, fileNames);
-                    }
-                } catch (Exception e) {
-                    // JSON 파싱 실패 시 콤마 분리 폴백 시도 (대괄호/따옴표 제거 후 split)
-                    log.warn("[OrphanImageCleanup] JSON 파싱 실패, 콤마 분리 폴백 시도: {}", imageField);
-                    String cleaned = imageField.replace("[", "").replace("]", "").replace("\"", "").trim();
-                    if (!cleaned.isEmpty()) {
-                        for (String url : cleaned.split(",")) {
+        try (java.util.stream.Stream<String> allImageUrls = itemRepository.findAllImageUrls()) {
+            allImageUrls.forEach(imageField -> {
+                if (imageField != null && !imageField.isBlank()) {
+                    // JSON 배열 형태인 경우
+                    if (imageField.startsWith("[")) {
+                        try {
+                            List<String> urls = objectMapper.readValue(imageField, new TypeReference<List<String>>() {});
+                            for (String url : urls) {
+                                extractFileName(url, fileNames);
+                            }
+                        } catch (Exception e) {
+                            // JSON 파싱 실패 시 콤마 분리 폴백 시도 (대괄호/따옴표 제거 후 split)
+                            log.warn("[OrphanImageCleanup] JSON 파싱 실패, 콤마 분리 폴백 시도: {}", imageField);
+                            String cleaned = imageField.replace("[", "").replace("]", "").replace("\"", "").trim();
+                            if (!cleaned.isEmpty()) {
+                                for (String url : cleaned.split(",")) {
+                                    extractFileName(url.trim(), fileNames);
+                                }
+                            }
+                        }
+                    } else if (imageField.contains(",")) {
+                        // 콤마 구분자 형태인 경우
+                        for (String url : imageField.split(",")) {
                             extractFileName(url.trim(), fileNames);
                         }
+                    } else {
+                        // 단일 URL인 경우
+                        extractFileName(imageField, fileNames);
                     }
                 }
-            } else if (imageField.contains(",")) {
-                // 콤마 구분자 형태인 경우
-                for (String url : imageField.split(",")) {
-                    extractFileName(url.trim(), fileNames);
-                }
-            } else {
-                // 단일 URL인 경우
-                extractFileName(imageField, fileNames);
-            }
+            });
         }
 
         return fileNames;

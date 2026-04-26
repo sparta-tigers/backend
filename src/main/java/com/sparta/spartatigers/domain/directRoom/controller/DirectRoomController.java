@@ -75,9 +75,10 @@ public class DirectRoomController {
     public ApiResponse<List<DirectRoomMessageResponse>> getMessagesAfter(
             @PathVariable Long directRoomId,
             @RequestParam("timestamp") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime timestamp,
-            @Auth TokenClaim tokenClaim) {
+            @Auth TokenClaim tokenClaim,
+            @PageableDefault(size = 100, sort = "sentAt", direction = Sort.Direction.ASC) Pageable pageable) {
         Long currentUserId = tokenClaim.getUserId();
-        var messages = directRoomService.getMessagesAfter(directRoomId, timestamp, currentUserId);
+        List<DirectRoomMessageResponse> messages = directRoomService.getMessagesAfter(directRoomId, timestamp, currentUserId, pageable);
         return ApiResponse.success(messages);
     }
 }

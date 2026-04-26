@@ -197,7 +197,7 @@ public class DirectRoomService {
 
     @Transactional(readOnly = true)
     public List<DirectRoomMessageResponse> getMessagesAfter(
-            Long roomId, LocalDateTime afterTimestamp, Long currentUserId) {
+            Long roomId, LocalDateTime afterTimestamp, Long currentUserId, Pageable pageable) {
         log.info("[getMessagesAfter] 누락 메시지 조회 - roomId: {}, after: {}, userId: {}", roomId, afterTimestamp,
                 currentUserId);
 
@@ -211,7 +211,7 @@ public class DirectRoomService {
             throw new InvalidRequestException(ExceptionCode.FORBIDDEN_REQUEST);
         }
 
-        return directMessageRepository.findMessagesAfterTimestamp(roomId, afterTimestamp)
+        return directMessageRepository.findMessagesAfterTimestamp(roomId, afterTimestamp, pageable)
                 .stream()
                 .map(DirectRoomMessageResponse::from)
                 .toList();

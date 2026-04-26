@@ -3,6 +3,7 @@ package com.sparta.spartatigers.domain.item.repository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -81,5 +82,5 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     // 고아 이미지 정리용: DB에 참조된 모든 이미지 URL 조회
     @Query("SELECT i.image FROM items i WHERE i.image IS NOT NULL")
-    List<String> findAllImageUrls();
+    Stream<String> findAllImageUrls();
 }
