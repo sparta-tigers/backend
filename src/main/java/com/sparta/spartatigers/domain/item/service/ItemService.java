@@ -62,10 +62,11 @@ public class ItemService {
 
     @Transactional(readOnly = true)
     public void validateCanCreateItem(TokenClaim tokenClaim) {
-        User user = userRepository.findById(tokenClaim.getUserId())
-            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
-            
-        if (itemRepository.existsByUserIdAndStatus(user.getId(), ItemStatus.REGISTERED)) {
+        checkDuplicateItemByUserId(tokenClaim.getUserId());
+    }
+
+    private void checkDuplicateItemByUserId(Long userId) {
+        if (itemRepository.existsByUserIdAndStatus(userId, ItemStatus.REGISTERED)) {
             throw new InvalidRequestException(ExceptionCode.ITEM_ALREADY_EXISTS);
         }
     }
@@ -75,10 +76,8 @@ public class ItemService {
         User user = userRepository.findById(tokenClaim.getUserId())
             .orElseThrow(() -> new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
 
-        // 이미 등록된 활성(REGISTERED) 상태의 아이템이 있는지 확인
-        if (itemRepository.existsByUserIdAndStatus(user.getId(), ItemStatus.REGISTERED)) {
-            throw new InvalidRequestException(ExceptionCode.ITEM_ALREADY_EXISTS);
-        }
+        // [FIX] 중복 검사 로직 일원화 (validateCanCreateItem과 동일한 로직 사용)
+        checkDuplicateItemByUserId(user.getId());
 
         // 이미지 URL 리스트를 JSON으로 안전하게 직렬화
         String imageUrlsJson = serializeImageUrls(imageUrls);
@@ -236,8 +235,9 @@ public class ItemService {
     public ReadItemDetailResponseDto findItemById(Long itemId, FindItemByIdRequestDto request) {
 
         Item item = itemRepository.findByIdAndStatusAndDateOrElseThrow(itemId);
-        Integer distance = locationService.calculateDistance(request.latitude(),
-            request.longitude(), item);
+        Double lat = request.latitude() != null ? request.latitude().doubleValue() : null;
+        Double lon = request.longitude() != null ? request.longitude().doubleValue() : null;
+        Integer distance = locationService.calculateDistance(lat, lon, item);
 
         return ReadItemDetailResponseDto.from(item, distance);
     }

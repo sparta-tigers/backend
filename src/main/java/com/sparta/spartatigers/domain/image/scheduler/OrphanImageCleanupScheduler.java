@@ -83,10 +83,15 @@ public class OrphanImageCleanupScheduler {
                 // DB에 참조되어 있으면 건너뛰기
                 if (referencedFileNames.contains(fileName)) continue;
 
-                // 생성 시간이 임계값보다 최근이면 아직 업로드 진행 중일 수 있으므로 건너뛰기
+                // [FIX] 문제 4: creationTime()은 리눅스 파일시스템에서 신뢰성이 낮음 (lastModifiedTime과 동일하거나 epoch 반환 가능)
+                // 안전을 위해 생성 시간과 수정 시간 중 더 최근 시각을 기준으로 24시간이 경과했는지 판단
                 try {
                     BasicFileAttributes attrs = Files.readAttributes(file, BasicFileAttributes.class);
-                    if (attrs.creationTime().toInstant().isAfter(threshold)) {
+                    Instant created = attrs.creationTime().toInstant();
+                    Instant modified = attrs.lastModifiedTime().toInstant();
+                    Instant referenceTime = created.isAfter(modified) ? created : modified;
+
+                    if (referenceTime.isAfter(threshold)) {
                         log.debug("[OrphanImageCleanup] 최근 파일이므로 건너뜀: {}", fileName);
                         continue;
                     }

@@ -1,17 +1,19 @@
 package com.sparta.spartatigers.domain.item.dto.request;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import java.math.BigDecimal;
 
-// [FIX] 선택적 쿼리 파라미터이므로 @NotNull 제거. 값이 있을 때만 범위 검증.
+// [FIX] 문제 5: Double 타입은 오차로 인해 @Min/@Max가 공식 지원되지 않음.
+// 정밀한 수치 검증을 위해 BigDecimal과 @DecimalMin/@DecimalMax로 변경.
 public record FindItemByIdRequestDto(
-    @Min(value = -90, message = "위도는 -90 이상이어야 합니다.")
-    @Max(value = 90, message = "위도는 90 이하이어야 합니다.")
-    Double latitude,
+    @DecimalMin(value = "-90.0", message = "위도는 -90 이상이어야 합니다.")
+    @DecimalMax(value = "90.0", message = "위도는 90 이하이어야 합니다.")
+    BigDecimal latitude,
 
-    @Min(value = -180, message = "경도는 -180 이상이어야 합니다.")
-    @Max(value = 180, message = "경도는 180 이하이어야 합니다.")
-    Double longitude
+    @DecimalMin(value = "-180.0", message = "경도는 -180 이상이어야 합니다.")
+    @DecimalMax(value = "180.0", message = "경도는 180 이하이어야 합니다.")
+    BigDecimal longitude
 ) {
 
 }

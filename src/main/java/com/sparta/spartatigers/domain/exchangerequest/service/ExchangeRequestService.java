@@ -3,7 +3,7 @@ package com.sparta.spartatigers.domain.exchangerequest.service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+
 
 import com.sparta.spartatigers.domain.exchangerequest.dto.response.SendRequestResponseDto;
 import com.sparta.spartatigers.global.exception.external.FirebaseException;
@@ -235,12 +235,13 @@ public class ExchangeRequestService {
     }
 
     private Map<Long, Long> getRoomIdMap(Page<ExchangeRequest> requests) {
+        // [FIX] Java 16+ Stream.toList() 사용 (불변 리스트 반환 및 가독성 향상)
         List<Long> requestIds = requests.stream()
             .map(ExchangeRequest::getId)
-            .collect(Collectors.toList());
+            .toList();
 
-        // [FIX] 문제 5: FQCN new java.util.HashMap<>() → import로 정리
-        Map<Long, Long> roomIdMap = new HashMap<>();
+        // [FIX] HashMap 초기 용량 힌트 제공으로 minor allocation 최적화
+        Map<Long, Long> roomIdMap = new HashMap<>(requestIds.size() * 2);
         if (!requestIds.isEmpty()) {
             List<DirectRoom> rooms = directRoomRepository.findByExchangeRequestIdIn(requestIds);
             for (DirectRoom room : rooms) {
