@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 @ConfigurationPropertiesScan
+@org.springframework.scheduling.annotation.EnableScheduling
 @SpringBootApplication
 public class SpartatigersApiApplication {
 

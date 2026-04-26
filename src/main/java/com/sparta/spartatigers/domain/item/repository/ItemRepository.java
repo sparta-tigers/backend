@@ -78,4 +78,8 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
             LocalDate.now()).orElseThrow(
             () -> new InvalidRequestException(ExceptionCode.ITEM_NOT_FOUND));
     }
+
+    // 고아 이미지 정리용: DB에 참조된 모든 이미지 URL 조회
+    @Query("SELECT i.image FROM items i WHERE i.image IS NOT NULL")
+    List<String> findAllImageUrls();
 }

@@ -68,4 +68,14 @@ public class DirectRoomController {
         directRoomService.deleteRoom(directRoomId, currentUserId);
         return ApiResponse.success("채팅방이 정상적으로 삭제되었습니다!");
     }
+
+    @GetMapping("/{directRoomId}/messages/after")
+    public ApiResponse<java.util.List<com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomMessageResponse>> getMessagesAfter(
+        @PathVariable Long directRoomId,
+        @org.springframework.web.bind.annotation.RequestParam("timestamp") @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime timestamp,
+        @Auth TokenClaim tokenClaim) {
+        Long currentUserId = tokenClaim.getUserId();
+        var messages = directRoomService.getMessagesAfter(directRoomId, timestamp, currentUserId);
+        return ApiResponse.success(messages);
+    }
 }

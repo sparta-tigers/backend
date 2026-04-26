@@ -58,6 +58,7 @@ public class ItemService {
     private final ExchangeRequestRepository exchangeRequestRepository;
     private final DirectRoomRepository directRoomRepository;
     private final FCMService fcmService;
+    private final com.sparta.spartatigers.domain.stompchat.pubsub.RedisDirectMessagePublisher redisDirectMessagePublisher;
 
     @Transactional(readOnly = true)
     public void validateCanCreateItem(TokenClaim tokenClaim) {
@@ -127,7 +128,10 @@ public class ItemService {
                     if (req.getStatus() == ExchangeStatus.ACCEPTED) {
                         req.updateStatus(ExchangeStatus.COMPLETED);
                         directRoomRepository.findByExchangeRequestId(req.getId())
-                            .ifPresent(com.sparta.spartatigers.domain.directRoom.model.DirectRoom::complete);
+                            .ifPresent(room -> {
+                                room.complete();
+                                publishSystemStatusUpdatedMessage(room.getId());
+                            });
                     } else if (req.getStatus() == ExchangeStatus.PENDING) {
                         req.updateStatus(ExchangeStatus.REJECTED);
                         // [FIX] 자동 거절되는 PENDING 요청자들에게도 알림 발송 (ExchangeRequestService와 정책 통일)
@@ -149,6 +153,10 @@ public class ItemService {
                     req.updateStatus(ExchangeStatus.REJECTED);
                     // PENDING 및 ACCEPTED 상태였던 사용자들에게 교환 취소(재오픈) 알림 발송
                     sendNotificationSafely(req, "교환 취소", "상대방의 사정으로 교환이 취소되었습니다.");
+                    if (req.getStatus() == ExchangeStatus.ACCEPTED) {
+                        directRoomRepository.findByExchangeRequestId(req.getId())
+                            .ifPresent(room -> publishSystemStatusUpdatedMessage(room.getId()));
+                    }
                 }
 
                 ReadItemResponseDto newItemDto = ReadItemResponseDto.from(item, this);
@@ -291,5 +299,14 @@ public class ItemService {
                 }
             }
         });
+    }
+
+    private void publishSystemStatusUpdatedMessage(Long roomId) {
+        Map<String, Object> payload = Map.of(
+            "type", "SYSTEM",
+            "action", "STATUS_UPDATED",
+            "roomId", roomId
+        );
+        redisDirectMessagePublisher.publish("/server/directRoom/" + roomId, payload);
     }
 }

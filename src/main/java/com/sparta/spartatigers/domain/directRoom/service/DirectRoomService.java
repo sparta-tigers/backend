@@ -70,27 +70,39 @@ public class DirectRoomService {
 
     public Page<DirectRoomResponseDto> getRoomsForUser(Long currentUserId, Pageable pageable) {
         log.info("[getRoomsForUser] 채팅방 목록 조회 - 사용자 ID: {}", currentUserId);
-        return directRoomRepository
-            .findBySenderIdOrReceiverIdWithUsersAndItem(currentUserId, pageable)
-            .map(
-                room -> {
-                    // 현재 로그인한 유저의 상대방 id 가져옴
-                    Long opponentId =
-                        room.getSender().getId().equals(currentUserId)
-                            ? room.getReceiver().getId()
-                            : room.getSender().getId();
+        Page<DirectRoom> rooms = directRoomRepository.findBySenderIdOrReceiverIdWithUsersAndItem(currentUserId, pageable);
 
-                    boolean isOnline =
-                        userConnectService.isUserOnline(currentUserId, opponentId);
-                    log.debug(
-                        "[getRoomsForUser] 채팅방 ID: {}, 상대방 ID: {}, 상대방 온라인 여부: {}",
-                        room.getId(),
-                        opponentId,
-                        isOnline);
-                    Long unreadCount = directMessageRepository.countUnreadMsg(room.getId(), currentUserId);
+        if (rooms.isEmpty()) {
+            return Page.empty(pageable);
+        }
 
-                    return DirectRoomResponseDto.from(room, unreadCount, currentUserId, isOnline);
-                });
+        java.util.List<Long> roomIds = rooms.stream().map(DirectRoom::getId).toList();
+        java.util.List<Long> opponentIds = rooms.stream()
+            .map(room -> room.getSender().getId().equals(currentUserId) ? room.getReceiver().getId() : room.getSender().getId())
+            .toList();
+
+        // Batch fetch unread counts
+        java.util.List<Object[]> unreadCountsResult = directMessageRepository.countUnreadMsgInBatch(roomIds, currentUserId);
+        java.util.Map<Long, Long> unreadCountsMap = new java.util.HashMap<>();
+        for (Object[] row : unreadCountsResult) {
+            unreadCountsMap.put((Long) row[0], (Long) row[1]);
+        }
+
+        // Batch fetch online statuses
+        java.util.Map<Long, Boolean> onlineStatusesMap = userConnectService.getOnlineStatuses(opponentIds);
+
+        return rooms.map(
+            room -> {
+                Long opponentId = room.getSender().getId().equals(currentUserId)
+                    ? room.getReceiver().getId()
+                    : room.getSender().getId();
+
+                boolean isOnline = onlineStatusesMap.getOrDefault(opponentId, false);
+                Long unreadCount = unreadCountsMap.getOrDefault(room.getId(), 0L);
+
+                log.debug("[getRoomsForUser] 채팅방 ID: {}, 상대방 ID: {}, 상대방 온라인 여부: {}", room.getId(), opponentId, isOnline);
+                return DirectRoomResponseDto.from(room, unreadCount, currentUserId, isOnline);
+            });
     }
 
     @Transactional(readOnly = true)
@@ -178,5 +190,26 @@ public class DirectRoomService {
         directMessageRepository.deleteAllByDirectRoomId(room.getId());
         directRoomRepository.delete(room);
         log.info("[deleteRoomByExchangeRequestId] 채팅방 삭제 완료 - roomId: {}", room.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomMessageResponse> getMessagesAfter(
+            Long roomId, java.time.LocalDateTime afterTimestamp, Long currentUserId) {
+        log.info("[getMessagesAfter] 누락 메시지 조회 - roomId: {}, after: {}, userId: {}", roomId, afterTimestamp, currentUserId);
+
+        DirectRoom room = directRoomRepository.findById(roomId)
+            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.CHATROOM_NOT_FOUND));
+
+        // 권한 검증
+        boolean isSender = room.getSender().getId().equals(currentUserId);
+        boolean isReceiver = room.getReceiver().getId().equals(currentUserId);
+        if (!isSender && !isReceiver) {
+            throw new InvalidRequestException(ExceptionCode.FORBIDDEN_REQUEST);
+        }
+
+        return directMessageRepository.findMessagesAfterTimestamp(roomId, afterTimestamp)
+            .stream()
+            .map(com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomMessageResponse::from)
+            .toList();
     }
 }

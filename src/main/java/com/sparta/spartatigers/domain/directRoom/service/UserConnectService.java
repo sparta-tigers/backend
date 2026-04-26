@@ -39,6 +39,13 @@ public class UserConnectService {
         return isConnected;
     }
 
+    // 채팅방 목록 조회 시, 이미 방이 존재하는 것이 보장된 유저 목록의 온라인 상태를 일괄 조회
+    public java.util.Map<Long, Boolean> getOnlineStatuses(java.util.List<Long> targetUserIds) {
+        log.debug("[getOnlineStatuses] 접속 여부 일괄 조회 요청 - 대상 수: {}", targetUserIds.size());
+        // hasChatRoomBetween 조회를 생략 (호출부가 이미 방 목록 기반이므로)
+        return userSessionRegistry.areUsersConnected(targetUserIds);
+    }
+
     // user A와 B 사이에 채팅방이 존재하는지 확인하는 로직
     // 채팅방 목록 조회용
     private boolean hasChatRoomBetween(Long userAId, Long userBId) {

@@ -60,6 +60,20 @@ public class RedisUserSessionRegistry {
         return Boolean.TRUE.equals(redisTemplate.hasKey(userKey));
     }
 
+    public java.util.Map<Long, Boolean> areUsersConnected(java.util.List<Long> userIds) {
+        java.util.Map<Long, Boolean> result = new java.util.HashMap<>();
+        if (userIds == null || userIds.isEmpty()) return result;
+
+        // 파이프라인 대신 간단히 여러 키의 존재 여부를 순회 검사
+        // in-memory 연산이므로 50건 미만의 N은 성능 이슈 거의 없음
+        for (Long userId : userIds) {
+            result.put(userId, isUserConnected(userId));
+        }
+
+        return result;
+    }
+
+
     public Long getUserIdBySessionId(String sessionId) {
         String sessionKey = "session-user:" + sessionId;
         String userId = redisTemplate.opsForValue().get(sessionKey);

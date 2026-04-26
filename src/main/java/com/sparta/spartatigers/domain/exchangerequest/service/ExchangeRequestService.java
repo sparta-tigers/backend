@@ -71,8 +71,8 @@ public class ExchangeRequestService {
         ExchangeRequest exchangeRequest = ExchangeRequest.of(item, sender, receiver, have);
         ExchangeRequest saved = exchangeRequestRepository.save(exchangeRequest);
 
-        // 생성 즉시 DirectRoom 맵핑을 생성합니다 (초기에는 PENDING 상태이므로 프론트에서 UI 제어)
-        directRoomService.createRoom(saved.getId(), sender.getId());
+        // [FIX] 교환 요청 생성 시점에는 채팅방을 만들지 않고 PENDING 상태 유지
+        // 채팅방은 교환 요청이 ACCEPTED 될 때 생성됨
 
         return saved.getId();
     }
@@ -107,8 +107,8 @@ public class ExchangeRequestService {
         if (exchangeRequest.getStatus() == ExchangeStatus.ACCEPTED) {
             // 다른 PENDING 요청 자동 거절 (내부에서 거절 알림도 함께 발송)
             rejectOtherPendingRequests(exchangeRequest.getItem(), exchangeRequest.getId());
-            DirectRoom room = directRoomRepository.findByExchangeRequestId(exchangeRequestId)
-                    .orElseThrow(() -> new InvalidRequestException(ExceptionCode.DIRECT_ROOM_NOT_FOUND));
+            // [FIX] 수락 시점에 명시적으로 채팅방 생성
+            DirectRoomCreateResponseDto roomCreateDto = directRoomService.createRoom(exchangeRequestId, user.getId());
             
             // [FIX] 문제 3: 트랜잭션 롤백 시 알림만 남는 문제 방지 — 커밋 보장 후 알림 발송
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -117,7 +117,7 @@ public class ExchangeRequestService {
                     sendNotificationToSender(exchangeRequest, "교환 요청 수락", "교환 요청이 수락되었습니다. 채팅방에서 대화를 시작해보세요!");
                 }
             });
-            return ExchangeRoomResponseDto.from(DirectRoomCreateResponseDto.from(room));
+            return ExchangeRoomResponseDto.from(roomCreateDto);
         }
 
         if (exchangeRequest.getStatus() == ExchangeStatus.REJECTED) {
