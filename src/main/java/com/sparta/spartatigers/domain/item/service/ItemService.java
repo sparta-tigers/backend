@@ -22,8 +22,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import com.sparta.spartatigers.domain.stompchat.service.LocationService;
 import com.sparta.spartatigers.domain.item.dto.request.ItemCreateRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -34,7 +32,7 @@ import com.sparta.spartatigers.domain.exchangerequest.repository.ExchangeRequest
 import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeRequest;
 import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeStatus;
 import com.sparta.spartatigers.global.firebase.FCMService;
-import com.sparta.spartatigers.global.exception.external.FirebaseException;
+import com.sparta.spartatigers.domain.stompchat.pubsub.RedisDirectMessagePublisher;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -58,7 +56,7 @@ public class ItemService {
     private final ExchangeRequestRepository exchangeRequestRepository;
     private final DirectRoomRepository directRoomRepository;
     private final FCMService fcmService;
-    private final com.sparta.spartatigers.domain.stompchat.pubsub.RedisDirectMessagePublisher redisDirectMessagePublisher;
+    private final RedisDirectMessagePublisher redisDirectMessagePublisher;
 
     @Transactional(readOnly = true)
     public void validateCanCreateItem(TokenClaim tokenClaim) {
@@ -72,12 +70,10 @@ public class ItemService {
     }
 
     @Transactional
-    public ItemResponseDto createItemWithImages(ItemCreateRequest request, TokenClaim tokenClaim, List<String> imageUrls) {
+    public ItemResponseDto createItemWithImages(ItemCreateRequest request, TokenClaim tokenClaim,
+            List<String> imageUrls) {
         User user = userRepository.findById(tokenClaim.getUserId())
-            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
-
-        // [FIX] 중복 검사 로직 일원화 (validateCanCreateItem과 동일한 로직 사용)
-        checkDuplicateItemByUserId(user.getId());
+                .orElseThrow(() -> new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
 
         // 이미지 URL 리스트를 JSON으로 안전하게 직렬화
         String imageUrlsJson = serializeImageUrls(imageUrls);
@@ -96,8 +92,9 @@ public class ItemService {
             address = location.address();
         }
 
-        Item item = new Item(request.category(), imageUrlsJson, request.seatInfo(), 
-                request.title(), request.description(), latitude, longitude, address, request.desiredItem(), ItemStatus.REGISTERED, user, LocalDate.now());
+        Item item = new Item(request.category(), imageUrlsJson, request.seatInfo(),
+                request.title(), request.description(), latitude, longitude, address, request.desiredItem(),
+                ItemStatus.REGISTERED, user, LocalDate.now());
 
         Item savedItem = itemRepository.save(item);
 
@@ -111,7 +108,7 @@ public class ItemService {
     @Transactional
     public void updateItemStatus(TokenClaim tokenClaim, Long itemId, UpdateItemStatusRequestDto request) {
         User user = userRepository.findById(tokenClaim.getUserId())
-            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
+                .orElseThrow(() -> new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
 
         Item item = itemRepository.findByIdAndStatusAndDateOrElseThrow(itemId);
         item.validateUserIsOwner(user);
@@ -119,26 +116,31 @@ public class ItemService {
         switch (request.action()) {
             case COMPLETE -> {
                 item.complete();
-                // [FIX] 문제 2: 상태별 개별 조회를 없애고 IN 쿼리로 한 번에 메모리에 적재하여 N+1 이슈 완화
+                // 상태별 개별 조회를 없애고 IN 쿼리로 한 번에 메모리에 적재하여 N+1 이슈 완화
                 List<ExchangeRequest> activeRequests = exchangeRequestRepository.findByItemIdAndStatusIn(
-                    item.getId(), List.of(ExchangeStatus.ACCEPTED, ExchangeStatus.PENDING));
+                        item.getId(), List.of(ExchangeStatus.ACCEPTED, ExchangeStatus.PENDING));
 
                 for (ExchangeRequest req : activeRequests) {
                     if (req.getStatus() == ExchangeStatus.ACCEPTED) {
                         req.updateStatus(ExchangeStatus.COMPLETED);
                         directRoomRepository.findByExchangeRequestId(req.getId())
-                            .ifPresent(room -> {
-                                room.complete();
-                                publishSystemStatusUpdatedMessage(room.getId());
-                            });
+                                .ifPresent(room -> {
+                                    room.complete();
+                                    publishSystemStatusUpdatedMessage(room.getId());
+                                });
                     } else if (req.getStatus() == ExchangeStatus.PENDING) {
                         req.updateStatus(ExchangeStatus.REJECTED);
-                        // [FIX] 자동 거절되는 PENDING 요청자들에게도 알림 발송 (ExchangeRequestService와 정책 통일)
-                        sendNotificationSafely(req, "교환 요청 거절", "다른 사용자와 교환이 완료되어 요청이 거절되었습니다.");
+                        // [FIX] FCMService 캡슐화 적용: 트랜잭션 커밋 후 안전하게 알림 발송
+                        fcmService.sendNotificationAfterCommit(
+                                req.getSender().getDeviceToken(),
+                                "교환 요청 거절",
+                                "다른 사용자와 교환이 완료되어 요청이 거절되었습니다.",
+                                req.getSender().getId());
                     }
                 }
 
-                ItemLocationUpdatedEvent completeEvent = new ItemLocationUpdatedEvent(item.getUser().getId(), "REMOVE_ITEM",
+                ItemLocationUpdatedEvent completeEvent = new ItemLocationUpdatedEvent(item.getUser().getId(),
+                        "REMOVE_ITEM",
                         Map.of("itemId", item.getId(), "userId", item.getUser().getId()));
                 applicationEventPublisher.publishEvent(completeEvent);
             }
@@ -146,28 +148,35 @@ public class ItemService {
             case CANCEL -> {
                 item.reopen();
                 List<ExchangeRequest> activeRequests = exchangeRequestRepository.findByItemIdAndStatusIn(
-                    item.getId(), List.of(ExchangeStatus.ACCEPTED, ExchangeStatus.PENDING));
+                        item.getId(), List.of(ExchangeStatus.ACCEPTED, ExchangeStatus.PENDING));
 
                 for (ExchangeRequest req : activeRequests) {
                     ExchangeStatus previousStatus = req.getStatus();
                     req.updateStatus(ExchangeStatus.REJECTED);
-                    // PENDING 및 ACCEPTED 상태였던 사용자들에게 교환 취소(재오픈) 알림 발송
-                    sendNotificationSafely(req, "교환 취소", "상대방의 사정으로 교환이 취소되었습니다.");
-                    
+
+                    // [FIX] FCMService 캡슐화 적용: 트랜잭션 커밋 후 안전하게 알림 발송
+                    fcmService.sendNotificationAfterCommit(
+                            req.getSender().getDeviceToken(),
+                            "교환 취소",
+                            "상대방의 사정으로 교환이 취소되었습니다.",
+                            req.getSender().getId());
+
                     // [FIX] 상태 변경 전 ACCEPTED 였던 경우에만 시스템 메시지 발행
                     if (previousStatus == ExchangeStatus.ACCEPTED) {
                         directRoomRepository.findByExchangeRequestId(req.getId())
-                            .ifPresent(room -> publishSystemStatusUpdatedMessage(room.getId()));
+                                .ifPresent(room -> publishSystemStatusUpdatedMessage(room.getId()));
                     }
                 }
 
                 ReadItemResponseDto newItemDto = ReadItemResponseDto.from(item, this);
-                ItemLocationUpdatedEvent cancelEvent = new ItemLocationUpdatedEvent(item.getUser().getId(), "ADD_ITEM", newItemDto);
+                ItemLocationUpdatedEvent cancelEvent = new ItemLocationUpdatedEvent(item.getUser().getId(), "ADD_ITEM",
+                        newItemDto);
                 applicationEventPublisher.publishEvent(cancelEvent);
             }
             case DELETE -> {
                 item.deleteItem();
-                ItemLocationUpdatedEvent deleteEvent = new ItemLocationUpdatedEvent(item.getUser().getId(), "REMOVE_ITEM",
+                ItemLocationUpdatedEvent deleteEvent = new ItemLocationUpdatedEvent(item.getUser().getId(),
+                        "REMOVE_ITEM",
                         Map.of("itemId", item.getId(), "userId", item.getUser().getId()));
                 applicationEventPublisher.publishEvent(deleteEvent);
             }
@@ -176,11 +185,11 @@ public class ItemService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ReadItemResponseDto> findAllItems(TokenClaim tokenClaim, Pageable pageable, 
+    public Page<ReadItemResponseDto> findAllItems(TokenClaim tokenClaim, Pageable pageable,
             Double latitude, Double longitude, Double radius) {
 
         Long userId = userRepository.findById(tokenClaim.getUserId())
-            .orElseThrow(() ->  new InvalidRequestException(ExceptionCode.VALIDATION_ERROR)).getId();
+                .orElseThrow(() -> new InvalidRequestException(ExceptionCode.VALIDATION_ERROR)).getId();
 
         // 좌표 기반 검색 여부 확인
         if (latitude != null && longitude != null) {
@@ -197,21 +206,21 @@ public class ItemService {
             double maxLon = longitude + lonDiff;
 
             return itemRepository.findAllItemsByLocation(
-                ItemStatus.REGISTERED,
-                LocalDate.now(),
-                userId,
-                latitude,
-                longitude,
-                minLat,
-                maxLat,
-                minLon,
-                maxLon,
-                searchRadius,
-                pageable
-            ).map(item -> ReadItemResponseDto.from(item, this));
+                    ItemStatus.REGISTERED,
+                    LocalDate.now(),
+                    userId,
+                    latitude,
+                    longitude,
+                    minLat,
+                    maxLat,
+                    minLon,
+                    maxLon,
+                    searchRadius,
+                    pageable).map(item -> ReadItemResponseDto.from(item, this));
         } else {
             // 기존 로직: 근처 사용자 기반 검색
-            // [FIX] 문제 3: locationService.findUsersNearBy()가 불변 List(List.of 등)를 반환하는 경우 add() 호출 시 UnsupportedOperationException 발생
+            // [FIX] 문제 3: locationService.findUsersNearBy()가 불변 List(List.of 등)를 반환하는 경우
+            // add() 호출 시 UnsupportedOperationException 발생
             // 방어적으로 ArrayList로 복사하여 수정 가능한 리스트로 보장
             List<Long> nearByUserIds = new ArrayList<>(locationService.findUsersNearBy(userId, SEARCH_RADIUS_KM));
             nearByUserIds.add(userId);
@@ -224,8 +233,8 @@ public class ItemService {
     @Transactional(readOnly = true)
     public Page<ReadItemResponseDto> findMyItems(TokenClaim tokenClaim, Pageable pageable) {
         Long userId = userRepository.findById(tokenClaim.getUserId())
-            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.VALIDATION_ERROR))
-            .getId();
+                .orElseThrow(() -> new InvalidRequestException(ExceptionCode.VALIDATION_ERROR))
+                .getId();
 
         return itemRepository.findAllMyItems(ItemStatus.REGISTERED, LocalDate.now(), userId, pageable)
                 .map(item -> ReadItemResponseDto.from(item, this));
@@ -246,14 +255,14 @@ public class ItemService {
     public void deleteItem(TokenClaim tokenClaim, Long itemId) {
 
         User user = userRepository.findById(tokenClaim.getUserId())
-            .orElseThrow(() ->  new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
+                .orElseThrow(() -> new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
 
         Item item = itemRepository.findByIdAndStatusAndDateOrElseThrow(itemId);
         item.validateUserIsOwner(user);
         item.deleteItem();
 
-        ItemLocationUpdatedEvent event = new ItemLocationUpdatedEvent(item.getUser().getId(), "REMOVE_ITEM", 
-            Map.of("itemId", item.getId(), "userId", item.getUser().getId()));
+        ItemLocationUpdatedEvent event = new ItemLocationUpdatedEvent(item.getUser().getId(), "REMOVE_ITEM",
+                Map.of("itemId", item.getId(), "userId", item.getUser().getId()));
         applicationEventPublisher.publishEvent(event);
     }
 
@@ -261,7 +270,7 @@ public class ItemService {
     public ItemResponseDto updateItem(TokenClaim tokenClaim, Long itemId, UpdateItemRequestDto request) {
 
         User user = userRepository.findById(tokenClaim.getUserId())
-            .orElseThrow(() ->  new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
+                .orElseThrow(() -> new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
 
         Item item = itemRepository.findByIdAndStatusAndDateOrElseThrow(itemId);
         item.validateUserIsOwner(user);
@@ -291,41 +300,19 @@ public class ItemService {
             return Collections.emptyList();
         }
         try {
-            return objectMapper.readValue(imageUrlsJson, new TypeReference<List<String>>() {});
+            return objectMapper.readValue(imageUrlsJson, new TypeReference<List<String>>() {
+            });
         } catch (JsonProcessingException e) {
             log.error("이미지 URL 역직렬화 실패: ", e);
             return Collections.emptyList();
         }
     }
 
-    private void sendNotificationSafely(ExchangeRequest exchangeRequest, String title, String body) {
-        User sender = exchangeRequest.getSender();
-        if (sender == null || sender.getDeviceToken() == null || sender.getDeviceToken().isBlank()) {
-            return;
-        }
-
-        // [FIX] 트랜잭션 종료(Detached) 후 Lazy 로딩 방지를 위해 필요한 값 미리 캡처
-        final String deviceToken = sender.getDeviceToken();
-        final Long senderId = sender.getId();
-
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                try {
-                    fcmService.sendMessageToToken(deviceToken, title, body);
-                } catch (FirebaseException e) {
-                    log.warn("[FCM 발송 실패] 수신자: {}, 사유: {}", senderId, e.getMessage());
-                }
-            }
-        });
-    }
-
     private void publishSystemStatusUpdatedMessage(Long roomId) {
         Map<String, Object> payload = Map.of(
-            "type", "SYSTEM",
-            "action", "STATUS_UPDATED",
-            "roomId", roomId
-        );
+                "type", "SYSTEM",
+                "action", "STATUS_UPDATED",
+                "roomId", roomId);
         redisDirectMessagePublisher.publish("/server/directRoom/" + roomId, payload);
     }
 }

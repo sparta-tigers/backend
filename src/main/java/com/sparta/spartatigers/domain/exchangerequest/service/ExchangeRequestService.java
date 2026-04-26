@@ -4,17 +4,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 import com.sparta.spartatigers.domain.exchangerequest.dto.response.SendRequestResponseDto;
-import com.sparta.spartatigers.global.exception.external.FirebaseException;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomCreateResponseDto;
@@ -82,7 +78,7 @@ public class ExchangeRequestService {
     public Page<ReceiveRequestResponseDto> findAllReceiveRequest(TokenClaim tokenClaim, Pageable pageable) {
         User user = getUser(tokenClaim.getUserId());
         Page<ExchangeRequest> exchangeRequestList = exchangeRequestRepository.findAllReceiveRequest(
-            user.getId(), pageable);
+                user.getId(), pageable);
 
         return mapToReceiveResponse(exchangeRequestList);
     }
@@ -91,20 +87,20 @@ public class ExchangeRequestService {
     public Page<SendRequestResponseDto> findAllSendRequest(TokenClaim tokenClaim, Pageable pageable) {
         User user = getUser(tokenClaim.getUserId());
         Page<ExchangeRequest> exchangeRequestList = exchangeRequestRepository.findAllSentRequest(
-            user.getId(), pageable);
+                user.getId(), pageable);
 
         return mapToSendResponse(exchangeRequestList);
     }
 
     @Transactional
     public ExchangeRoomResponseDto updateRequestStatus(Long exchangeRequestId, UpdateExchangeRequestDto request,
-        TokenClaim tokenClaim) {
+            TokenClaim tokenClaim) {
 
         User user = getUser(tokenClaim.getUserId());
         // [FIX] 문제 1: 동시성 제어(Race Condition) 해결을 위해 조회 시점부터 비관적 락 적용
         ExchangeRequest exchangeRequest = exchangeRequestRepository.findByIdForUpdate(exchangeRequestId)
-            .orElseThrow(() -> new ServerException(ExceptionCode.EXCHANGE_REQUEST_NOT_FOUND));
-        
+                .orElseThrow(() -> new ServerException(ExceptionCode.EXCHANGE_REQUEST_NOT_FOUND));
+
         // 상태가 PENDING이 아니면 이미 처리된 요청이므로 즉시 실패 (Wait 후 깨어난 스레드 방어)
         if (exchangeRequest.getStatus() != ExchangeStatus.PENDING) {
             throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
@@ -119,33 +115,23 @@ public class ExchangeRequestService {
             rejectOtherPendingRequests(exchangeRequest.getItem(), exchangeRequest.getId());
             // [FIX] 수락 시점에 명시적으로 채팅방 생성
             DirectRoomCreateResponseDto roomCreateDto = directRoomService.createRoom(exchangeRequestId, user.getId());
-            
-            // [FIX] 문제 3: 트랜잭션 롤백 시 알림만 남는 문제 방지 — 커밋 보장 후 알림 발송
-            // [FIX] Detached 상태에서의 Lazy 로딩 방지를 위해 필요한 값 미리 추출
-            final String deviceToken = exchangeRequest.getSender().getDeviceToken();
-            final Long senderId = exchangeRequest.getSender().getId();
 
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    sendNotificationToSenderDirectly(deviceToken, senderId, "교환 요청 수락", "교환 요청이 수락되었습니다. 채팅방에서 대화를 시작해보세요!");
-                }
-            });
+            // [FIX] FCMService 캡슐화 적용: 트랜잭션 커밋 후 안전하게 알림 발송
+            fcmService.sendNotificationAfterCommit(
+                    exchangeRequest.getSender().getDeviceToken(),
+                    "교환 요청 수락",
+                    "교환 요청이 수락되었습니다. 채팅방에서 대화를 시작해보세요!",
+                    exchangeRequest.getSender().getId());
             return ExchangeRoomResponseDto.from(roomCreateDto);
         }
 
         if (exchangeRequest.getStatus() == ExchangeStatus.REJECTED) {
-            // [FIX] 문제 3: 트랜잭션 롤백 시 알림만 남는 문제 방지 — 커밋 보장 후 알림 발송
-            // [FIX] Detached 상태에서의 Lazy 로딩 방지를 위해 필요한 값 미리 추출
-            final String deviceToken = exchangeRequest.getSender().getDeviceToken();
-            final Long senderId = exchangeRequest.getSender().getId();
-
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    sendNotificationToSenderDirectly(deviceToken, senderId, "교환 요청 거절", "아쉽게도 교환 요청이 거절되었습니다.");
-                }
-            });
+            // [FIX] FCMService 캡슐화 적용: 트랜잭션 커밋 후 안전하게 알림 발송
+            fcmService.sendNotificationAfterCommit(
+                    exchangeRequest.getSender().getDeviceToken(),
+                    "교환 요청 거절",
+                    "아쉽게도 교환 요청이 거절되었습니다.",
+                    exchangeRequest.getSender().getId());
             // 거절 내역(History) 유지를 위해 삭제하지 않음. DirectRoom 또한 보존하지만 프론트엔드에서 disabled 처리됨.
             return ExchangeRoomResponseDto.rejected(exchangeRequestId);
         }
@@ -156,31 +142,20 @@ public class ExchangeRequestService {
 
     private void rejectOtherPendingRequests(Item item, Long acceptedRequestId) {
         // [FIX] 동시 수락/요청 시 정합성 보장을 위해 비관적 락(PESSIMISTIC_WRITE) 적용
-        List<ExchangeRequest> pendingRequests = exchangeRequestRepository.findByItemIdAndStatusForUpdate(item.getId(), ExchangeStatus.PENDING);
+        List<ExchangeRequest> pendingRequests = exchangeRequestRepository.findByItemIdAndStatusForUpdate(item.getId(),
+                ExchangeStatus.PENDING);
         for (ExchangeRequest req : pendingRequests) {
             if (!req.getId().equals(acceptedRequestId)) {
                 req.updateStatus(ExchangeStatus.REJECTED);
                 // [FIX] 자동 거절된 요청자에게도 알림 발송
-                final String deviceToken = req.getSender().getDeviceToken();
-                final Long senderId = req.getSender().getId();
-                
-                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                    @Override
-                    public void afterCommit() {
-                        sendNotificationToSenderDirectly(deviceToken, senderId, "교환 요청 거절", "아쉽게도 교환 요청이 거절되었습니다.");
-                    }
-                });
-            }
-        }
-    }
+                req.updateStatus(ExchangeStatus.REJECTED);
 
-    private void sendNotificationToSenderDirectly(String deviceToken, Long senderId, String title, String body) {
-        if (deviceToken != null && !deviceToken.isBlank()) {
-            try {
-                fcmService.sendMessageToToken(deviceToken, title, body);
-            } catch (FirebaseException e) {
-                log.warn("[FCM] 알림 발송 실패 - userId: {}, title: {}, error: [{}] {}",
-                    senderId, title, e.getClass().getSimpleName(), e.getMessage());
+                // [FIX] FCMService 캡슐화 적용: 트랜잭션 커밋 후 안전하게 알림 발송
+                fcmService.sendNotificationAfterCommit(
+                        req.getSender().getDeviceToken(),
+                        "교환 요청 거절",
+                        "아쉽게도 교환 요청이 거절되었습니다.",
+                        req.getSender().getId());
             }
         }
     }
@@ -190,11 +165,11 @@ public class ExchangeRequestService {
 
         User user = getUser(tokenClaim.getUserId());
         ExchangeRequest exchangeRequest = exchangeRequestRepository.findAcceptedRequestByIdOrElseThrow(
-            exchangeRequestId);
+                exchangeRequestId);
         exchangeRequest.validateReceiverIsOwner(user);
 
         Item item = itemRepository.findById(exchangeRequest.getItem().getId())
-            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.ITEM_NOT_FOUND));
+                .orElseThrow(() -> new InvalidRequestException(ExceptionCode.ITEM_NOT_FOUND));
         item.complete();
 
         exchangeRequest.complete();
@@ -203,13 +178,14 @@ public class ExchangeRequestService {
                 .orElseThrow(() -> new InvalidRequestException(ExceptionCode.DIRECT_ROOM_NOT_FOUND));
         room.complete();
 
-        ItemLocationUpdatedEvent event = new ItemLocationUpdatedEvent(item.getUser().getId(), "REMOVE_ITEM", 
-            Map.of("itemId", item.getId(), "userId", item.getUser().getId()));
+        ItemLocationUpdatedEvent event = new ItemLocationUpdatedEvent(item.getUser().getId(), "REMOVE_ITEM",
+                Map.of("itemId", item.getId(), "userId", item.getUser().getId()));
         applicationEventPublisher.publishEvent(event);
     }
 
     @Transactional(readOnly = true)
-    public Page<ReceiveRequestResponseDto> findMyExchangeRequests(String role, ExchangeStatus status, Pageable pageable, TokenClaim tokenClaim) {
+    public Page<ReceiveRequestResponseDto> findMyExchangeRequests(String role, ExchangeStatus status, Pageable pageable,
+            TokenClaim tokenClaim) {
         Long userId = tokenClaim.getUserId();
         Page<ExchangeRequest> requests;
 
@@ -245,8 +221,8 @@ public class ExchangeRequestService {
     private Map<Long, Long> getRoomIdMap(Page<ExchangeRequest> requests) {
         // [FIX] Java 16+ Stream.toList() 사용 (불변 리스트 반환 및 가독성 향상)
         List<Long> requestIds = requests.stream()
-            .map(ExchangeRequest::getId)
-            .toList();
+                .map(ExchangeRequest::getId)
+                .toList();
 
         // [FIX] HashMap 초기 용량 힌트 제공으로 minor allocation 최적화
         Map<Long, Long> roomIdMap = new HashMap<>(requestIds.size() * 2);
@@ -264,13 +240,13 @@ public class ExchangeRequestService {
     private User getUser(Long userId) {
 
         return userRepository.findById(userId)
-            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new InvalidRequestException(ExceptionCode.USER_NOT_FOUND));
     }
 
     private void checkDuplicateExchangeRequest(Long senderId, Long receiverId, Long itemId) {
 
-        boolean isExisted =
-            exchangeRequestRepository.existsBySenderIdAndReceiverIdAndItemId(senderId, receiverId, itemId);
+        boolean isExisted = exchangeRequestRepository.existsBySenderIdAndReceiverIdAndItemId(senderId, receiverId,
+                itemId);
 
         if (isExisted) {
             throw new InvalidRequestException(ExceptionCode.EXCHANGE_REQUEST_DUPLICATED);
