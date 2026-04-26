@@ -206,9 +206,10 @@ public class DirectRoomService {
         DirectRoom room = directRoomRepository.findById(roomId)
                 .orElseThrow(() -> new InvalidRequestException(ExceptionCode.CHATROOM_NOT_FOUND));
 
-        // 권한 검증
-        boolean isSender = room.getSender().getId().equals(currentUserId);
-        boolean isReceiver = room.getReceiver().getId().equals(currentUserId);
+        // [FIX] 문제 4: 권한 검사 시에도 room이 아닌 exchangeRequest.getSender() / getReceiver()를
+        // 사용하여 getRoomItem 메서드와 검증 기준을 완벽하게 통일 (단일 진실의 원천)
+        boolean isSender = room.getExchangeRequest().getSender().getId().equals(currentUserId);
+        boolean isReceiver = room.getExchangeRequest().getReceiver().getId().equals(currentUserId);
         if (!isSender && !isReceiver) {
             throw new InvalidRequestException(ExceptionCode.FORBIDDEN_REQUEST);
         }

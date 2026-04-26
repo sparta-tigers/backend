@@ -150,10 +150,13 @@ public class ItemService {
                     item.getId(), List.of(ExchangeStatus.ACCEPTED, ExchangeStatus.PENDING));
 
                 for (ExchangeRequest req : activeRequests) {
+                    ExchangeStatus previousStatus = req.getStatus();
                     req.updateStatus(ExchangeStatus.REJECTED);
                     // PENDING 및 ACCEPTED 상태였던 사용자들에게 교환 취소(재오픈) 알림 발송
                     sendNotificationSafely(req, "교환 취소", "상대방의 사정으로 교환이 취소되었습니다.");
-                    if (req.getStatus() == ExchangeStatus.ACCEPTED) {
+                    
+                    // [FIX] 상태 변경 전 ACCEPTED 였던 경우에만 시스템 메시지 발행
+                    if (previousStatus == ExchangeStatus.ACCEPTED) {
                         directRoomRepository.findByExchangeRequestId(req.getId())
                             .ifPresent(room -> publishSystemStatusUpdatedMessage(room.getId()));
                     }
