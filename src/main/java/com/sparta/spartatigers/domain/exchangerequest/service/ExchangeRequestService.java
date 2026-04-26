@@ -35,6 +35,7 @@ import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.repository.UserRepository;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
+import com.sparta.spartatigers.global.exception.internal.ServerException;
 
 import com.sparta.spartatigers.global.firebase.FCMService;
 
@@ -100,8 +101,15 @@ public class ExchangeRequestService {
         TokenClaim tokenClaim) {
 
         User user = getUser(tokenClaim.getUserId());
-        ExchangeRequest exchangeRequest = exchangeRequestRepository.findExchangeRequestByIdOrElseThrow(
-            exchangeRequestId);
+        // [FIX] 문제 1: 동시성 제어(Race Condition) 해결을 위해 조회 시점부터 비관적 락 적용
+        ExchangeRequest exchangeRequest = exchangeRequestRepository.findByIdForUpdate(exchangeRequestId)
+            .orElseThrow(() -> new ServerException(ExceptionCode.EXCHANGE_REQUEST_NOT_FOUND));
+        
+        // 상태가 PENDING이 아니면 이미 처리된 요청이므로 즉시 실패 (Wait 후 깨어난 스레드 방어)
+        if (exchangeRequest.getStatus() != ExchangeStatus.PENDING) {
+            throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
+        }
+
         exchangeRequest.validateReceiverIsOwner(user);
         exchangeRequest.updateStatus(request.status());
 
