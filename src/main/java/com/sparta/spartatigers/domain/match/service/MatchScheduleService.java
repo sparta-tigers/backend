@@ -60,7 +60,6 @@ public class MatchScheduleService {
         return MatchScheduleResponseDto.builder()
                 .day(match.getMatchTime().getDayOfMonth())
                 .opponentCode(opponent.getCode().name())
-                .opponentName(opponent.getName())
                 .location(isHome ? "H" : "A")
                 .timeText(match.getMatchTime().format(DateTimeFormatter.ofPattern("HH:mm")))
                 .build();
