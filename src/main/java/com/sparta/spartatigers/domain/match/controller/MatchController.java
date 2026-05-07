@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/matches")
+@RequestMapping("/api/matches")
 public class MatchController {
 
     private final MatchScheduleService matchScheduleService;
@@ -34,8 +34,7 @@ public class MatchController {
     public ApiResponse<List<MatchScheduleResponseDto>> getMonthlySchedule(
             @RequestParam int year,
             @RequestParam int month,
-            @Auth TokenClaim tokenClaim
-    ) {
+            @Auth TokenClaim tokenClaim) {
         Long userId = tokenClaim.getUserId();
         List<MatchScheduleResponseDto> schedule = matchScheduleService.getMonthlySchedule(userId, year, month);
         return ApiResponse.success(schedule);

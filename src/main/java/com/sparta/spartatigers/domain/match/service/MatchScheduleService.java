@@ -2,7 +2,9 @@ package com.sparta.spartatigers.domain.match.service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -16,7 +18,9 @@ import com.sparta.spartatigers.domain.match.repository.MatchRepository;
 import com.sparta.spartatigers.domain.team.model.Team;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MatchScheduleService {
@@ -34,8 +38,13 @@ public class MatchScheduleService {
      */
     @Transactional(readOnly = true)
     public List<MatchScheduleResponseDto> getMonthlySchedule(Long userId, int year, int month) {
-        // 1. 사용자의 응원 팀 조회
-        FavoriteTeam favoriteTeam = favTeamRepository.findByUserIdOrElseThrow(userId);
+        // 1. 사용자의 응원 팀 조회 (응원 팀이 없으면 빈 일정 반환)
+        Optional<FavoriteTeam> favoriteTeamOpt = favTeamRepository.findByUserId(userId);
+        if (favoriteTeamOpt.isEmpty()) {
+            log.info("User {} has no favorite team. Returning empty match schedule.", userId);
+            return Collections.emptyList();
+        }
+        FavoriteTeam favoriteTeam = favoriteTeamOpt.get();
         Team myTeam = favoriteTeam.getTeam();
 
         // 2. 해당 월의 시작과 끝 시간 계산
