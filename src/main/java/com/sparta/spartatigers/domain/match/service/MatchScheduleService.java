@@ -15,6 +15,7 @@ import com.sparta.spartatigers.domain.favoriteteam.model.entity.FavoriteTeam;
 import com.sparta.spartatigers.domain.favoriteteam.repository.FavTeamRepository;
 import com.sparta.spartatigers.domain.match.dto.MatchScheduleResponseDto;
 import com.sparta.spartatigers.domain.match.model.HomeAway;
+import com.sparta.spartatigers.domain.match.model.LeagueType;
 import com.sparta.spartatigers.domain.match.model.Match;
 import com.sparta.spartatigers.domain.match.repository.MatchRepository;
 import com.sparta.spartatigers.domain.team.model.Team;
@@ -41,7 +42,7 @@ public class MatchScheduleService {
      * @return 가공된 경기 일정 리스트
      */
     @Transactional(readOnly = true)
-    public List<MatchScheduleResponseDto> getMonthlySchedule(Long userId, int year, int month) {
+    public List<MatchScheduleResponseDto> getMonthlySchedule(Long userId, int year, int month, LeagueType leagueType) {
         // 1. 사용자의 응원 팀 조회 (응원 팀이 없으면 빈 일정 반환)
         Optional<FavoriteTeam> favoriteTeamOpt = favTeamRepository.findByUserId(userId);
         if (favoriteTeamOpt.isEmpty()) {
@@ -60,8 +61,8 @@ public class MatchScheduleService {
         }
         LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
 
-        // 3. 경기 데이터 조회 (팀 조건 포함 및 JOIN FETCH를 통한 최적화된 쿼리 사용)
-        List<Match> matches = matchRepository.findAllByMatchTimeBetweenAndTeam(startOfMonth, endOfMonth, myTeam.getId());
+        // 3. 경기 데이터 조회 (팀 조건 및 리그 타입 포함)
+        List<Match> matches = matchRepository.findAllByMatchTimeBetweenAndTeam(startOfMonth, endOfMonth, myTeam.getId(), leagueType);
 
         // 4. DTO 변환
         return matches.stream()

@@ -8,6 +8,7 @@ import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import com.sparta.spartatigers.domain.match.model.LeagueType;
 import com.sparta.spartatigers.domain.match.model.Match;
 
 public interface MatchRepository extends JpaRepository<Match, Long> {
@@ -34,8 +35,9 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
 		LEFT JOIN FETCH m.stadium
 		WHERE m.matchTime >= :start AND m.matchTime < :end
 		  AND (m.homeTeam.id = :teamId OR m.awayTeam.id = :teamId)
+		  AND (:leagueType IS NULL OR m.leagueType = :leagueType)
 		""")
-	List<Match> findAllByMatchTimeBetweenAndTeam(LocalDateTime start, LocalDateTime end, Long teamId);
+	List<Match> findAllByMatchTimeBetweenAndTeam(LocalDateTime start, LocalDateTime end, Long teamId, LeagueType leagueType);
 
 	List<Match> findAllByIdIn(Set<Long> ids);
 
