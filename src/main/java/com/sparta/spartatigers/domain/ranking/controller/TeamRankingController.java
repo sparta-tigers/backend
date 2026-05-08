@@ -13,6 +13,7 @@ import com.sparta.spartatigers.domain.match.model.LeagueType;
 import com.sparta.spartatigers.domain.ranking.dto.PostSeasonResponseDto;
 import com.sparta.spartatigers.domain.ranking.dto.TeamRankingResponseDto;
 import com.sparta.spartatigers.domain.ranking.service.TeamRankingService;
+import com.sparta.spartatigers.global.response.ApiResponse;
 
 import lombok.AllArgsConstructor;
 
@@ -36,14 +37,14 @@ public class TeamRankingController {
 	 * @return 순위대로 정렬된 팀 랭킹 리스트
 	 */
 	@GetMapping("/daily")
-	public List<TeamRankingResponseDto> getRankingByDate(
+	public ApiResponse<List<TeamRankingResponseDto>> getRankingByDate(
 		@RequestParam (required = false)
 		@DateTimeFormat(pattern = "yyyyMMdd") LocalDate anyday
 	) {
 		if (anyday == null) {
 			anyday = LocalDate.now();
 		}
-		return rankingService.getRankingByDate(anyday);
+		return ApiResponse.success(rankingService.getRankingByDate(anyday));
 	}
 
 	/**
@@ -56,14 +57,14 @@ public class TeamRankingController {
 	 * @return 해당 시즌의 최종 팀 랭킹 리스트
 	 */
 	@GetMapping("/yearly")
-	public List<TeamRankingResponseDto> getRankingByYear(
+	public ApiResponse<List<TeamRankingResponseDto>> getRankingByYear(
 		@RequestParam (required = false) Integer year,
 		@RequestParam LeagueType leagueType
 	) {
 		if(year == null) {
 			year = LocalDate.now().getYear();
 		}
-		return rankingService.getRankingByYear(year, leagueType);
+		return ApiResponse.success(rankingService.getRankingByYear(year, leagueType));
 	}
 
 	/**
@@ -73,12 +74,12 @@ public class TeamRankingController {
 	 * @return 단계별 경기 목록 및 우승팀 정보
 	 */
 	@GetMapping("/postseason")
-	public PostSeasonResponseDto getPostSeasonMatchesByYear(
+	public ApiResponse<PostSeasonResponseDto> getPostSeasonMatchesByYear(
 		@RequestParam (required = false) Integer year
 	) {
 		if(year == null) {
 			year = LocalDate.now().getYear();
 		}
-		return rankingService.getPostSeasonResults(year);
+		return ApiResponse.success(rankingService.getPostSeasonResults(year));
 	}
 }
