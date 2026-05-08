@@ -39,12 +39,12 @@ public class TeamRankingService {
 	// --- Public  ---
 
 	/**
-	 * 특정 날짜 기준 순위 산출
-	 * 해당 날짜의 23:59:59 까지 종료된 모든 경기 결과를 합산하여 순위를 매깁니다.
-	 * 해당 날짜로부터 가장 최근 진행된 리그의 순위를 계산합니다.
+	 * 특정 날짜 및 리그 타입 기준 순위 산출
+	 * 해당 날짜의 23:59:59 까지 종료된 경기 결과를 합산하며, 요청된 leagueType에 해당하는 순위만 계산합니다.
 	 *
 	 * @param date 기준 날짜
-	 * @return 승률 내림차 순으로 정렬된 랭킹 리스트
+	 * @param leagueType 리그 타입 (필수)
+	 * @return 승률 내림차순으로 정렬된 랭킹 리스트
 	 */
 	public List<TeamRankingResponseDto> getRankingByDate(
 		LocalDate date, LeagueType leagueType
@@ -212,19 +212,7 @@ public class TeamRankingService {
 				prevWinRate = winRate;
 			}
 
-			result.add(TeamRankingResponseDto.of(
-					stat.getLeagueType(),
-					displayRank,
-					stat.getTeamId(),
-					stat.getTeamName(),
-					stat.getTeamCode() != null ? stat.getTeamCode().getDescriptiveCode() : null,
-					stat.getMatchCount(),
-					stat.getWinCount(),
-					stat.getLoseCount(),
-					stat.getDrawCount(),
-					winRate
-				)
-			);
+			result.add(TeamRankingResponseDto.of(displayRank, stat, winRate));
 		}
 		return result;
 	}
