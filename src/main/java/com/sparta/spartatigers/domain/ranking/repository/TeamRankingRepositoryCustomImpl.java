@@ -114,6 +114,7 @@ public class TeamRankingRepositoryCustomImpl implements TeamRankingRepositoryCus
 					stat.getLeagueType(),
 					stat.getTeamId(),
 					stat.getTeamName(),
+					stat.getTeamCode(),
 					alreadyApplied.getWinCount() + stat.getWinCount(),
 					alreadyApplied.getLoseCount() + stat.getLoseCount(),
 					alreadyApplied.getDrawCount() + stat.getDrawCount()
@@ -130,6 +131,7 @@ public class TeamRankingRepositoryCustomImpl implements TeamRankingRepositoryCus
 				match.leagueType,
 				homeTeam.id,
 				homeTeam.name,
+				homeTeam.code,
 				new CaseBuilder().when(match.matchResult.eq(MatchResult.HOME_WIN)).then(1).otherwise(0).sum(),
 				new CaseBuilder().when(match.matchResult.eq(MatchResult.AWAY_WIN)).then(1).otherwise(0).sum(),
 				new CaseBuilder().when(match.matchResult.eq(MatchResult.DRAW)).then(1).otherwise(0).sum()
@@ -142,7 +144,7 @@ public class TeamRankingRepositoryCustomImpl implements TeamRankingRepositoryCus
 				match.matchTime.loe(anyday),
 				match.matchResult.in(MatchResult.HOME_WIN, MatchResult.AWAY_WIN, MatchResult.DRAW)
 			)
-			.groupBy(homeTeam.id, homeTeam.name)
+			.groupBy(homeTeam.id, homeTeam.name, homeTeam.code)
 			.fetch();
 	}
 
@@ -154,6 +156,7 @@ public class TeamRankingRepositoryCustomImpl implements TeamRankingRepositoryCus
 				match.leagueType,
 				awayTeam.id,
 				awayTeam.name,
+				awayTeam.code,
 				new CaseBuilder().when(match.matchResult.eq(MatchResult.AWAY_WIN)).then(1).otherwise(0).sum(),
 				new CaseBuilder().when(match.matchResult.eq(MatchResult.HOME_WIN)).then(1).otherwise(0).sum(),
 				new CaseBuilder().when(match.matchResult.eq(MatchResult.DRAW)).then(1).otherwise(0).sum()
@@ -166,7 +169,7 @@ public class TeamRankingRepositoryCustomImpl implements TeamRankingRepositoryCus
 				match.matchTime.loe(anyday),
 				match.matchResult.in(MatchResult.HOME_WIN, MatchResult.AWAY_WIN, MatchResult.DRAW)
 			)
-			.groupBy(awayTeam.id, awayTeam.name)
+			.groupBy(awayTeam.id, awayTeam.name, awayTeam.code)
 			.fetch();
 	}
 }

@@ -15,6 +15,7 @@ public class TeamRankingResponseDto {
 	private int rank;
 	private Long teamId;
 	private String teamName;
+	private String teamCode;
 
 	private int matchCount; // 경기수 ( 취소 / 미경기 제외 )
 
@@ -26,7 +27,7 @@ public class TeamRankingResponseDto {
 
 
 	public static TeamRankingResponseDto of(
-		LeagueType leagueType, int rank, Long teamId, String teamName, int matchCount, int winCount, int loseCount, int drawCount,
+		LeagueType leagueType, int rank, Long teamId, String teamName, String teamCode, int matchCount, int winCount, int loseCount, int drawCount,
 		double winRate
 	) {
 		return new TeamRankingResponseDto(
@@ -34,6 +35,7 @@ public class TeamRankingResponseDto {
 			rank,
 			teamId,
 			teamName,
+			teamCode,
 			matchCount,
 			winCount,
 			loseCount,

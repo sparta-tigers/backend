@@ -1,6 +1,7 @@
 package com.sparta.spartatigers.domain.ranking.dto;
 
 import com.sparta.spartatigers.domain.match.model.LeagueType;
+import com.sparta.spartatigers.domain.team.model.TeamCode;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,6 +14,7 @@ public class TeamRankingStat {
 	private LeagueType leagueType;
 	private Long teamId;
 	private String teamName;
+	private TeamCode teamCode;
 
 	private int winCount; // 승리
 	private int loseCount; // 패배

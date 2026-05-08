@@ -217,6 +217,7 @@ public class TeamRankingService {
 					displayRank,
 					stat.getTeamId(),
 					stat.getTeamName(),
+					stat.getTeamCode().getDescriptiveCode(),
 					stat.getMatchCount(),
 					stat.getWinCount(),
 					stat.getLoseCount(),
