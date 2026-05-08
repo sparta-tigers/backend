@@ -65,4 +65,17 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
 	)
 	Optional<Match> findFirstHomeSeriesMatch (Long awayTeamId, Long homeTeamId, LocalDateTime from, LocalDateTime to);
 
+	// [대시보드] 남은 경기 수 조회 (NOT_PLAYED 상태만 카운트)
+	@Query(
+		"""
+		SELECT COUNT(m)
+		FROM Match m
+		WHERE (m.homeTeam.id = :teamId OR m.awayTeam.id = :teamId)
+		  AND m.leagueType = :leagueType
+		  AND m.matchTime >= :now
+		  AND m.matchResult = 'NOT_PLAYED'
+		"""
+	)
+	long countRemainingMatches(Long teamId, LeagueType leagueType, LocalDateTime now);
+
 }
