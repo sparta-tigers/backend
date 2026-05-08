@@ -33,7 +33,11 @@ public class FavTeamService {
 		if (request.getTeamId() != null) {
 			team = teamRepository.findByIdOrElseThrow(request.getTeamId());
 		} else if (request.getTeamCode() != null) {
-			team = teamRepository.findByCodeOrElseThrow(TeamCode.valueOf(request.getTeamCode().toUpperCase()));
+			try {
+				team = teamRepository.findByCodeOrElseThrow(TeamCode.valueOf(request.getTeamCode().toUpperCase()));
+			} catch (IllegalArgumentException e) {
+				throw new InvalidRequestException(ExceptionCode.INVALID_TYPE_EXCEPTION);
+			}
 		} else {
 			throw new InvalidRequestException(ExceptionCode.INVALID_TYPE_EXCEPTION);
 		}
@@ -64,7 +68,11 @@ public class FavTeamService {
 		if (request.getTeamId() != null) {
 			newTeam = teamRepository.findByIdOrElseThrow(request.getTeamId());
 		} else if (request.getTeamCode() != null) {
-			newTeam = teamRepository.findByCodeOrElseThrow(TeamCode.valueOf(request.getTeamCode().toUpperCase()));
+			try {
+				newTeam = teamRepository.findByCodeOrElseThrow(TeamCode.valueOf(request.getTeamCode().toUpperCase()));
+			} catch (IllegalArgumentException e) {
+				throw new InvalidRequestException(ExceptionCode.INVALID_TYPE_EXCEPTION);
+			}
 		} else {
 			throw new InvalidRequestException(ExceptionCode.INVALID_TYPE_EXCEPTION);
 		}

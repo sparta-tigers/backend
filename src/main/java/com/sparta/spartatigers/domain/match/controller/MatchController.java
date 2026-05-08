@@ -2,11 +2,14 @@ package com.sparta.spartatigers.domain.match.controller;
 
 import java.util.List;
 
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.domain.match.dto.MatchScheduleResponseDto;
 import com.sparta.spartatigers.domain.match.service.MatchScheduleService;
@@ -18,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/matches")
+@Validated
 public class MatchController {
 
     private final MatchScheduleService matchScheduleService;
@@ -32,8 +36,8 @@ public class MatchController {
      */
     @GetMapping("/schedule")
     public ApiResponse<List<MatchScheduleResponseDto>> getMonthlySchedule(
-            @RequestParam int year,
-            @RequestParam int month,
+            @RequestParam @Min(1900) @Max(2100) int year,
+            @RequestParam @Min(1) @Max(12) int month,
             @Auth TokenClaim tokenClaim) {
         Long userId = tokenClaim.getUserId();
         List<MatchScheduleResponseDto> schedule = matchScheduleService.getMonthlySchedule(userId, year, month);

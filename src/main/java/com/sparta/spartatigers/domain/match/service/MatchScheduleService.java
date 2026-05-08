@@ -1,5 +1,6 @@
 package com.sparta.spartatigers.domain.match.service;
 
+import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -16,6 +17,8 @@ import com.sparta.spartatigers.domain.match.dto.MatchScheduleResponseDto;
 import com.sparta.spartatigers.domain.match.model.Match;
 import com.sparta.spartatigers.domain.match.repository.MatchRepository;
 import com.sparta.spartatigers.domain.team.model.Team;
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +51,12 @@ public class MatchScheduleService {
         Team myTeam = favoriteTeam.getTeam();
 
         // 2. 해당 월의 시작과 끝 시간 계산
-        LocalDateTime startOfMonth = LocalDateTime.of(year, month, 1, 0, 0);
+        LocalDateTime startOfMonth;
+        try {
+            startOfMonth = LocalDateTime.of(year, month, 1, 0, 0);
+        } catch (DateTimeException e) {
+            throw new InvalidRequestException(ExceptionCode.INVALID_TYPE_EXCEPTION);
+        }
         LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
 
         // 3. 경기 데이터 조회 (JOIN FETCH를 통한 최적화된 쿼리 사용)

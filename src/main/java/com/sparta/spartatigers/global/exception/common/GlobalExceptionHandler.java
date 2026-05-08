@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 
+import jakarta.validation.ConstraintViolationException;
+
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.external.ExternalServiceException;
 import com.sparta.spartatigers.global.exception.internal.BaseException;
@@ -72,6 +74,29 @@ public class GlobalExceptionHandler {
 
         ApiResponse<?> response =
             ApiResponse.error(ExceptionCode.VALIDATION_ERROR, fieldErrorDetails);
+        return ResponseEntity.status(ExceptionCode.VALIDATION_ERROR.getHttpStatus()).body(response);
+    }
+
+    /**
+     * ConstraintViolationException 핸들러 (Query Parameter 검증 실패 시 발생)
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ApiResponse<?>> handleConstraintViolationException(ConstraintViolationException ex) {
+        log.warn("ConstraintViolation 예외 발생: {}", ex.getMessage());
+
+        List<ErrorResponse.FieldErrorDetail> fieldErrorDetails = ex.getConstraintViolations().stream()
+            .map(violation -> {
+                String propertyPath = violation.getPropertyPath().toString();
+                String fieldName = propertyPath.substring(propertyPath.lastIndexOf('.') + 1);
+                return ErrorResponse.FieldErrorDetail.of(
+                    fieldName,
+                    maskIfSensitive(fieldName, violation.getInvalidValue()),
+                    violation.getMessage()
+                );
+            })
+            .toList();
+
+        ApiResponse<?> response = ApiResponse.error(ExceptionCode.VALIDATION_ERROR, fieldErrorDetails);
         return ResponseEntity.status(ExceptionCode.VALIDATION_ERROR.getHttpStatus()).body(response);
     }
 
