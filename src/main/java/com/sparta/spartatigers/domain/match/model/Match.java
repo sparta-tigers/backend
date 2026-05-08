@@ -8,6 +8,7 @@ import com.sparta.spartatigers.domain.team.model.Team;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -21,7 +22,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
-@Entity(name = "matches")
+@Entity
+@Table(name = "matches")
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor

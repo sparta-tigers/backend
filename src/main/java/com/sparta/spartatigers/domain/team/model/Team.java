@@ -4,6 +4,7 @@ import com.sparta.spartatigers.domain.common.entity.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
@@ -14,7 +15,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
-@Entity(name = "teams")
+@Entity
+@Table(name = "teams")
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor

@@ -1,5 +1,6 @@
 package com.sparta.spartatigers.domain.match.dto;
 
+import com.sparta.spartatigers.domain.match.model.HomeAway;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -12,6 +13,6 @@ import lombok.Getter;
 public class MatchScheduleResponseDto {
     private Integer day;           // 경기 일 (1-31)
     private String opponentCode;   // 상대 팀 코드 (예: "OB", "HT", "LG")
-    private String location;       // 홈/어웨이 여부 ("H" or "A")
+    private HomeAway location;     // 홈/어웨이 여부 ("H" or "A")
     private String timeText;       // 경기 시작 시간 (예: "18:30")
 }
