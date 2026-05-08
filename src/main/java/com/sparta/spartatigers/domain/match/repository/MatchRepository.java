@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import com.sparta.spartatigers.domain.match.model.LeagueType;
 import com.sparta.spartatigers.domain.match.model.Match;
+import com.sparta.spartatigers.domain.match.model.MatchResult;
 
 public interface MatchRepository extends JpaRepository<Match, Long> {
 
@@ -73,9 +74,9 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
 		WHERE (m.homeTeam.id = :teamId OR m.awayTeam.id = :teamId)
 		  AND m.leagueType = :leagueType
 		  AND m.matchTime >= :now
-		  AND m.matchResult = 'NOT_PLAYED'
+		  AND m.matchResult = :matchResult
 		"""
 	)
-	long countRemainingMatches(Long teamId, LeagueType leagueType, LocalDateTime now);
+	long countRemainingMatches(Long teamId, LeagueType leagueType, LocalDateTime now, MatchResult matchResult);
 
 }

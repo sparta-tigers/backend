@@ -10,6 +10,7 @@ import com.sparta.spartatigers.domain.dashboard.dto.HomeDashboardResponseDto;
 import com.sparta.spartatigers.domain.favoriteteam.model.entity.FavoriteTeam;
 import com.sparta.spartatigers.domain.favoriteteam.repository.FavTeamRepository;
 import com.sparta.spartatigers.domain.match.model.LeagueType;
+import com.sparta.spartatigers.domain.match.model.MatchResult;
 import com.sparta.spartatigers.domain.match.repository.MatchRepository;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.repository.UserRepository;
@@ -54,8 +55,9 @@ public class DashboardService {
 
             remainingMatches = matchRepository.countRemainingMatches(
                     favTeam.getTeam().getId(),
-                    LeagueType.REGULAR,
-                    now
+                    LeagueType.REGULAR, // 정규 리그 한정 집계 (의도적)
+                    now,
+                    MatchResult.NOT_PLAYED
             );
         }
 
