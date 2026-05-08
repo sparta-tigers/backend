@@ -23,7 +23,7 @@ public class DashboardController {
 
     @GetMapping("/summary")
     public ApiResponse<HomeDashboardResponseDto> getDashboardSummary(@Auth TokenClaim tokenClaim) {
-        log.info("Fetching dashboard summary for user: {}", tokenClaim.getUserId());
+        log.debug("Fetching dashboard summary for user: {}", tokenClaim.getUserId());
         HomeDashboardResponseDto summary = dashboardService.getDashboardSummary(tokenClaim.getUserId());
         return ApiResponse.success(summary);
     }
