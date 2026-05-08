@@ -12,12 +12,15 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.domain.match.dto.MatchScheduleResponseDto;
+import com.sparta.spartatigers.domain.match.model.LeagueType;
 import com.sparta.spartatigers.domain.match.service.MatchScheduleService;
 import com.sparta.spartatigers.global.aop.Auth;
 import com.sparta.spartatigers.global.response.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/matches")
@@ -38,9 +41,11 @@ public class MatchController {
     public ApiResponse<List<MatchScheduleResponseDto>> getMonthlySchedule(
             @RequestParam @Min(1900) @Max(2100) int year,
             @RequestParam @Min(1) @Max(12) int month,
+            @RequestParam(required = false) LeagueType leagueType,
             @Auth TokenClaim tokenClaim) {
+        log.info("Fetching monthly schedule: year={}, month={}, leagueType={}", year, month, leagueType);
         Long userId = tokenClaim.getUserId();
-        List<MatchScheduleResponseDto> schedule = matchScheduleService.getMonthlySchedule(userId, year, month);
+        List<MatchScheduleResponseDto> schedule = matchScheduleService.getMonthlySchedule(userId, year, month, leagueType);
         return ApiResponse.success(schedule);
     }
 }
