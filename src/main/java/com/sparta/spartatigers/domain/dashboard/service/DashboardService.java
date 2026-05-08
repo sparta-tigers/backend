@@ -31,8 +31,11 @@ public class DashboardService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new InvalidRequestException(ExceptionCode.USER_NOT_FOUND));
 
+        // 🚨 앙드레 카파시: 결정론적 시간 처리를 위해 메서드 진입점에서 시각 캡처
+        LocalDateTime now = LocalDateTime.now();
+
         // 1. 입학 일수 계산 (createdAt 기준)
-        long enrollmentDays = ChronoUnit.DAYS.between(user.getCreatedAt().toLocalDate(), LocalDateTime.now().toLocalDate()) + 1;
+        long enrollmentDays = ChronoUnit.DAYS.between(user.getCreatedAt().toLocalDate(), now.toLocalDate()) + 1;
 
         // 2. 응원 팀 및 남은 경기 수 조회
         FavoriteTeam favTeam = favTeamRepository.findByUserId(userId).orElse(null);
@@ -41,11 +44,18 @@ public class DashboardService {
         String favoriteTeamCode = null;
 
         if (favTeam != null) {
-            favoriteTeamCode = favTeam.getTeam().getCode().name();
+            // 🚨 앙드레 카파시: NPE 방어 - Team 및 Code 존재 여부 확인
+            com.sparta.spartatigers.domain.team.model.TeamCode teamCode = 
+                (favTeam.getTeam() != null && favTeam.getTeam().getCode() != null) 
+                ? favTeam.getTeam().getCode() 
+                : null;
+            
+            favoriteTeamCode = (teamCode != null) ? teamCode.name() : null;
+
             remainingMatches = matchRepository.countRemainingMatches(
                     favTeam.getTeam().getId(),
                     LeagueType.REGULAR,
-                    LocalDateTime.now()
+                    now
             );
         }
 

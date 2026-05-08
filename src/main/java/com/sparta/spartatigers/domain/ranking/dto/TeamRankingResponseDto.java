@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import java.util.Objects;
 
 @Getter
 @Builder
@@ -39,6 +40,7 @@ public class TeamRankingResponseDto {
 	 * @return TeamRankingResponseDto
 	 */
 	public static TeamRankingResponseDto of(int rank, TeamRankingStat stat, double winRate) {
+		Objects.requireNonNull(stat, "stat must not be null");
 		return TeamRankingResponseDto.builder()
 			.leagueType(stat.getLeagueType())
 			.rank(rank)
