@@ -39,12 +39,13 @@ public class TeamRankingController {
 	@GetMapping("/daily")
 	public ApiResponse<List<TeamRankingResponseDto>> getRankingByDate(
 		@RequestParam (required = false)
-		@DateTimeFormat(pattern = "yyyyMMdd") LocalDate anyday
+		@DateTimeFormat(pattern = "yyyyMMdd") LocalDate anyday,
+		@RequestParam LeagueType leagueType
 	) {
 		if (anyday == null) {
 			anyday = LocalDate.now();
 		}
-		return ApiResponse.success(rankingService.getRankingByDate(anyday));
+		return ApiResponse.success(rankingService.getRankingByDate(anyday, leagueType));
 	}
 
 	/**

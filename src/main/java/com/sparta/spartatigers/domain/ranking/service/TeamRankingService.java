@@ -47,12 +47,12 @@ public class TeamRankingService {
 	 * @return 승률 내림차 순으로 정렬된 랭킹 리스트
 	 */
 	public List<TeamRankingResponseDto> getRankingByDate(
-		LocalDate date
+		LocalDate date, LeagueType leagueType
 	) {
 		LocalDateTime tilltheDay = date.atTime(LocalTime.MAX);
 		// 해당 일자의 경기 결과를 보고 Stat을 계산
 		List<TeamRankingStat> stats =
-			rankingRepository.applyTeamRecords(tilltheDay);
+			rankingRepository.applyTeamRecords(tilltheDay, leagueType);
 		// 스탯을 토대로 랭킹 계산 후 DTO 변환
 		return convertToResponse(stats);
 	}

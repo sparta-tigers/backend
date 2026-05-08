@@ -18,8 +18,6 @@ import com.sparta.spartatigers.domain.match.model.QMatch;
 import com.sparta.spartatigers.domain.ranking.dto.TeamRankingStat;
 import com.sparta.spartatigers.domain.team.model.QStadium;
 import com.sparta.spartatigers.domain.team.model.QTeam;
-import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
-import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -35,24 +33,9 @@ public class TeamRankingRepositoryCustomImpl implements TeamRankingRepositoryCus
 	private final QStadium stadium = QStadium.stadium;
 
 	@Override
-	public List<TeamRankingStat> applyTeamRecords(LocalDateTime anyday) {
-		// 해당 날짜로부터 가장 최근에 진행된 경기의 season_year, leagueType을 찾는다
-		Match lastestMatch = queryFactory
-			.selectFrom(match)
-			.where(
-				match.matchTime.loe(anyday),
-				match.leagueType.ne(LeagueType.POST_SEASON)
-				)
-			.orderBy(match.matchTime.desc())
-			.fetchFirst();
-
-		if (lastestMatch == null) {
-			throw new InvalidRequestException(ExceptionCode.MATCH_NOT_FOUND);
-		}
-
+	public List<TeamRankingStat> applyTeamRecords(LocalDateTime anyday, LeagueType leagueType) {
 		// 파악된 시즌 연도와 리그 종류를 기준으로 집계 범위 확정
-		LeagueType leagueType = lastestMatch.getLeagueType();
-		int currentSeason = lastestMatch.getSeasonYear();
+		int currentSeason = anyday.getYear();
 		LocalDateTime to = anyday.toLocalDate().atTime(23,59,59);
 
 		// 홈+원정 데이터 각각 집계

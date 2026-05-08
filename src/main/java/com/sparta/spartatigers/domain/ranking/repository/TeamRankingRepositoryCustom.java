@@ -9,7 +9,7 @@ import com.sparta.spartatigers.domain.ranking.dto.TeamRankingStat;
 
 public interface TeamRankingRepositoryCustom {
 
-	List<TeamRankingStat> applyTeamRecords (LocalDateTime anyday);
+	List<TeamRankingStat> applyTeamRecords(LocalDateTime anyday, LeagueType leagueType);
 	List<TeamRankingStat> applyTeamRecordsByYear (int year, LeagueType leagueType);
 	List<Match> findAllPostSeasonMatches(int year);
 }
