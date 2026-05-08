@@ -9,6 +9,7 @@ import com.sparta.spartatigers.domain.favoriteteam.dto.FavTeamResponseDto;
 import com.sparta.spartatigers.domain.favoriteteam.model.entity.FavoriteTeam;
 import com.sparta.spartatigers.domain.favoriteteam.repository.FavTeamRepository;
 import com.sparta.spartatigers.domain.team.model.Team;
+import com.sparta.spartatigers.domain.team.model.TeamCode;
 import com.sparta.spartatigers.domain.team.repository.TeamRepository;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.repository.UserRepository;
@@ -27,7 +28,20 @@ public class FavTeamService {
 	@Transactional
 	public FavTeamResponseDto add (FavTeamRequestDto request, Long userId) {
 		User user = userRepository.findByIdOrElseThrow(userId);
-		Team team = teamRepository.findByIdOrElseThrow(request.getTeamId());
+		
+		Team team;
+		if (request.getTeamId() != null) {
+			team = teamRepository.findByIdOrElseThrow(request.getTeamId());
+		} else if (request.getTeamCode() != null) {
+			try {
+				team = teamRepository.findByCodeOrElseThrow(TeamCode.valueOf(request.getTeamCode().toUpperCase()));
+			} catch (IllegalArgumentException e) {
+				throw new InvalidRequestException(ExceptionCode.INVALID_TYPE_EXCEPTION);
+			}
+		} else {
+			throw new InvalidRequestException(ExceptionCode.INVALID_TYPE_EXCEPTION);
+		}
+		
 		FavoriteTeam favoriteTeam = FavoriteTeam.from(user, team);
 
 		try{
@@ -39,17 +53,30 @@ public class FavTeamService {
 		return FavTeamResponseDto.of(favoriteTeam);
 	}
 
-	@Transactional
+	@Transactional(readOnly = true)
 	public FavTeamResponseDto get(Long userId) {
-		FavoriteTeam favoriteTeam = favTeamRepository.findByUserIdOrElseThrow(userId);
-
-		return FavTeamResponseDto.of(favoriteTeam);
+		return favTeamRepository.findByUserId(userId)
+			.map(FavTeamResponseDto::of)
+			.orElse(null);
 	}
 
 	@Transactional
 	public FavTeamResponseDto update(FavTeamRequestDto request, Long userId) {
 		FavoriteTeam favoriteTeam = favTeamRepository.findByUserIdOrElseThrow(userId);
-		Team newTeam = teamRepository.findByIdOrElseThrow(request.getTeamId());
+		
+		Team newTeam;
+		if (request.getTeamId() != null) {
+			newTeam = teamRepository.findByIdOrElseThrow(request.getTeamId());
+		} else if (request.getTeamCode() != null) {
+			try {
+				newTeam = teamRepository.findByCodeOrElseThrow(TeamCode.valueOf(request.getTeamCode().toUpperCase()));
+			} catch (IllegalArgumentException e) {
+				throw new InvalidRequestException(ExceptionCode.INVALID_TYPE_EXCEPTION);
+			}
+		} else {
+			throw new InvalidRequestException(ExceptionCode.INVALID_TYPE_EXCEPTION);
+		}
+		
 		favoriteTeam.update(newTeam);
 		return FavTeamResponseDto.of(favoriteTeam);
 	}
