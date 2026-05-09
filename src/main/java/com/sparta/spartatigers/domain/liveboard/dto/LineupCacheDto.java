@@ -2,6 +2,8 @@ package com.sparta.spartatigers.domain.liveboard.dto;
 
 import java.util.List;
 import com.sparta.spartatigers.domain.liveboard.model.LineupBatter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,6 +18,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class LineupCacheDto {
     private Long matchId;
     private List<LineupBatter> awayBatters;
@@ -24,6 +27,7 @@ public class LineupCacheDto {
     /**
      * 라인업 데이터가 유효한지(비어있지 않은지) 확인
      */
+    @JsonIgnore
     public boolean isNotEmpty() {
         return (awayBatters != null && !awayBatters.isEmpty()) || 
                (homeBatters != null && !homeBatters.isEmpty());
