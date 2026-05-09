@@ -40,6 +40,20 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
 		""")
 	List<Match> findAllByMatchTimeBetweenAndTeam(LocalDateTime start, LocalDateTime end, Long teamId, LeagueType leagueType);
 
+	@Query(
+		"""
+		SELECT m
+		FROM Match m
+		JOIN FETCH m.homeTeam
+		JOIN FETCH m.awayTeam
+		LEFT JOIN FETCH m.stadium
+		WHERE m.matchTime >= :start AND m.matchTime < :end
+		  AND (m.homeTeam.id = :teamId OR m.awayTeam.id = :teamId)
+		  AND (:leagueType IS NULL OR m.leagueType = :leagueType)
+		ORDER BY m.matchTime ASC
+		""")
+	Optional<Match> findFirstByMatchTimeBetweenAndTeam(LocalDateTime start, LocalDateTime end, Long teamId, LeagueType leagueType);
+
 	List<Match> findAllByIdIn(Set<Long> ids);
 
 	@Query(

@@ -88,10 +88,8 @@ public class DashboardService {
         LocalDateTime startOfDay = now.toLocalDate().atStartOfDay();
         LocalDateTime endOfDay = startOfDay.plusDays(1);
 
-        // 오늘 진행되는 해당 팀의 정규 리그 경기 조회
-        return matchRepository.findAllByMatchTimeBetweenAndTeam(startOfDay, endOfDay, teamId, LeagueType.REGULAR)
-                .stream()
-                .findFirst()
+        // 오늘 진행되는 해당 팀의 정규 리그 경기 조회 (최적화: LIMIT 1)
+        return matchRepository.findFirstByMatchTimeBetweenAndTeam(startOfDay, endOfDay, teamId, LeagueType.REGULAR)
                 .map(match -> {
                     String cacheKey = LINEUP_CACHE_PREFIX + match.getId();
                     Object cachedData = redisTemplate.opsForValue().get(cacheKey);
