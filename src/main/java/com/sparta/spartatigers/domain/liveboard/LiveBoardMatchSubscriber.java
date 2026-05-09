@@ -43,7 +43,7 @@ public class LiveBoardMatchSubscriber implements MessageListener {
             cacheLineupData(liveBoardData);
 
         } catch (JsonProcessingException e) {
-            log.error("Failed to parse LiveBoardData from Redis message", e);
+            log.error("Failed to parse LiveBoardData from Redis message: {}", e.getMessage(), e);
         }
     }
 
