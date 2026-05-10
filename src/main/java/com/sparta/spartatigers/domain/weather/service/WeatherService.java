@@ -2,6 +2,7 @@ package com.sparta.spartatigers.domain.weather.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -36,7 +37,7 @@ public class WeatherService {
 	public NowCastResponseDto getNowCast(Long stadiumId) {
 
 		Stadium stadium = stadiumRepository.findById(stadiumId)
-			.orElseThrow(()-> new InvalidRequestException(ExceptionCode.STADIUM_NOT_FOUND));
+				.orElseThrow(() -> new InvalidRequestException(ExceptionCode.STADIUM_NOT_FOUND));
 		int nx = stadium.getNx();
 		int ny = stadium.getNy();
 
@@ -59,23 +60,26 @@ public class WeatherService {
 		double windSpeed = WeatherParser.toNumberFromText(ncstMap.get("WSD"));
 		WindDirection windDirection = WindDirection.fromDegree(WeatherParser.toNumberFromText(ncstMap.get("VEC")));
 
+		// 강수확률(POP)은 단기예보에서만 제공 → 실패해도 null fallback
+		Integer rainProbability = fetchClosestPop(nx, ny);
+
 		return NowCastResponseDto.of(
-			LocalDateTime.now(),
-			stadium,
-			temperature,
-			skyStatus,
-			rainType,
-			rainAmount,
-			windSpeed,
-			windDirection
-		);
+				LocalDateTime.now(),
+				stadium,
+				temperature,
+				skyStatus,
+				rainType,
+				rainAmount,
+				rainProbability,
+				windSpeed,
+				windDirection);
 
 	}
 
 	public List<ForeCastResponseDto> getForeCast(Long stadiumId) {
 
 		Stadium stadium = stadiumRepository.findById(stadiumId)
-			.orElseThrow(()-> new InvalidRequestException(ExceptionCode.STADIUM_NOT_FOUND));
+				.orElseThrow(() -> new InvalidRequestException(ExceptionCode.STADIUM_NOT_FOUND));
 
 		int nx = stadium.getNx();
 		int ny = stadium.getNy();
@@ -86,9 +90,9 @@ public class WeatherService {
 		OriginResponse ultraRes = restTemplate.getForObject(ultraNcstUrl, OriginResponse.class);
 		OriginResponse vilageRes = restTemplate.getForObject(vilageFcstUrl, OriginResponse.class);
 
-
 		List<OriginResponse.Item> ultraItems = WeatherParser.originItems(ultraRes);
-		List<OriginResponse.Item> vilageItems = WeatherParser.normalizeVilageTimes(WeatherParser.originItems(vilageRes));
+		List<OriginResponse.Item> vilageItems = WeatherParser
+				.normalizeVilageTimes(WeatherParser.originItems(vilageRes));
 
 		Map<String, Map<String, String>> ultraMap = WeatherParser.toFcstMapGroupedByTime(ultraItems);
 		Map<String, Map<String, String>> vilageMap = WeatherParser.toFcstMapGroupedByTime(vilageItems);
@@ -98,31 +102,48 @@ public class WeatherService {
 		for (String time : ultraMap.keySet()) {
 			Map<String, String> ultraFcst = ultraMap.get(time);
 			String vKey = time.endsWith("00") ? time.substring(0, 2) + "30" : time;
-			Map<String, String> vilageFcst = vilageMap.getOrDefault(vKey, java.util.Collections.emptyMap());
+			Map<String, String> vilageFcst = vilageMap.getOrDefault(vKey, Collections.emptyMap());
 
-			Double temp       = WeatherParser.toNumberFromText(ultraFcst.get("T1H"));
+			Double temp = WeatherParser.toNumberFromText(ultraFcst.get("T1H"));
 			Double rainAmount = WeatherParser.toNumberFromText(ultraFcst.get("RN1"));
-			Double popValue   = WeatherParser.toNumberFromText(vilageFcst.get("POP"));
+			Double popValue = WeatherParser.toNumberFromText(vilageFcst.get("POP"));
 
 			double temperature = temp != null ? temp : Double.NaN;
-			double rain        = rainAmount != null ? rainAmount : 0.0;
-			int    pop         = popValue != null ? popValue.intValue() : 0;
+			double rain = rainAmount != null ? rainAmount : 0.0;
+			int pop = popValue != null ? popValue.intValue() : 0;
 
 			foreCastList.add(ForeCastResponseDto.of(
-				WeatherParser.toDateTimeFromFcst(time),
-				stadium,
-				temperature,
-				SkyStatus.fromCode(ultraFcst.get("SKY")),
-				pop,
-				RainType.fromCode(ultraFcst.get("PTY")),
-				rain
-			));
+					WeatherParser.toDateTimeFromFcst(time),
+					stadium,
+					temperature,
+					SkyStatus.fromCode(ultraFcst.get("SKY")),
+					pop,
+					RainType.fromCode(ultraFcst.get("PTY")),
+					rain));
 		}
 
 		return foreCastList;
 	}
 
+	/**
+	 * 단기예보(getVilageFcst)로부터 현재 시각에 가장 가까운 시각의 POP(강수확률)를 조회.
+	 * 호출 실패/응답 결손/값 부재 시 null을 반환하여 NowCast 전체가 실패하지 않도록 격리한다.
+	 */
+	private Integer fetchClosestPop(int nx, int ny) {
+		try {
+			String vilageUrl = apiUrlGenerator.getVilageFcstUrl(nx, ny);
+			OriginResponse vilageRes = restTemplate.getForObject(vilageUrl, OriginResponse.class);
 
+			List<OriginResponse.Item> vilageItems = WeatherParser
+					.normalizeVilageTimes(WeatherParser.originItems(vilageRes));
 
+			Map<String, String> vilageClosest = WeatherParser.toClosestFcstMap(vilageItems);
+			Double popValue = WeatherParser.toNumberFromText(vilageClosest.get("POP"));
 
+			return popValue != null ? popValue.intValue() : null;
+		} catch (Exception e) {
+			log.warn("Vilage fcst call failed while fetching POP (nx={}, ny={}): {}", nx, ny, e.getMessage());
+			return null;
+		}
+	}
 }

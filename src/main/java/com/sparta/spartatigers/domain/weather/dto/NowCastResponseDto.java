@@ -19,23 +19,24 @@ public class NowCastResponseDto {
 	// 🌤️️
 	private Double temperature; // 기온(T1H) - 초단기실황
 	private SkyStatus skyStatus; // 하늘상태(SKY) - 초단기예보
-	//️ ☔
+	// ️ ☔
 	private RainType rainType; // 강수형태(PYT) - 초단기실황
 	private Double rainAmount; // 강수량(RN1) - 초단기실황
+	private Integer rainProbability; // 강수확률(POP) - 단기예보 (null 허용)
 	// 💨
 	private Double windSpeed; // 풍속(WSD) - 초단기실황
 	private WindDirection windDirection; // 풍향(VEC) - 초단기실황
 
 	public static NowCastResponseDto of(
-		LocalDateTime referenceTime,
-		Stadium stadium,
-		double temperature,
-		SkyStatus skyStatus,
-		RainType rainType,
-		double rainAmount,
-		double windSpeed,
-		WindDirection windDirection
-	) {
+			LocalDateTime referenceTime,
+			Stadium stadium,
+			double temperature,
+			SkyStatus skyStatus,
+			RainType rainType,
+			double rainAmount,
+			Integer rainProbability,
+			double windSpeed,
+			WindDirection windDirection) {
 		NowCastResponseDto dto = new NowCastResponseDto();
 		dto.referenceTime = referenceTime;
 		dto.stadium = stadium.getName();
@@ -43,6 +44,7 @@ public class NowCastResponseDto {
 		dto.skyStatus = skyStatus;
 		dto.rainType = rainType;
 		dto.rainAmount = rainAmount;
+		dto.rainProbability = rainProbability;
 		dto.windSpeed = windSpeed;
 		dto.windDirection = windDirection;
 		return dto;
