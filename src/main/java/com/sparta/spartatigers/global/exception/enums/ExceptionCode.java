@@ -97,6 +97,7 @@ public enum ExceptionCode {
     // 공통
     INVALID_TYPE_EXCEPTION(HttpStatus.BAD_REQUEST, ErrorCode.E400, "잘못된 데이터 타입입니다.", LogLevel.DEBUG),
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, ErrorCode.E400, "요청값 검증에 실패 했습니다", LogLevel.DEBUG),
+    RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, ErrorCode.E404, "요청한 리소스를 찾을 수 없습니다.", LogLevel.DEBUG),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.E500, "예상하지 못한 예외가 발생 했습니다.", LogLevel.ERROR),
 
     // 순위
@@ -107,9 +108,6 @@ public enum ExceptionCode {
     MATCH_ATTENDANCE_FORBIDDEN(HttpStatus.BAD_REQUEST, ErrorCode.E403, "권한이 없습니다.", LogLevel.DEBUG),
     TICKET_OCR_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.E500, "좌석 정보 추출 OCR을 사용할 수 없습니다.", LogLevel.ERROR),
     INVALID_TICKET_IMAGE(HttpStatus.BAD_REQUEST, ErrorCode.E400, "유효하지 않은 티켓 이미지입니다.", LogLevel.DEBUG);
-
-
-
 
     private final HttpStatus httpStatus;
     private final ErrorCode code;
