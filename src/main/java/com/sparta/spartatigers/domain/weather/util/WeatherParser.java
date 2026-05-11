@@ -69,10 +69,11 @@ public class WeatherParser {
 	// ✅ 초단기예보 : 카테고리 - 응답 매핑 (현재시간만)
 	public static Map<String, String> toClosestFcstMap(List<OriginResponse.Item> items) {
 
-		if (getClosestTimeToNow(items) == null)
+		LocalDateTime closest = getClosestTimeToNow(items);
+		if (closest == null)
 			return Collections.emptyMap();
-		String targetDate = getClosestTimeToNow(items).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-		String targetTime = getClosestTimeToNow(items).format(DateTimeFormatter.ofPattern("HHmm"));
+		String targetDate = closest.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+		String targetTime = closest.format(DateTimeFormatter.ofPattern("HHmm"));
 
 		Map<String, String> m = new HashMap<>();
 		for (OriginResponse.Item it : items) {
@@ -85,36 +86,32 @@ public class WeatherParser {
 		return m;
 	}
 
-	// ✅ 초단기예보 , 단기예보 : 카테고리 - 응답 매핑 (전체 시간)
-	public static Map<String, Map<String, String>> toFcstMapGroupedByTime(List<OriginResponse.Item> items) {
-		Map<String, Map<String, String>> timeCategoryMap = new LinkedHashMap<>();
+	/**
+	 * 초단기예보/단기예보 응답을 (fcstDate+fcstTime) 단위로 그룹핑한다.
+	 *
+	 * Why: 초단기예보는 최대 6시간 뒤까지의 예보를 한 번에 주므로 자정을 넘는 예보가 포함된다.
+	 * 기존 구현은 fcstTime만으로 그룹핑해 다음날 00시와 오늘 00시가 동일 키로 충돌하거나,
+	 * 상위 {@link #toDateTimeFromFcst(String)}가 오늘 날짜로만 매핑해 자정 이후 예보가
+	 * 과거로 밀리는 문제가 있었다. fcstDate 정보를 키에 포함해 이를 차단한다.
+	 *
+	 * @return fcstDate(yyyyMMdd) → (fcstTime(HHmm) → (category → fcstValue))
+	 */
+	public static Map<String, Map<String, Map<String, String>>> toFcstMapGroupedByDateTime(
+			List<OriginResponse.Item> items) {
+		Map<String, Map<String, Map<String, String>>> dateTimeCategoryMap = new LinkedHashMap<>();
 
 		for (OriginResponse.Item item : items) {
-			if (item.fcstTime == null || item.category == null || item.fcstValue == null)
+			if (item.fcstDate == null || item.fcstTime == null
+					|| item.category == null || item.fcstValue == null)
 				continue;
 
-			timeCategoryMap
+			dateTimeCategoryMap
+					.computeIfAbsent(item.fcstDate, d -> new LinkedHashMap<>())
 					.computeIfAbsent(item.fcstTime, t -> new HashMap<>())
 					.put(item.category, item.fcstValue);
 		}
 
-		return timeCategoryMap;
-	}
-
-	public static List<OriginResponse.Item> normalizeVilageTimes(List<OriginResponse.Item> items) {
-		if (items == null || items.isEmpty())
-			return items;
-
-		for (OriginResponse.Item it : items) {
-			if (it.fcstTime == null || it.fcstTime.length() != 4)
-				continue;
-
-			if (it.fcstTime.endsWith("00")) {
-				String hour = it.fcstTime.substring(0, 2);
-				it.fcstTime = hour + "30";
-			}
-		}
-		return items;
+		return dateTimeCategoryMap;
 	}
 
 	// 예보시간 중 현재와 시간 찾기
@@ -185,12 +182,14 @@ public class WeatherParser {
 		}
 	}
 
-	public static LocalDateTime toDateTimeFromFcst(String hhmm) {
-		LocalDate today = LocalDate.now();
-		LocalTime time = LocalTime.of(
-				Integer.parseInt(hhmm.substring(0, 2)),
-				Integer.parseInt(hhmm.substring(2, 4)));
-		return LocalDateTime.of(today, time);
+	/**
+	 * 예보 응답의 fcstDate/fcstTime을 LocalDateTime으로 변환한다.
+	 *
+	 * Why: 기존에는 fcstTime만 받고 날짜를 LocalDate.now()로 고정해, 초단기예보에 포함된
+	 * 자정 이후 예보가 "오늘 같은 시각"으로 잘못 매핑되어 프론트 필터에서 과거로 밀렸다.
+	 */
+	public static LocalDateTime toDateTimeFromFcst(String fcstDate, String fcstTime) {
+		return toDateTime(fcstDate, fcstTime);
 	}
 
 }
