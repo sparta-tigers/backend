@@ -1,4 +1,4 @@
-package com.sparta.spartatigers.domain.matchAttendance.model;
+package com.sparta.spartatigers.domain.liveboard.matchAttendance.model;
 
 public enum AttendanceImageType {
 	TICKET, NORMAL

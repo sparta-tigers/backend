@@ -1,6 +1,6 @@
 package com.sparta.spartatigers.domain.ranking.dto;
 
-import com.sparta.spartatigers.domain.match.model.LeagueType;
+import com.sparta.spartatigers.domain.liveboard.match.model.LeagueType;
 import com.sparta.spartatigers.domain.team.model.TeamCode;
 
 import lombok.AllArgsConstructor;

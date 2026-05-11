@@ -6,7 +6,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.domain.liveboard.dto.LineupResponseDto;
+import com.sparta.spartatigers.global.aop.Auth;
 
 import lombok.RequiredArgsConstructor;
 
@@ -30,7 +32,7 @@ public class LineupController {
      * Redis 캐시에 데이터가 없으면 빈 배열로 200 응답.
      */
     @GetMapping("/{matchId}/lineup")
-    public ResponseEntity<LineupResponseDto> getMatchLineup(@PathVariable Long matchId) {
+    public ResponseEntity<LineupResponseDto> getMatchLineup(@PathVariable Long matchId, @Auth TokenClaim token) {
         LineupResponseDto response = lineupQueryService.getMatchLineup(matchId);
         return ResponseEntity.ok(response);
     }

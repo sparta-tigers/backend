@@ -4,9 +4,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sparta.spartatigers.domain.liveboard.dto.MatchWeatherResponse;
-import com.sparta.spartatigers.domain.match.model.Match;
-import com.sparta.spartatigers.domain.match.repository.MatchRepository;
-import com.sparta.spartatigers.domain.team.model.Stadium;
+import com.sparta.spartatigers.domain.liveboard.match.model.Match;
+import com.sparta.spartatigers.domain.liveboard.match.repository.MatchRepository;
+import com.sparta.spartatigers.domain.liveboard.match.model.Stadium;
 import com.sparta.spartatigers.domain.weather.dto.WeatherBundle;
 import com.sparta.spartatigers.domain.weather.service.WeatherService;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;

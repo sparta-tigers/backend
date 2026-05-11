@@ -1,5 +1,6 @@
 package com.sparta.spartatigers.domain.ranking.controller;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -9,24 +10,25 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sparta.spartatigers.domain.match.model.LeagueType;
+import com.sparta.spartatigers.domain.liveboard.match.model.LeagueType;
 import com.sparta.spartatigers.domain.ranking.dto.PostSeasonResponseDto;
 import com.sparta.spartatigers.domain.ranking.dto.TeamRankingResponseDto;
 import com.sparta.spartatigers.domain.ranking.service.TeamRankingService;
 import com.sparta.spartatigers.global.response.ApiResponse;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 /** [ 팀 순위 및 포스트시즌 정보 API 컨트롤러]
  *
  * 일자별 / 년도별 정규리그 순위와 포스트 시즌 경기 결과를 제공합니다.
  */
 @RestController
-@AllArgsConstructor
+@RequiredArgsConstructor
 @RequestMapping("/api/rankings")
 public class TeamRankingController {
 
 	private final TeamRankingService rankingService;
+	private final Clock clock;
 
 	/**
 	 * [ 일자별 순위 조회 ]
@@ -43,7 +45,7 @@ public class TeamRankingController {
 		@RequestParam LeagueType leagueType
 	) {
 		if (anyday == null) {
-			anyday = LocalDate.now();
+			anyday = LocalDate.now(clock);
 		}
 		return ApiResponse.success(rankingService.getRankingByDate(anyday, leagueType));
 	}
@@ -63,7 +65,7 @@ public class TeamRankingController {
 		@RequestParam LeagueType leagueType
 	) {
 		if(year == null) {
-			year = LocalDate.now().getYear();
+			year = LocalDate.now(clock).getYear();
 		}
 		return ApiResponse.success(rankingService.getRankingByYear(year, leagueType));
 	}
@@ -79,7 +81,7 @@ public class TeamRankingController {
 		@RequestParam (required = false) Integer year
 	) {
 		if(year == null) {
-			year = LocalDate.now().getYear();
+			year = LocalDate.now(clock).getYear();
 		}
 		return ApiResponse.success(rankingService.getPostSeasonResults(year));
 	}

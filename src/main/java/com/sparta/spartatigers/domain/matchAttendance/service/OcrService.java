@@ -1,4 +1,4 @@
-package com.sparta.spartatigers.domain.matchAttendance.service;
+package com.sparta.spartatigers.domain.liveboard.matchAttendance.service;
 
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.auth.oauth2.GoogleCredentials;
