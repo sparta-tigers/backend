@@ -2,7 +2,7 @@ package com.sparta.spartatigers.domain.ranking.dto;
 
 import java.time.LocalDateTime;
 
-import com.sparta.spartatigers.domain.match.model.Match;
+import com.sparta.spartatigers.domain.liveboard.match.model.Match;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

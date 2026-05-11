@@ -20,7 +20,7 @@ public class StartingLineupPK implements Serializable {
 	@Column(name = "team_id")
 	private Long teamId;
 
-	private StartingLineupPK(Long matchId, Long teamId) {
+	public StartingLineupPK(Long matchId, Long teamId) {
 		this.matchId = matchId;
 		this.teamId = teamId;
 	}

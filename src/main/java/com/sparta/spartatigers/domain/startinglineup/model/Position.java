@@ -18,6 +18,10 @@ public enum Position  {
 		this.koreanName = koreanName;
 	}
 
+	public String getKoreanName() {
+		return koreanName;
+	}
+
 	public static Position fromKorean(String koreanName) {
 		for (Position position : values()) {
 			// 크롤링 데이터에 공백이 있을 수 있으니 trim()으로 양옆 공백 제거 후 비교

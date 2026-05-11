@@ -76,11 +76,9 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
             .orElseThrow(() -> new InvalidRequestException(ExceptionCode.ITEM_NOT_FOUND));
     }
 
-    default Item findByIdAndStatusAndDateOrElseThrow(Long id) {
-
-        return findByIdAndStatusAndCreatedDate(id, ItemStatus.REGISTERED,
-            LocalDate.now()).orElseThrow(
-            () -> new InvalidRequestException(ExceptionCode.ITEM_NOT_FOUND));
+    default Item findByIdAndStatusAndDateOrElseThrow(Long id, LocalDate createdDate) {
+        return findByIdAndStatusAndCreatedDate(id, ItemStatus.REGISTERED, createdDate)
+            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.ITEM_NOT_FOUND));
     }
 
     // 고아 이미지 정리용: DB에 참조된 모든 이미지 URL 조회

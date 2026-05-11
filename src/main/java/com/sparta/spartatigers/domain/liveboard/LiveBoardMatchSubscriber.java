@@ -25,6 +25,7 @@ public class LiveBoardMatchSubscriber implements MessageListener {
     private final ObjectMapper objectMapper;
     private final SimpMessagingTemplate messagingTemplate;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final com.sparta.spartatigers.domain.startinglineup.service.StartingLineupService startingLineupService;
 
     private static final String LINEUP_CACHE_PREFIX = "lineup:match:";
     private static final Duration CACHE_TTL = Duration.ofHours(6);
@@ -84,5 +85,12 @@ public class LiveBoardMatchSubscriber implements MessageListener {
 
         redisTemplate.opsForValue().set(cacheKey, newCache, CACHE_TTL);
         log.info("Successfully updated lineup cache for matchId: {}", data.getMatchId());
+
+        // 3. DB 영속화 (Fallback 대응)
+        try {
+            startingLineupService.saveLineupFromCache(newCache);
+        } catch (Exception e) {
+            log.error("Failed to save lineup to DB for matchId: {}", data.getMatchId(), e);
+        }
     }
 }

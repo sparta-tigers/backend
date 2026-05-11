@@ -1,5 +1,6 @@
 package com.sparta.spartatigers.domain.dashboard.service;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
@@ -15,9 +16,9 @@ import com.sparta.spartatigers.domain.favoriteteam.model.entity.FavoriteTeam;
 import com.sparta.spartatigers.domain.favoriteteam.repository.FavTeamRepository;
 import com.sparta.spartatigers.domain.liveboard.dto.LineupCacheDto;
 import com.sparta.spartatigers.domain.liveboard.model.LineupBatter;
-import com.sparta.spartatigers.domain.match.model.LeagueType;
-import com.sparta.spartatigers.domain.match.model.MatchResult;
-import com.sparta.spartatigers.domain.match.repository.MatchRepository;
+import com.sparta.spartatigers.domain.liveboard.match.model.LeagueType;
+import com.sparta.spartatigers.domain.liveboard.match.model.MatchResult;
+import com.sparta.spartatigers.domain.liveboard.match.repository.MatchRepository;
 import com.sparta.spartatigers.domain.user.model.User;
 import com.sparta.spartatigers.domain.user.repository.UserRepository;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
@@ -37,6 +38,7 @@ public class DashboardService {
     private final FavTeamRepository favTeamRepository;
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
+    private final Clock clock;
 
     private static final String LINEUP_CACHE_PREFIX = "lineup:match:";
 
@@ -44,7 +46,7 @@ public class DashboardService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new InvalidRequestException(ExceptionCode.USER_NOT_FOUND));
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
 
         // 1. 입학 일수 계산
         long enrollmentDays = ChronoUnit.DAYS.between(user.getCreatedAt().toLocalDate(), now.toLocalDate()) + 1;

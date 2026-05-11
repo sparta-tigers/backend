@@ -20,8 +20,8 @@ public class ChatMessage {
 	private String favTeamSymbolUrl;
 
 	public static ChatMessage ofLiveBoardRoom (
-		String roomId, Long senderId,String senderNickname, String content, String favTeamSymbolUrl
+		String roomId, Long senderId, String senderNickname, String content, String favTeamSymbolUrl, LocalDateTime sentAt
 	) {
-		return new ChatMessage(roomId, senderId, senderNickname, content, LocalDateTime.now(), ChatDomainType.LIVEBOARD, favTeamSymbolUrl);
+		return new ChatMessage(roomId, senderId, senderNickname, content, sentAt, ChatDomainType.LIVEBOARD, favTeamSymbolUrl);
 	}
 }

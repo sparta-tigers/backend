@@ -19,8 +19,8 @@ import org.springframework.stereotype.Service;
 import com.sparta.spartatigers.domain.stompchat.dto.request.LocationRequestDto;
 import com.sparta.spartatigers.domain.stompchat.dto.response.RedisUpdateDto;
 import com.sparta.spartatigers.domain.stompchat.pubsub.RedisLocationPublisher;
-import com.sparta.spartatigers.domain.team.model.Stadium;
-import com.sparta.spartatigers.domain.team.repository.StadiumRepository;
+import com.sparta.spartatigers.domain.liveboard.match.model.Stadium;
+import com.sparta.spartatigers.domain.liveboard.match.repository.StadiumRepository;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;

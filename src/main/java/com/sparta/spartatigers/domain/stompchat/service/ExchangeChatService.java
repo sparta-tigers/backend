@@ -1,6 +1,8 @@
 package com.sparta.spartatigers.domain.stompchat.service;
 
+import java.time.Clock;
 import java.time.Duration;
+import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +35,7 @@ public class ExchangeChatService {
     private static final Duration LIMIT_DURATION = Duration.ofSeconds(2);
 
     private final DirectRoomRepository directRoomRepository;
+    private final Clock clock;
     private final UserRepository userRepository;
     private final DirectMessageRepository directMessageRepository;
     private final RedisDirectMessagePublisher redisPublisher;
@@ -99,7 +102,7 @@ public class ExchangeChatService {
                         return new InvalidRequestException(ExceptionCode.USER_NOT_FOUND);});
 
         // DB에 메세지 저장 (UNREAD 상태) -> 알아서 flush 됨
-        DirectMessage savedMessage = directMessageRepository.save(DirectMessage.of(room, sender, messageText));
+        DirectMessage savedMessage = directMessageRepository.save(DirectMessage.of(room, sender, messageText, LocalDateTime.now(clock)));
 
         // redis 발행 (UNREAD 상태)
         redisPublisher.publish("directRoom:" + roomId, RedisMessage.from(savedMessage));

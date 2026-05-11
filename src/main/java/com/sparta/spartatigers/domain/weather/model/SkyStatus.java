@@ -13,13 +13,21 @@ public enum SkyStatus {
 		this.description = description;
 	}
 
-	public static SkyStatus fromCode (String code) {
-		if(code == null) return SUNNY;
+	/**
+	 * 기상청 SKY 코드 → SkyStatus.
+	 *
+	 * Why: 기존 구현은 null/미상 코드를 무조건 SUNNY로 변환해,
+	 * 업스트림 에러/파싱 실패 시에도 UI에 "맑음"이 표시되는 오염이 있었다.
+	 * 이제는 미상을 null로 반환해 상위 계층이 "데이터 없음"으로 명확히 취급하도록 한다.
+	 */
+	public static SkyStatus fromCode(String code) {
+		if (code == null)
+			return null;
 		return switch (code) {
 			case "1" -> SUNNY;
 			case "3" -> CLOUDY_PARTLY;
 			case "4" -> CLOUDY;
-			default -> SUNNY;
+			default -> null;
 		};
 	}
 }

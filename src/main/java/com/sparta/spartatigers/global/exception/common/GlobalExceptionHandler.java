@@ -13,6 +13,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import jakarta.validation.ConstraintViolationException;
 
@@ -37,8 +39,8 @@ public class GlobalExceptionHandler {
     private final NotificationSender notificationSender;
 
     // 민감 정보 필드명 관리하는 Set
-    private static final Set<String> SENSITIVE_FIELDS =
-        Set.of("password", "pwd", "pass", "token", "authorization", "auth", "secret", "apiKey", "api_key");
+    private static final Set<String> SENSITIVE_FIELDS = Set.of("password", "pwd", "pass", "token", "authorization",
+            "auth", "secret", "apiKey", "api_key");
 
     /**
      * 값 마스킹 헬퍼 메서드
@@ -59,21 +61,18 @@ public class GlobalExceptionHandler {
     // validation 예외 핸들러
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<?>> handleValidationException(
-        MethodArgumentNotValidException ex) {
+            MethodArgumentNotValidException ex) {
         log.warn("Validation 예외 발생: {}", ex.getMessage());
 
-        List<ErrorResponse.FieldErrorDetail> fieldErrorDetails =
-            ex.getBindingResult().getFieldErrors().stream()
+        List<ErrorResponse.FieldErrorDetail> fieldErrorDetails = ex.getBindingResult().getFieldErrors().stream()
                 .map(
-                    error ->
-                        ErrorResponse.FieldErrorDetail.of(
-                            error.getField(),
-                            maskIfSensitive(error.getField(), error.getRejectedValue()),
-                            error.getDefaultMessage()))
+                        error -> ErrorResponse.FieldErrorDetail.of(
+                                error.getField(),
+                                maskIfSensitive(error.getField(), error.getRejectedValue()),
+                                error.getDefaultMessage()))
                 .toList();
 
-        ApiResponse<?> response =
-            ApiResponse.error(ExceptionCode.VALIDATION_ERROR, fieldErrorDetails);
+        ApiResponse<?> response = ApiResponse.error(ExceptionCode.VALIDATION_ERROR, fieldErrorDetails);
         return ResponseEntity.status(ExceptionCode.VALIDATION_ERROR.getHttpStatus()).body(response);
     }
 
@@ -88,16 +87,15 @@ public class GlobalExceptionHandler {
         log.warn("ConstraintViolation 예외 발생 (검증 출처 확인 필요): {}", ex.getMessage());
 
         List<ErrorResponse.FieldErrorDetail> fieldErrorDetails = ex.getConstraintViolations().stream()
-            .map(violation -> {
-                String propertyPath = violation.getPropertyPath().toString();
-                String fieldName = propertyPath.substring(propertyPath.lastIndexOf('.') + 1);
-                return ErrorResponse.FieldErrorDetail.of(
-                    fieldName,
-                    maskIfSensitive(fieldName, violation.getInvalidValue()),
-                    violation.getMessage()
-                );
-            })
-            .toList();
+                .map(violation -> {
+                    String propertyPath = violation.getPropertyPath().toString();
+                    String fieldName = propertyPath.substring(propertyPath.lastIndexOf('.') + 1);
+                    return ErrorResponse.FieldErrorDetail.of(
+                            fieldName,
+                            maskIfSensitive(fieldName, violation.getInvalidValue()),
+                            violation.getMessage());
+                })
+                .toList();
 
         ApiResponse<?> response = ApiResponse.error(ExceptionCode.VALIDATION_ERROR, fieldErrorDetails);
         return ResponseEntity.status(ExceptionCode.VALIDATION_ERROR.getHttpStatus()).body(response);
@@ -109,28 +107,54 @@ public class GlobalExceptionHandler {
         log.warn("요청 데이터 형식 오류: {}", ex.getMessage());
 
         return ResponseEntity.badRequest()
-            .body(ApiResponse.error(ExceptionCode.INVALID_TYPE_EXCEPTION));
+                .body(ApiResponse.error(ExceptionCode.INVALID_TYPE_EXCEPTION));
     }
 
-    // [FIX] 문제 2: check-then-act 경합으로 DataIntegrityViolationException 발생 시 
-    // 무조건 ITEM_ALREADY_EXISTS 매핑하던 것을 UK_ACTIVE_ITEM_PER_USER 제약조건 위반인 경우에 한해 409로 분기. 
+    /**
+     * 경로 변수/쿼리 파라미터 타입 변환 실패 (예: {matchId}에 숫자가 아닌 값 전달)
+     *
+     * Why: Spring 기본 동작은 500을 뱉지만, 잘못된 포맷은 클라이언트 측 오류이므로 400으로 분류.
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiResponse<?>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        log.warn("경로/쿼리 파라미터 타입 불일치: name={}, value={}", ex.getName(), ex.getValue());
+        return ResponseEntity.status(ExceptionCode.INVALID_TYPE_EXCEPTION.getHttpStatus())
+                .body(ApiResponse.error(ExceptionCode.INVALID_TYPE_EXCEPTION));
+    }
+
+    /**
+     * 매핑되지 않은 경로 (Spring 6 / Boot 3+의 기본 동작에서 발생)
+     *
+     * Why: 기존에는 Exception.class 핸들러에 흡수되어 500으로 나가면서
+     * 클라이언트가 "서버 장애"로 오인하는 문제가 있었음. 404로 명확히 구분.
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<?>> handleNoResourceFound(NoResourceFoundException ex) {
+        log.debug("매핑되지 않은 경로 요청: {}", ex.getResourcePath());
+        return ResponseEntity.status(ExceptionCode.RESOURCE_NOT_FOUND.getHttpStatus())
+                .body(ApiResponse.error(ExceptionCode.RESOURCE_NOT_FOUND));
+    }
+
+    // [FIX] 문제 2: check-then-act 경합으로 DataIntegrityViolationException 발생 시
+    // 무조건 ITEM_ALREADY_EXISTS 매핑하던 것을 UK_ACTIVE_ITEM_PER_USER 제약조건 위반인 경우에 한해 409로
+    // 분기.
     // 그 외(NOT NULL, 길이 초과 등)는 500 처리
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiResponse<?>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
         String rootMessage = ex.getMostSpecificCause() != null
-            ? String.valueOf(ex.getMostSpecificCause().getMessage())
-            : "";
+                ? String.valueOf(ex.getMostSpecificCause().getMessage())
+                : "";
         log.warn("DB 무결성 제약 위반: {}", rootMessage);
 
         // UK_ACTIVE_ITEM_PER_USER 위반에 한해 ITEM_ALREADY_EXISTS로 매핑
         if (rootMessage != null && rootMessage.toUpperCase().contains("UK_ACTIVE_ITEM_PER_USER")) {
             return ResponseEntity.status(ExceptionCode.ITEM_ALREADY_EXISTS.getHttpStatus())
-                .body(ApiResponse.error(ExceptionCode.ITEM_ALREADY_EXISTS));
+                    .body(ApiResponse.error(ExceptionCode.ITEM_ALREADY_EXISTS));
         }
 
         // 그 외 무결성 위반은 일반 처리
         return ResponseEntity.status(ExceptionCode.INTERNAL_SERVER_ERROR.getHttpStatus())
-            .body(ApiResponse.error(ExceptionCode.INTERNAL_SERVER_ERROR));
+                .body(ApiResponse.error(ExceptionCode.INTERNAL_SERVER_ERROR));
     }
 
     /**
@@ -145,7 +169,7 @@ public class GlobalExceptionHandler {
         // sendNotificationToDiscord(AlertLevel.CRITICAL, title, ex); // 임시 비활성화
 
         return ResponseEntity.status(ex.getStatus())
-            .body(ApiResponse.error(ex.getExceptionCode()));
+                .body(ApiResponse.error(ex.getExceptionCode()));
     }
 
     // 내부 예외 핸들러
@@ -159,9 +183,9 @@ public class GlobalExceptionHandler {
      * SSE 관련 예외
      */
     /*
-    SSE는 클라 동작 없으면 연결 끊김 -> 끊김 시 글로벌 익셉션 핸들러를 타는데 얘는 JSON 예외만 뱉기에 처리 못해서 생성
-    예외가 발생해도 재연결을 시도하기에 동작에는 지장없음 해당 예외는 예외 로그가 계성속 생기기에 생성
-    */
+     * SSE는 클라 동작 없으면 연결 끊김 -> 끊김 시 글로벌 익셉션 핸들러를 타는데 얘는 JSON 예외만 뱉기에 처리 못해서 생성
+     * 예외가 발생해도 재연결을 시도하기에 동작에는 지장없음 해당 예외는 예외 로그가 계성속 생기기에 생성
+     */
     @ExceptionHandler(HttpMessageNotWritableException.class)
     public void handleSseWritableException(HttpServletRequest request, Exception e) {
         if (request.getRequestURI().contains("/sse/subscribe")) {
@@ -187,7 +211,7 @@ public class GlobalExceptionHandler {
         // sendNotificationToDiscord(AlertLevel.ERROR, title, ex); // 임시 비활성화
 
         return ResponseEntity.status(ExceptionCode.INTERNAL_SERVER_ERROR.getHttpStatus())
-            .body(ApiResponse.error(ExceptionCode.INTERNAL_SERVER_ERROR));
+                .body(ApiResponse.error(ExceptionCode.INTERNAL_SERVER_ERROR));
     }
 
     private void sendNotificationToDiscord(AlertLevel level, String title, Exception ex) {
@@ -202,16 +226,15 @@ public class GlobalExceptionHandler {
         }
 
         MessagePayload payload = MessagePayload.builder()
-            .level(level)
-            .subject(title)
-            .message(ex.getMessage())
-            .metadata(Map.of(
-                "Exception Type", ex.getClass().getSimpleName(),
-                "Caused By", ex.getCause() != null ? ex.getCause().getMessage() : "원인 정보 없음",
-                "Error Code", (code != null) ? code.getCode().name() : "에러 코드 없음",
-                "Timestamp", LocalDateTime.now().toString()
-            ))
-            .build();
+                .level(level)
+                .subject(title)
+                .message(ex.getMessage())
+                .metadata(Map.of(
+                        "Exception Type", ex.getClass().getSimpleName(),
+                        "Caused By", ex.getCause() != null ? ex.getCause().getMessage() : "원인 정보 없음",
+                        "Error Code", (code != null) ? code.getCode().name() : "에러 코드 없음",
+                        "Timestamp", LocalDateTime.now().toString()))
+                .build();
 
         notificationSender.send(payload);
     }
