@@ -75,6 +75,9 @@ public class WeatherService {
 					ncstStatus, ultraStatus, vilageStatus, stadiumId);
 		}
 
+		// 세 API 중 가장 심각한 상태를 대표값으로 선택
+		WeatherApiStatus overallStatus = worstStatus(ncstStatus, ultraStatus, vilageStatus);
+
 		// ── NowCast 조립 ──────────────────────────────────────────────────────
 		List<OriginResponse.Item> ncstItems = WeatherParser.originItems(ncstRes);
 		List<OriginResponse.Item> ultraItems = WeatherParser.originItems(ultraRes);
@@ -143,7 +146,7 @@ public class WeatherService {
 			}
 		}
 
-		return new WeatherBundle(nowCast, foreCastList);
+		return new WeatherBundle(overallStatus, nowCast, foreCastList);
 	}
 
 	// ── 기존 단독 조회 메서드 (WeatherController 등 기존 호출부 호환 유지) ──────
@@ -169,5 +172,22 @@ public class WeatherService {
 		if (hhmm == null || hhmm.length() != 4)
 			return hhmm;
 		return hhmm.substring(0, 2) + "00";
+	}
+
+	/**
+	 * 세 API 상태 중 가장 심각한 상태를 반환한다.
+	 * 우선순위: INTERNAL_ERROR > UPSTREAM_ERROR > NO_DATA > SUCCESS
+	 */
+	private static WeatherApiStatus worstStatus(WeatherApiStatus... statuses) {
+		WeatherApiStatus worst = WeatherApiStatus.SUCCESS;
+		for (WeatherApiStatus s : statuses) {
+			if (s == WeatherApiStatus.INTERNAL_ERROR)
+				return WeatherApiStatus.INTERNAL_ERROR;
+			if (s == WeatherApiStatus.UPSTREAM_ERROR)
+				worst = WeatherApiStatus.UPSTREAM_ERROR;
+			else if (s == WeatherApiStatus.NO_DATA && worst == WeatherApiStatus.SUCCESS)
+				worst = WeatherApiStatus.NO_DATA;
+		}
+		return worst;
 	}
 }

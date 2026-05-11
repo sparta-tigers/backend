@@ -43,6 +43,6 @@ public class WeatherQueryService {
         // 기존 getNowCast + getForeCast 분리 호출 시 VilageFcst가 2회 중복되던 문제를 해소.
         WeatherBundle bundle = weatherService.getNowCastAndForeCast(stadium.getId());
 
-        return MatchWeatherResponse.of(stadium.getName(), bundle.nowCast(), bundle.foreCast());
+        return MatchWeatherResponse.of(stadium.getName(), bundle.status(), bundle.nowCast(), bundle.foreCast());
     }
 }
