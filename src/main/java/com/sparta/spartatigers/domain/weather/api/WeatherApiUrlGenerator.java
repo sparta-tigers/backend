@@ -4,15 +4,16 @@ import com.sparta.spartatigers.domain.weather.api.ApiTimeCalculator.BaseDateTime
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import lombok.RequiredArgsConstructor;
+
 @Component
+@RequiredArgsConstructor
 public class WeatherApiUrlGenerator {
 
-	private final String apiKey;
-	public WeatherApiUrlGenerator(
-		@Value("${weather.api.key}") String apiKey
-	) {
-		this.apiKey = apiKey;
-	}
+	private final ApiTimeCalculator apiTimeCalculator;
+
+	@Value("${weather.api.key}")
+	private String apiKey;
 
 	private static final String ULTRA_NCST_BASE_URL = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst";
 	private static final String ULTRA_FCST_BASE_URL = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtFcst";
@@ -21,7 +22,7 @@ public class WeatherApiUrlGenerator {
 	// 초단기실황 getUltraSrtNcst
 	public String getUltraSrtNcstUrl(int nx, int ny) {
 
-		BaseDateTime baseTime = ApiTimeCalculator.getNcstBaseDateTime();
+		BaseDateTime baseTime = apiTimeCalculator.getNcstBaseDateTime();
 
 		String urlBuilder = ULTRA_NCST_BASE_URL +
 			"?serviceKey=" + apiKey +
@@ -39,7 +40,7 @@ public class WeatherApiUrlGenerator {
 	// 초단기예보 getUltraSrtFcst
 	public String getUltraSrtFcstUrl(int nx, int ny)  {
 
-		BaseDateTime baseTime = ApiTimeCalculator.getFcstBaseDateTime();
+		BaseDateTime baseTime = apiTimeCalculator.getFcstBaseDateTime();
 
 		String urlBuilder = ULTRA_FCST_BASE_URL +
 			"?serviceKey=" + apiKey +
@@ -57,7 +58,7 @@ public class WeatherApiUrlGenerator {
 	// 단기예보 getVilageFcst
 	public String getVilageFcstUrl(int nx, int ny) {
 
-		BaseDateTime baseTime = ApiTimeCalculator.getVilageFcstBaseDateTime();
+		BaseDateTime baseTime = apiTimeCalculator.getVilageFcstBaseDateTime();
 
 		String urlBuilder = VILAGE_FCST_BASE_URL +
 			"?serviceKey=" + apiKey +

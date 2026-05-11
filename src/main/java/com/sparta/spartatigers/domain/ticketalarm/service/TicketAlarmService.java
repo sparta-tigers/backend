@@ -1,5 +1,6 @@
 package com.sparta.spartatigers.domain.ticketalarm.service;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -11,15 +12,15 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.sparta.spartatigers.domain.match.model.Match;
-import com.sparta.spartatigers.domain.match.repository.MatchRepository;
+import com.sparta.spartatigers.domain.liveboard.match.model.Match;
+import com.sparta.spartatigers.domain.liveboard.match.repository.MatchRepository;
 import com.sparta.spartatigers.domain.ticketalarm.dto.request.CreateTicketAlarmRequestDto;
 import com.sparta.spartatigers.domain.ticketalarm.dto.request.UpdateTicketAlarmRequestDto;
 import com.sparta.spartatigers.domain.ticketalarm.dto.response.TicketAlarmResponseDto;
+import com.sparta.spartatigers.domain.ticketalarm.model.ApplyScope;
 import com.sparta.spartatigers.domain.ticketalarm.model.BaseType;
 import com.sparta.spartatigers.domain.ticketalarm.model.TeamBookingPolicy;
 import com.sparta.spartatigers.domain.ticketalarm.model.TicketAlarm;
-import com.sparta.spartatigers.domain.ticketalarm.model.ApplyScope;
 import com.sparta.spartatigers.domain.ticketalarm.repository.TeamBookingPolicyRepository;
 import com.sparta.spartatigers.domain.ticketalarm.repository.TicketAlarmRepository;
 import com.sparta.spartatigers.domain.user.model.User;
@@ -38,6 +39,7 @@ public class TicketAlarmService {
 	private final MatchRepository matchRepository;
 	private final TeamBookingPolicyRepository bookingPolicyRepository;
 	private final TicketAlarmRepository ticketAlarmRepository;
+	private final Clock clock;
 
 	// TODO : 지난 알림 삭제해 말아???
 
@@ -192,7 +194,7 @@ public class TicketAlarmService {
 
 	// 알람시간이 이미 지났는지 검증
 	private void validateAlarmTime (LocalDateTime alarmTime) {
-		if(alarmTime.isBefore(LocalDateTime.now())) {
+		if(alarmTime.isBefore(LocalDateTime.now(clock))) {
 			throw new InvalidRequestException(ExceptionCode.ALARM_TIME_ALREADY_PASSED);
 		}
 	}

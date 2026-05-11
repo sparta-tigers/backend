@@ -34,6 +34,7 @@ import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeStatus;
 import com.sparta.spartatigers.global.firebase.FCMService;
 import com.sparta.spartatigers.domain.stompchat.pubsub.RedisDirectMessagePublisher;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -57,6 +58,7 @@ public class ItemService {
     private final DirectRoomRepository directRoomRepository;
     private final FCMService fcmService;
     private final RedisDirectMessagePublisher redisDirectMessagePublisher;
+    private final Clock clock;
 
     @Transactional(readOnly = true)
     public void validateCanCreateItem(TokenClaim tokenClaim) {
@@ -94,7 +96,7 @@ public class ItemService {
 
         Item item = new Item(request.category(), imageUrlsJson, request.seatInfo(),
                 request.title(), request.description(), latitude, longitude, address, request.desiredItem(),
-                ItemStatus.REGISTERED, user, LocalDate.now());
+                ItemStatus.REGISTERED, user, LocalDate.now(clock));
 
         Item savedItem = itemRepository.save(item);
 
@@ -110,7 +112,7 @@ public class ItemService {
         User user = userRepository.findById(tokenClaim.getUserId())
                 .orElseThrow(() -> new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
 
-        Item item = itemRepository.findByIdAndStatusAndDateOrElseThrow(itemId);
+        Item item = itemRepository.findByIdAndStatusAndDateOrElseThrow(itemId, LocalDate.now(clock));
         item.validateUserIsOwner(user);
 
         switch (request.action()) {
@@ -146,7 +148,7 @@ public class ItemService {
             }
 
             case CANCEL -> {
-                item.reopen();
+                item.reopen(LocalDate.now(clock));
                 List<ExchangeRequest> activeRequests = exchangeRequestRepository.findByItemIdAndStatusIn(
                         item.getId(), List.of(ExchangeStatus.ACCEPTED, ExchangeStatus.PENDING));
 
@@ -207,7 +209,7 @@ public class ItemService {
 
             return itemRepository.findAllItemsByLocation(
                     ItemStatus.REGISTERED,
-                    LocalDate.now(),
+                    LocalDate.now(clock),
                     userId,
                     latitude,
                     longitude,
@@ -225,7 +227,7 @@ public class ItemService {
             List<Long> nearByUserIds = new ArrayList<>(locationService.findUsersNearBy(userId, SEARCH_RADIUS_KM));
             nearByUserIds.add(userId);
 
-            return itemRepository.findAllItems(ItemStatus.REGISTERED, LocalDate.now(), nearByUserIds, pageable)
+            return itemRepository.findAllItems(ItemStatus.REGISTERED, LocalDate.now(clock), nearByUserIds, pageable)
                     .map(item -> ReadItemResponseDto.from(item, this));
         }
     }
@@ -236,14 +238,14 @@ public class ItemService {
                 .orElseThrow(() -> new InvalidRequestException(ExceptionCode.VALIDATION_ERROR))
                 .getId();
 
-        return itemRepository.findAllMyItems(ItemStatus.REGISTERED, LocalDate.now(), userId, pageable)
+        return itemRepository.findAllMyItems(ItemStatus.REGISTERED, LocalDate.now(clock), userId, pageable)
                 .map(item -> ReadItemResponseDto.from(item, this));
     }
 
     @Transactional(readOnly = true)
     public ReadItemDetailResponseDto findItemById(Long itemId, FindItemByIdRequestDto request) {
 
-        Item item = itemRepository.findByIdAndStatusAndDateOrElseThrow(itemId);
+        Item item = itemRepository.findByIdAndStatusAndDateOrElseThrow(itemId, LocalDate.now(clock));
         Double lat = request.latitude() != null ? request.latitude().doubleValue() : null;
         Double lon = request.longitude() != null ? request.longitude().doubleValue() : null;
         Integer distance = locationService.calculateDistance(lat, lon, item);
@@ -257,7 +259,7 @@ public class ItemService {
         User user = userRepository.findById(tokenClaim.getUserId())
                 .orElseThrow(() -> new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
 
-        Item item = itemRepository.findByIdAndStatusAndDateOrElseThrow(itemId);
+        Item item = itemRepository.findByIdAndStatusAndDateOrElseThrow(itemId, LocalDate.now(clock));
         item.validateUserIsOwner(user);
         item.deleteItem();
 
@@ -272,7 +274,7 @@ public class ItemService {
         User user = userRepository.findById(tokenClaim.getUserId())
                 .orElseThrow(() -> new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
 
-        Item item = itemRepository.findByIdAndStatusAndDateOrElseThrow(itemId);
+        Item item = itemRepository.findByIdAndStatusAndDateOrElseThrow(itemId, LocalDate.now(clock));
         item.validateUserIsOwner(user);
         item.updateItem(request);
 

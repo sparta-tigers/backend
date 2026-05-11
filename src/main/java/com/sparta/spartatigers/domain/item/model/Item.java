@@ -156,10 +156,10 @@ public class Item extends BaseEntity {
         this.status = ItemStatus.COMPLETED;
     }
 
-    public void reopen() {
+    public void reopen(LocalDate createdDate) {
         this.status = ItemStatus.REGISTERED;
         if (this.createdDate == null) {
-            this.createdDate = LocalDate.now();
+            this.createdDate = createdDate;
         }
     }
 

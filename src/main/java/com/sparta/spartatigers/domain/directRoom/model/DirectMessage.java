@@ -13,7 +13,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -46,17 +45,12 @@ public class DirectMessage extends BaseEntity {
     @Column (nullable = false)
     private boolean isRead;
 
-    @PrePersist
-    protected void onPersist() {
-        this.sentAt = LocalDateTime.now();
-    }
-
-    public static DirectMessage of(DirectRoom directRoom, User sender, String message) {
+    public static DirectMessage of(DirectRoom directRoom, User sender, String message, LocalDateTime sentAt) {
         DirectMessage directMessage = new DirectMessage();
         directMessage.directRoom = directRoom;
         directMessage.sender = sender;
         directMessage.message = message;
-        directMessage.sentAt = LocalDateTime.now();
+        directMessage.sentAt = sentAt;
         directMessage.isRead = false;
         return directMessage;
     }

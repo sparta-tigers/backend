@@ -1,6 +1,7 @@
 package com.sparta.spartatigers.domain.stompchat.service;
 
 import java.security.Principal;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -13,8 +14,8 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Service;
 
 import com.sparta.spartatigers.domain.favoriteteam.repository.FavTeamRepository;
-import com.sparta.spartatigers.domain.liveboardroom.model.LiveBoardConnection;
-import com.sparta.spartatigers.domain.liveboardroom.repository.LiveBoardConnectionRepository;
+import com.sparta.spartatigers.domain.liveboard.room.model.LiveBoardConnection;
+import com.sparta.spartatigers.domain.liveboard.room.repository.LiveBoardConnectionRepository;
 import com.sparta.spartatigers.domain.stompchat.interceptor.StompPrincipal;
 import com.sparta.spartatigers.domain.stompchat.model.ChatMessage;
 import com.sparta.spartatigers.domain.stompchat.pubsub.RedisChatPublisher;
@@ -37,6 +38,7 @@ public class ChatService {
 	private final UserRepository userRepository;
 	private final LiveBoardConnectionRepository liveBoardConnectionRepository;
 	private final FavTeamRepository favTeamRepository;
+	private final Clock clock;
 
 	public void sendGroupMessage(ChatMessage message, Principal principal) {
 		if (!(principal instanceof StompPrincipal stompPrincipal)) {
@@ -55,7 +57,8 @@ public class ChatService {
 			senderId,
 			nickname,
 			message.getContent(),
-			symbolUrl
+			symbolUrl,
+			LocalDateTime.now(clock)
 		);
 
 		ChannelTopic topic = getOrInitTopic(message.getRoomId());
@@ -66,7 +69,7 @@ public class ChatService {
 		// 기본값..
 		Long senderId = null;
 		String nickname = "비회원";
-		if (principal instanceof StompPrincipal stompPrincipal) {
+		if (principal instanceof StompPrincipal) {
 			senderId = getSenderId(principal);
 			nickname = userRepository.findNicknameById(senderId).orElse("비회원");
 		}
@@ -75,7 +78,7 @@ public class ChatService {
 		String roomId = message.getPayload().getRoomId();
 
 		LiveBoardConnection connection = LiveBoardConnection.of(
-			globalSessionId, senderId, nickname, roomId, LocalDateTime.now()
+			globalSessionId, senderId, nickname, roomId, LocalDateTime.now(clock)
 		);
 		liveBoardConnectionRepository.saveConnection(roomId,globalSessionId, connection);
 	}

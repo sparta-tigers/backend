@@ -67,9 +67,9 @@ public class WeatherParser {
 	}
 
 	// ✅ 초단기예보 : 카테고리 - 응답 매핑 (현재시간만)
-	public static Map<String, String> toClosestFcstMap(List<OriginResponse.Item> items) {
+	public static Map<String, String> toClosestFcstMap(List<OriginResponse.Item> items, java.time.Clock clock) {
 
-		LocalDateTime closest = getClosestTimeToNow(items);
+		LocalDateTime closest = getClosestTimeToNow(items, clock);
 		if (closest == null)
 			return Collections.emptyMap();
 		String targetDate = closest.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -124,8 +124,8 @@ public class WeatherParser {
 	 * 경계값: 정시 경계 직전에 호출될 경우 "지금 이후 예보"가 아예 없는 경우를 피하기 위해
 	 * 현재 시각을 시 단위로 내림한 "정시 기준" 이상을 허용한다.
 	 */
-	public static LocalDateTime getClosestTimeToNow(List<OriginResponse.Item> items) {
-		LocalDateTime threshold = LocalDateTime.now().truncatedTo(ChronoUnit.HOURS);
+	public static LocalDateTime getClosestTimeToNow(List<OriginResponse.Item> items, java.time.Clock clock) {
+		LocalDateTime threshold = LocalDateTime.now(clock).truncatedTo(ChronoUnit.HOURS);
 		LocalDateTime closest = null;
 
 		for (OriginResponse.Item it : items) {
