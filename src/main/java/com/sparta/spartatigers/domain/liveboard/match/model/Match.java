@@ -3,7 +3,6 @@ package com.sparta.spartatigers.domain.liveboard.match.model;
 import java.time.LocalDateTime;
 
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
-import com.sparta.spartatigers.domain.liveboard.match.model.Stadium;
 import com.sparta.spartatigers.domain.team.model.Team;
 
 import jakarta.persistence.Column;

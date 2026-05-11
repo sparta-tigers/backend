@@ -2,6 +2,7 @@ package com.sparta.spartatigers.domain.liveboard.matchAttendance.controller;
 
 import java.io.IOException;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -11,8 +12,11 @@ import org.springframework.web.multipart.MultipartFile;
 import com.sparta.spartatigers.domain.liveboard.matchAttendance.service.OcrService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
+@Profile("local")
 @RequestMapping("/api/ocr")
 @RequiredArgsConstructor
 public class OcrTestController {
@@ -23,16 +27,14 @@ public class OcrTestController {
 	public String testOcr(
 		@RequestParam MultipartFile file
 	) throws IOException {
-		System.out.println("1. 파일 업로드 : "+ file.getOriginalFilename());
+		log.info("1. 파일 업로드 : {}", file.getOriginalFilename());
 
 		String fullText = ocrService.extractTextFromImage(file);
-		System.out.println("2. OCR 추출 원본 텍스트 : ");
-		System.out.println(fullText);
+		log.info("2. OCR 추출 완료");
 
 		String seatInfo = ocrService.parseSeatInfo(fullText);
-		System.out.println("3. 좌석 파싱 결과 : ");
-		System.out.println(seatInfo);
+		log.info("3. 좌석 파싱 결과 : {}", seatInfo);
 
-		return "원문 : \n" + fullText + "\n\n 파싱 결과 : \n" + seatInfo;
+		return "파싱 결과 : \n" + seatInfo;
 	}
 }
