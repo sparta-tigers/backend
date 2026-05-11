@@ -48,15 +48,35 @@ public class StartingLineupService {
     private void saveTeamLineup(Match match, Long teamId, List<com.sparta.spartatigers.domain.liveboard.model.LineupBatter> batters) {
         StartingLineupPK pk = new StartingLineupPK(match.getId(), teamId);
         
-        // 이미 존재하면 건너뜀 (또는 업데이트 로직 추가 가능)
+        // 이미 존재하면 건너뜀
         if (startingLineupRepository.existsById(pk)) {
             return;
         }
 
-        StartingLineup lineup = StartingLineup.create(match, match.getHomeTeam().getId().equals(teamId) ? match.getHomeTeam() : match.getAwayTeam());
+        com.sparta.spartatigers.domain.team.model.Team targetTeam;
+        if (match.getHomeTeam().getId().equals(teamId)) {
+            targetTeam = match.getHomeTeam();
+        } else if (match.getAwayTeam().getId().equals(teamId)) {
+            targetTeam = match.getAwayTeam();
+        } else {
+            log.warn("[LINEUP] Team ID {} is not associated with Match ID {} (neither Home nor Away)", teamId, match.getId());
+            return;
+        }
+
+        StartingLineup lineup = StartingLineup.create(match, targetTeam);
         
         List<LineupPlayer> players = batters.stream()
-                .map(b -> LineupPlayer.of(Integer.parseInt(b.getBattingOrder()), b.getPosition(), b.getName()))
+                .map(b -> {
+                    try {
+                        int order = Integer.parseInt(b.getBattingOrder());
+                        return LineupPlayer.of(order, b.getPosition(), b.getName());
+                    } catch (NumberFormatException e) {
+                        log.warn("[LINEUP] Invalid batting order '{}' for player '{}' in Match {}", 
+                                b.getBattingOrder(), b.getName(), match.getId());
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .collect(Collectors.toList());
         
         lineup.addPlayers(players);

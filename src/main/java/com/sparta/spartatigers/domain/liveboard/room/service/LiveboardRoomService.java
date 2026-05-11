@@ -20,15 +20,14 @@ import com.sparta.spartatigers.domain.liveboard.match.model.Match;
 import com.sparta.spartatigers.domain.liveboard.match.model.MatchResult;
 import com.sparta.spartatigers.domain.liveboard.match.repository.MatchRepository;
 import com.sparta.spartatigers.domain.liveboard.match.model.Stadium;
-import com.sparta.spartatigers.domain.liveboard.match.repository.StadiumRepository;
 import com.sparta.spartatigers.domain.weather.dto.ForeCastResponseDto;
 import com.sparta.spartatigers.domain.weather.dto.NowCastResponseDto;
 import com.sparta.spartatigers.domain.weather.service.WeatherService;
-import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
-import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class LiveboardRoomService {
@@ -36,7 +35,6 @@ public class LiveboardRoomService {
 	private final LiveBoardRoomRepository roomRepository;
 	private final LiveBoardConnectionRepository connectionRepository;
 	private final MatchRepository matchRepository;
-	private final StadiumRepository stadiumRepository;
 	private final WeatherService weatherService;
 	private final Clock clock;
 
@@ -109,10 +107,14 @@ public class LiveboardRoomService {
 				if(matchDate.isEqual(realToday)) { // 당일 경기
 					long connectCount = connectionRepository.getConnectionCount(room.getRoomId());
 
-					Stadium stadium = stadiumRepository.findById(match.getStadium().getId())
-						.orElseThrow(()-> new InvalidRequestException(ExceptionCode.STADIUM_NOT_FOUND));
+					Stadium stadium = match.getStadium();
+					if (stadium == null) {
+						log.warn("[ROOM] Stadium info missing for Match ID: {}. Skipping weather info.", match.getId());
+						return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, null, null);
+					}
+
 					NowCastResponseDto nowCast = weatherService.getNowCast(stadium.getId());
-					List< ForeCastResponseDto> foreCast = weatherService.getForeCast(stadium.getId());
+					List<ForeCastResponseDto> foreCast = weatherService.getForeCast(stadium.getId());
 					return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, nowCast, foreCast);
 				} else if (matchDate.isBefore(realToday)) { // 지난 경기
 					return LiveBoardRoomResponseDto.fromPastMatch(match, room);
