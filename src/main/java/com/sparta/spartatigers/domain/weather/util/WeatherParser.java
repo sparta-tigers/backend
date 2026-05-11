@@ -114,9 +114,18 @@ public class WeatherParser {
 		return dateTimeCategoryMap;
 	}
 
-	// 예보시간 중 현재와 시간 찾기
+	/**
+	 * 예보 항목 중 지금 이후 가장 가까운 시각을 찾는다.
+	 *
+	 * Why: NowCast에서 "현재"의 SKY/PTY를 예보로 채울 때, 절댓값 기반으로 이미 지난
+	 * 시각을 고르면 한 시간 전 상태가 표시될 수 있었다. 현재 정시 이상의 예보만
+	 * 후보로 삼고 가장 가까운 것을 선택해 "지금"의 의미를 맞춘다.
+	 *
+	 * 경계값: 정시 경계 직전에 호출될 경우 "지금 이후 예보"가 아예 없는 경우를 피하기 위해
+	 * 현재 시각을 시 단위로 내림한 "정시 기준" 이상을 허용한다.
+	 */
 	public static LocalDateTime getClosestTimeToNow(List<OriginResponse.Item> items) {
-		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime threshold = LocalDateTime.now().truncatedTo(ChronoUnit.HOURS);
 		LocalDateTime closest = null;
 
 		for (OriginResponse.Item it : items) {
@@ -126,15 +135,13 @@ public class WeatherParser {
 			LocalDateTime fcstDateTime = toDateTime(it.fcstDate, it.fcstTime);
 			if (fcstDateTime == null)
 				continue;
+			if (fcstDateTime.isBefore(threshold))
+				continue;
 
-			if (closest == null || Math.abs(ChronoUnit.MINUTES.between(fcstDateTime, now)) < Math
-					.abs(ChronoUnit.MINUTES.between(closest, now))) {
+			if (closest == null || fcstDateTime.isBefore(closest)) {
 				closest = fcstDateTime;
 			}
 		}
-
-		if (closest == null)
-			return null;
 
 		return closest;
 	}
