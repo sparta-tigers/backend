@@ -17,8 +17,16 @@ public enum RainType {
 		this.description = description;
 	}
 
-	public static RainType fromCode (String code) {
-		if(code == null) return NONE;
+	/**
+	 * 기상청 PTY 코드 → RainType.
+	 *
+	 * Why: 기존 구현은 null/미상 코드를 무조건 NONE(강수없음)으로 변환해,
+	 * 업스트림 에러/파싱 실패 시에도 "강수없음"으로 오염되는 문제가 있었다.
+	 * 이제는 "실제 0 응답"만 NONE, 미상은 null로 분리한다.
+	 */
+	public static RainType fromCode(String code) {
+		if (code == null)
+			return null;
 		return switch (code) {
 			case "0" -> NONE;
 			case "1" -> RAIN;
@@ -27,7 +35,7 @@ public enum RainType {
 			case "5" -> RAINDROP;
 			case "6" -> RAINDROP_SNOW_FLYING;
 			case "7" -> SNOW_FLYING;
-			default -> NONE;
+			default -> null;
 		};
 	}
 
