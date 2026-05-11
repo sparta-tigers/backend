@@ -3,7 +3,7 @@ package com.sparta.spartatigers.domain.startinglineup.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sparta.spartatigers.domain.match.model.Match;
+import com.sparta.spartatigers.domain.liveboard.match.model.Match;
 import com.sparta.spartatigers.domain.team.model.Team;
 
 import jakarta.persistence.CascadeType;
@@ -38,7 +38,19 @@ public class StartingLineup {
 	@OneToMany(mappedBy = "startingLineup", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<LineupPlayer> lineupPlayers = new ArrayList<>();
 
-	private String startingPitcher;
+	public static StartingLineup create(Match match, Team team) {
+		StartingLineup lineup = new StartingLineup();
+		lineup.id = new StartingLineupPK(match.getId(), team.getId());
+		lineup.match = match;
+		lineup.team = team;
+		return lineup;
+	}
 
+	public void addPlayers(List<LineupPlayer> players) {
+		for (LineupPlayer player : players) {
+			player.setStartingLineup(this);
+			this.lineupPlayers.add(player);
+		}
+	}
 }
 

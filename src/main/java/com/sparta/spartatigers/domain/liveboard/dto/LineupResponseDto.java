@@ -4,7 +4,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.sparta.spartatigers.domain.liveboard.match.model.Match;
 import com.sparta.spartatigers.domain.liveboard.model.LineupBatter;
+import com.sparta.spartatigers.domain.startinglineup.model.LineupPlayer;
+import com.sparta.spartatigers.domain.startinglineup.model.StartingLineup;
+
 import lombok.Builder;
 import lombok.Getter;
 
@@ -61,6 +65,46 @@ public class LineupResponseDto {
         }
         return batters.stream()
                 .map(LineupBatterResponse::from)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * DB 엔티티로부터 응답 DTO 생성 (Fallback 용)
+     */
+    public static LineupResponseDto fromEntities(Long matchId, List<StartingLineup> lineups) {
+        StartingLineup home = null;
+        StartingLineup away = null;
+
+        for (StartingLineup lineup : lineups) {
+            Match m = lineup.getMatch();
+            if (m.getHomeTeam().getId().equals(lineup.getTeam().getId())) {
+                home = lineup;
+            } else {
+                away = lineup;
+            }
+        }
+
+        return LineupResponseDto.builder()
+                .matchId(matchId)
+                .homeTeamName(home != null ? home.getTeam().getName() : null)
+                .homeTeamCode(home != null ? home.getTeam().getCode().name() : null)
+                .awayTeamName(away != null ? away.getTeam().getName() : null)
+                .awayTeamCode(away != null ? away.getTeam().getCode().name() : null)
+                .homeBatters(home != null ? fromPlayers(home.getLineupPlayers()) : Collections.emptyList())
+                .awayBatters(away != null ? fromPlayers(away.getLineupPlayers()) : Collections.emptyList())
+                .build();
+    }
+
+    private static List<LineupBatterResponse> fromPlayers(List<LineupPlayer> players) {
+        if (players == null || players.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return players.stream()
+                .map((LineupPlayer p) -> LineupBatterResponse.builder()
+                        .name(p.getPlayerName())
+                        .position(p.getPosition().getKoreanName())
+                        .battingOrder(String.valueOf(p.getBattingOrder()))
+                        .build())
                 .collect(Collectors.toList());
     }
 }
