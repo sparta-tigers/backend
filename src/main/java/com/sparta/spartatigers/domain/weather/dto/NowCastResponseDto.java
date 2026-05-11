@@ -30,22 +30,23 @@ public class NowCastResponseDto {
 	public static NowCastResponseDto of(
 			LocalDateTime referenceTime,
 			Stadium stadium,
-			double temperature,
+			Double temperature,
 			SkyStatus skyStatus,
 			RainType rainType,
-			double rainAmount,
+			Double rainAmount,
 			Integer rainProbability,
-			double windSpeed,
+			Double windSpeed,
 			WindDirection windDirection) {
 		NowCastResponseDto dto = new NowCastResponseDto();
 		dto.referenceTime = referenceTime;
 		dto.stadium = stadium.getName();
-		dto.temperature = temperature;
+		// NaN은 JSON 직렬화 시 문제가 되므로 null로 정규화
+		dto.temperature = (temperature == null || temperature.isNaN()) ? null : temperature;
 		dto.skyStatus = skyStatus;
 		dto.rainType = rainType;
-		dto.rainAmount = rainAmount;
+		dto.rainAmount = (rainAmount == null || rainAmount.isNaN()) ? null : rainAmount;
 		dto.rainProbability = rainProbability;
-		dto.windSpeed = windSpeed;
+		dto.windSpeed = (windSpeed == null || windSpeed.isNaN()) ? null : windSpeed;
 		dto.windDirection = windDirection;
 		return dto;
 	}

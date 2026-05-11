@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -32,7 +33,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class WeatherService {
 
-	private final RestTemplate restTemplate = new RestTemplate();
+	@Qualifier("weatherRestTemplate")
+	private final RestTemplate restTemplate;
 	private final WeatherApiUrlGenerator apiUrlGenerator;
 	private final StadiumRepository stadiumRepository;
 
@@ -102,12 +104,12 @@ public class WeatherService {
 		NowCastResponseDto nowCast = NowCastResponseDto.of(
 				LocalDateTime.now(),
 				stadium,
-				rawTemp != null ? rawTemp : Double.NaN,
+				rawTemp,
 				SkyStatus.fromCode(ultraClosestMap.get("SKY")),
 				RainType.fromCode(ncstMap.get("PTY")),
-				rawRainAmt != null ? rawRainAmt : 0.0,
+				rawRainAmt,
 				rawPop != null ? rawPop.intValue() : null,
-				rawWindSpeed != null ? rawWindSpeed : Double.NaN,
+				rawWindSpeed,
 				windDirection);
 
 		// ── ForeCast 조립 ─────────────────────────────────────────────────────
@@ -133,11 +135,11 @@ public class WeatherService {
 				foreCastList.add(ForeCastResponseDto.of(
 						WeatherParser.toDateTimeFromFcst(date, time),
 						stadium,
-						temp != null ? temp : Double.NaN,
+						temp,
 						SkyStatus.fromCode(ultraFcst.get("SKY")),
 						popValue != null ? popValue.intValue() : 0,
 						RainType.fromCode(ultraFcst.get("PTY")),
-						rainAmt != null ? rainAmt : 0.0));
+						rainAmt));
 			}
 		}
 
