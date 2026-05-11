@@ -1,7 +1,5 @@
 package com.sparta.spartatigers.domain.liveboard;
 
-import java.util.List;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,8 +7,7 @@ import com.sparta.spartatigers.domain.liveboard.dto.MatchWeatherResponse;
 import com.sparta.spartatigers.domain.match.model.Match;
 import com.sparta.spartatigers.domain.match.repository.MatchRepository;
 import com.sparta.spartatigers.domain.team.model.Stadium;
-import com.sparta.spartatigers.domain.weather.dto.ForeCastResponseDto;
-import com.sparta.spartatigers.domain.weather.dto.NowCastResponseDto;
+import com.sparta.spartatigers.domain.weather.dto.WeatherBundle;
 import com.sparta.spartatigers.domain.weather.service.WeatherService;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
@@ -42,9 +39,10 @@ public class WeatherQueryService {
             throw new InvalidRequestException(ExceptionCode.STADIUM_NOT_FOUND);
         }
 
-        NowCastResponseDto nowCast = weatherService.getNowCast(stadium.getId());
-        List<ForeCastResponseDto> foreCast = weatherService.getForeCast(stadium.getId());
+        // 기상청 API 3회 호출(NCST / UltraFcst / VilageFcst)을 단일 진입점에서 처리.
+        // 기존 getNowCast + getForeCast 분리 호출 시 VilageFcst가 2회 중복되던 문제를 해소.
+        WeatherBundle bundle = weatherService.getNowCastAndForeCast(stadium.getId());
 
-        return MatchWeatherResponse.of(stadium.getName(), nowCast, foreCast);
+        return MatchWeatherResponse.of(stadium.getName(), bundle.nowCast(), bundle.foreCast());
     }
 }
