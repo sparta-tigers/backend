@@ -157,6 +157,7 @@ public class Item extends BaseEntity {
     }
 
     public void reopen(LocalDate createdDate) {
+        java.util.Objects.requireNonNull(createdDate, "createdDate must not be null");
         this.status = ItemStatus.REGISTERED;
         if (this.createdDate == null) {
             this.createdDate = createdDate;
