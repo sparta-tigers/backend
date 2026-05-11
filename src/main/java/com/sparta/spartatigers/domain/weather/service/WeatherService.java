@@ -16,6 +16,7 @@ import com.sparta.spartatigers.domain.weather.dto.ForeCastResponseDto;
 import com.sparta.spartatigers.domain.weather.dto.NowCastResponseDto;
 import com.sparta.spartatigers.domain.weather.model.RainType;
 import com.sparta.spartatigers.domain.weather.model.SkyStatus;
+import com.sparta.spartatigers.domain.weather.model.WeatherApiStatus;
 import com.sparta.spartatigers.domain.weather.model.WindDirection;
 import com.sparta.spartatigers.domain.weather.response.OriginResponse;
 import com.sparta.spartatigers.domain.weather.util.WeatherParser;
@@ -46,6 +47,13 @@ public class WeatherService {
 
 		OriginResponse ncstRes = restTemplate.getForObject(ncstUrl, OriginResponse.class);
 		OriginResponse fcstRes = restTemplate.getForObject(fcstUrl, OriginResponse.class);
+
+		WeatherApiStatus ncstStatus = WeatherParser.classify(ncstRes);
+		WeatherApiStatus fcstStatus = WeatherParser.classify(fcstRes);
+		if (!ncstStatus.isSuccess() || !fcstStatus.isSuccess()) {
+			log.warn("NowCast upstream status — ncst={}, fcst={} (stadiumId={})",
+					ncstStatus, fcstStatus, stadiumId);
+		}
 
 		List<OriginResponse.Item> ncstItems = WeatherParser.originItems(ncstRes);
 		List<OriginResponse.Item> fcstItems = WeatherParser.originItems(fcstRes);
@@ -90,6 +98,13 @@ public class WeatherService {
 		OriginResponse ultraRes = restTemplate.getForObject(ultraNcstUrl, OriginResponse.class);
 		OriginResponse vilageRes = restTemplate.getForObject(vilageFcstUrl, OriginResponse.class);
 
+		WeatherApiStatus ultraStatus = WeatherParser.classify(ultraRes);
+		WeatherApiStatus vilageStatus = WeatherParser.classify(vilageRes);
+		if (!ultraStatus.isSuccess() || !vilageStatus.isSuccess()) {
+			log.warn("ForeCast upstream status — ultra={}, vilage={} (stadiumId={})",
+					ultraStatus, vilageStatus, stadiumId);
+		}
+
 		List<OriginResponse.Item> ultraItems = WeatherParser.originItems(ultraRes);
 		List<OriginResponse.Item> vilageItems = WeatherParser
 				.normalizeVilageTimes(WeatherParser.originItems(vilageRes));
@@ -133,6 +148,12 @@ public class WeatherService {
 		try {
 			String vilageUrl = apiUrlGenerator.getVilageFcstUrl(nx, ny);
 			OriginResponse vilageRes = restTemplate.getForObject(vilageUrl, OriginResponse.class);
+
+			WeatherApiStatus status = WeatherParser.classify(vilageRes);
+			if (!status.isSuccess()) {
+				log.warn("Vilage fcst status {} while fetching POP (nx={}, ny={})", status, nx, ny);
+				return null;
+			}
 
 			List<OriginResponse.Item> vilageItems = WeatherParser
 					.normalizeVilageTimes(WeatherParser.originItems(vilageRes));
