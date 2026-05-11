@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import com.sparta.spartatigers.domain.weather.model.RainType;
 import com.sparta.spartatigers.domain.weather.model.SkyStatus;
-import com.sparta.spartatigers.domain.team.model.Stadium;
+import com.sparta.spartatigers.domain.liveboard.match.model.Stadium;
 import com.sparta.spartatigers.domain.weather.model.WindDirection;
 
 import lombok.Getter;
@@ -48,6 +48,13 @@ public class NowCastResponseDto {
 		dto.rainProbability = rainProbability;
 		dto.windSpeed = (windSpeed == null || windSpeed.isNaN()) ? null : windSpeed;
 		dto.windDirection = windDirection;
+		return dto;
+	}
+
+	public static NowCastResponseDto empty(Stadium stadium, LocalDateTime referenceTime) {
+		NowCastResponseDto dto = new NowCastResponseDto();
+		dto.referenceTime = referenceTime;
+		dto.stadium = stadium.getName();
 		return dto;
 	}
 }

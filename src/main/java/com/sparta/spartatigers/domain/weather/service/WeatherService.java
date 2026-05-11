@@ -1,17 +1,20 @@
 package com.sparta.spartatigers.domain.weather.service;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.sparta.spartatigers.domain.team.model.Stadium;
-import com.sparta.spartatigers.domain.team.repository.StadiumRepository;
+import com.sparta.spartatigers.domain.liveboard.match.model.Stadium;
+import com.sparta.spartatigers.domain.liveboard.match.repository.StadiumRepository;
 import com.sparta.spartatigers.domain.weather.api.WeatherApiUrlGenerator;
 import com.sparta.spartatigers.domain.weather.dto.ForeCastResponseDto;
 import com.sparta.spartatigers.domain.weather.dto.NowCastResponseDto;
@@ -37,6 +40,7 @@ public class WeatherService {
 	private final RestTemplate restTemplate;
 	private final WeatherApiUrlGenerator apiUrlGenerator;
 	private final StadiumRepository stadiumRepository;
+	private final Clock clock;
 
 	/**
 	 * NowCast + ForeCast를 단일 진입점에서 조회한다.
@@ -57,14 +61,39 @@ public class WeatherService {
 		int nx = stadium.getNx();
 		int ny = stadium.getNy();
 
-		// ── 3개 API 호출 (직렬, 각 1회) ──────────────────────────────────────
+		// ── 3개 API URL 생성 ──────────────────────────────────────────────────
 		String ncstUrl = apiUrlGenerator.getUltraSrtNcstUrl(nx, ny);
 		String ultraUrl = apiUrlGenerator.getUltraSrtFcstUrl(nx, ny);
 		String vilageUrl = apiUrlGenerator.getVilageFcstUrl(nx, ny);
 
-		OriginResponse ncstRes = restTemplate.getForObject(ncstUrl, OriginResponse.class);
-		OriginResponse ultraRes = restTemplate.getForObject(ultraUrl, OriginResponse.class);
-		OriginResponse vilageRes = restTemplate.getForObject(vilageUrl, OriginResponse.class);
+		// ── 3개 API 병렬 호출 (비동기, 타임아웃 6초) ──────────────────────────
+		CompletableFuture<OriginResponse> ncstFuture = CompletableFuture.supplyAsync(
+				() -> restTemplate.getForObject(ncstUrl, OriginResponse.class));
+		CompletableFuture<OriginResponse> ultraFuture = CompletableFuture.supplyAsync(
+				() -> restTemplate.getForObject(ultraUrl, OriginResponse.class));
+		CompletableFuture<OriginResponse> vilageFuture = CompletableFuture.supplyAsync(
+				() -> restTemplate.getForObject(vilageUrl, OriginResponse.class));
+
+		OriginResponse ncstRes;
+		OriginResponse ultraRes;
+		OriginResponse vilageRes;
+
+		try {
+			// 3개 중 하나라도 6초 이상 걸리면 타임아웃 (전체 지연 방지)
+			CompletableFuture.allOf(ncstFuture, ultraFuture, vilageFuture)
+					.get(6, TimeUnit.SECONDS);
+
+			ncstRes = ncstFuture.join();
+			ultraRes = ultraFuture.join();
+			vilageRes = vilageFuture.join();
+
+		} catch (Exception e) {
+			log.error("Weather API call failed or timed out (stadiumId={}): {}", stadiumId, e.getMessage());
+			// 장애 전이 방지를 위해 즉시 UPSTREAM_ERROR 상태로 반환 (Graceful Degradation)
+			return new WeatherBundle(WeatherApiStatus.UPSTREAM_ERROR,
+					NowCastResponseDto.empty(stadium, LocalDateTime.now(clock)),
+					Collections.emptyList());
+		}
 
 		WeatherApiStatus ncstStatus = WeatherParser.classify(ncstRes);
 		WeatherApiStatus ultraStatus = WeatherParser.classify(ultraRes);
@@ -83,7 +112,7 @@ public class WeatherService {
 		List<OriginResponse.Item> ultraItems = WeatherParser.originItems(ultraRes);
 
 		Map<String, String> ncstMap = WeatherParser.toNcstMap(ncstItems);
-		Map<String, String> ultraClosestMap = WeatherParser.toClosestFcstMap(ultraItems);
+		Map<String, String> ultraClosestMap = WeatherParser.toClosestFcstMap(ultraItems, clock);
 
 		Double rawTemp = WeatherParser.toNumberFromText(ncstMap.get("T1H"));
 		Double rawRainAmt = WeatherParser.toNumberFromText(ncstMap.get("RN1"));
@@ -92,7 +121,7 @@ public class WeatherService {
 
 		// POP: 단기예보(vilage)의 현재 시각 슬롯에서 가져온다 (null 허용)
 		List<OriginResponse.Item> vilageItems = WeatherParser.originItems(vilageRes);
-		Map<String, String> vilageClosestMap = WeatherParser.toClosestFcstMap(vilageItems);
+		Map<String, String> vilageClosestMap = WeatherParser.toClosestFcstMap(vilageItems, clock);
 		Double rawPop = WeatherParser.toNumberFromText(vilageClosestMap.get("POP"));
 
 		WindDirection windDirection = null;
@@ -105,7 +134,7 @@ public class WeatherService {
 		}
 
 		NowCastResponseDto nowCast = NowCastResponseDto.of(
-				LocalDateTime.now(),
+				LocalDateTime.now(clock),
 				stadium,
 				rawTemp,
 				SkyStatus.fromCode(ultraClosestMap.get("SKY")),
@@ -140,7 +169,7 @@ public class WeatherService {
 						stadium,
 						temp,
 						SkyStatus.fromCode(ultraFcst.get("SKY")),
-						popValue != null ? popValue.intValue() : 0,
+						popValue != null ? popValue.intValue() : null,
 						RainType.fromCode(ultraFcst.get("PTY")),
 						rainAmt));
 			}
