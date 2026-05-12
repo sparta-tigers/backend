@@ -66,6 +66,16 @@ public class Match extends BaseEntity {
 
     @Column private String remark; // 비고
 
+    public void updateScore(Integer homeScore, Integer awayScore) {
+        this.homeScore = homeScore;
+        this.awayScore = awayScore;
 
-
+        if (homeScore > awayScore) {
+            this.matchResult = MatchResult.HOME_WIN;
+        } else if (homeScore < awayScore) {
+            this.matchResult = MatchResult.AWAY_WIN;
+        } else {
+            this.matchResult = MatchResult.DRAW;
+        }
+    }
 }
