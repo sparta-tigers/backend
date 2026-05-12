@@ -11,6 +11,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class MatchScheduleResponseDto {
+    private Long matchId;          // 경기 ID (🚨 추가)
     private Integer day;           // 경기 일 (1-31)
     private String opponentCode;   // 상대 팀 코드 (예: "OB", "HT", "LG")
     private HomeAway location;     // 홈/어웨이 여부 ("H" or "A")

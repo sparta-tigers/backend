@@ -75,6 +75,7 @@ public class MatchScheduleService {
         Team opponent = isHome ? match.getAwayTeam() : match.getHomeTeam();
 
         return MatchScheduleResponseDto.builder()
+                .matchId(match.getId()) // 🚨 추가
                 .day(match.getMatchTime().getDayOfMonth())
                 .opponentCode(opponent.getCode().getDescriptiveCode())
                 .location(isHome ? HomeAway.HOME : HomeAway.AWAY)
