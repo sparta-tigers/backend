@@ -18,10 +18,11 @@ public class ChatMessage {
 	private LocalDateTime sentAt;
 	private ChatDomainType domain;
 	private String favTeamSymbolUrl;
+	private String tempId;
 
 	public static ChatMessage ofLiveBoardRoom (
-		String roomId, Long senderId, String senderNickname, String content, String favTeamSymbolUrl, LocalDateTime sentAt
+		String roomId, Long senderId, String senderNickname, String content, String favTeamSymbolUrl, LocalDateTime sentAt, String tempId
 	) {
-		return new ChatMessage(roomId, senderId, senderNickname, content, sentAt, ChatDomainType.LIVEBOARD, favTeamSymbolUrl);
+		return new ChatMessage(roomId, senderId, senderNickname, content, sentAt, ChatDomainType.LIVEBOARD, favTeamSymbolUrl, tempId);
 	}
 }

@@ -58,7 +58,8 @@ public class ChatService {
 			nickname,
 			message.getContent(),
 			symbolUrl,
-			LocalDateTime.now(clock)
+			LocalDateTime.now(clock),
+			message.getTempId()
 		);
 
 		ChannelTopic topic = getOrInitTopic(message.getRoomId());
