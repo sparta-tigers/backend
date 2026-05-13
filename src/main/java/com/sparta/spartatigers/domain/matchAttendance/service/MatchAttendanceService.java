@@ -1,5 +1,7 @@
 package com.sparta.spartatigers.domain.liveboard.matchAttendance.service;
 
+import java.time.Year;
+import java.time.ZoneId;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -158,7 +160,8 @@ public class MatchAttendanceService {
 	}
 
 	@Transactional(readOnly = true)
-	public long getAttendanceCount(Long userId, int year) {
-		return matchAttendanceRepository.countByUser_IdAndMatch_SeasonYear(userId, year);
+	public long getAttendanceCount(Long userId, Integer year) {
+		int targetYear = (year != null) ? year : Year.now(ZoneId.of("Asia/Seoul")).getValue();
+		return matchAttendanceRepository.countByUser_IdAndMatch_SeasonYear(userId, targetYear);
 	}
 }
