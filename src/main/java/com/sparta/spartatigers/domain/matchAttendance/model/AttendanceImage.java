@@ -1,4 +1,4 @@
-package com.sparta.spartatigers.domain.liveboard.matchAttendance.model;
+package com.sparta.spartatigers.domain.matchAttendance.model;
 
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
 

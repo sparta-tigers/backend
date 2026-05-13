@@ -1,4 +1,4 @@
-package com.sparta.spartatigers.domain.liveboard.matchAttendance.model;
+package com.sparta.spartatigers.domain.matchAttendance.model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +9,7 @@ import com.sparta.spartatigers.domain.user.model.User;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -23,7 +24,8 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity(name = "match_attendance")
+@Entity
+@Table(name = "match_attendance")
 public class MatchAttendance extends BaseEntity {
 
 	@Id

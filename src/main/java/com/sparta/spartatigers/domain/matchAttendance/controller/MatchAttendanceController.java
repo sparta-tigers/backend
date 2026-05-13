@@ -1,4 +1,4 @@
-package com.sparta.spartatigers.domain.liveboard.matchAttendance.controller;
+package com.sparta.spartatigers.domain.matchAttendance.controller;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,12 +18,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.sparta.spartatigers.domain.auth.model.TokenClaim;
 import com.sparta.spartatigers.domain.image.service.ImageStorageService;
-import com.sparta.spartatigers.domain.liveboard.matchAttendance.dto.MatchAttendanceRequestDto;
-import com.sparta.spartatigers.domain.liveboard.matchAttendance.dto.MatchAttendanceResponseDto;
-import com.sparta.spartatigers.domain.liveboard.matchAttendance.dto.MatchAttendanceUpdateRequestDto;
-import com.sparta.spartatigers.domain.liveboard.matchAttendance.dto.TicketOcrResponseDto;
-import com.sparta.spartatigers.domain.liveboard.matchAttendance.service.MatchAttendanceService;
-import com.sparta.spartatigers.domain.liveboard.matchAttendance.service.OcrService;
+import com.sparta.spartatigers.domain.matchAttendance.dto.MatchAttendanceRequestDto;
+import com.sparta.spartatigers.domain.matchAttendance.dto.MatchAttendanceResponseDto;
+import com.sparta.spartatigers.domain.matchAttendance.dto.MatchAttendanceUpdateRequestDto;
+import com.sparta.spartatigers.domain.matchAttendance.dto.TicketOcrResponseDto;
+import com.sparta.spartatigers.domain.matchAttendance.service.MatchAttendanceService;
+import com.sparta.spartatigers.domain.matchAttendance.service.OcrService;
 import com.sparta.spartatigers.global.aop.Auth;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;

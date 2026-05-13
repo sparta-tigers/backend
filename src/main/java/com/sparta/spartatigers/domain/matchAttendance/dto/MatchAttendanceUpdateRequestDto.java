@@ -1,4 +1,4 @@
-package com.sparta.spartatigers.domain.liveboard.matchAttendance.dto;
+package com.sparta.spartatigers.domain.matchAttendance.dto;
 
 import java.util.List;
 

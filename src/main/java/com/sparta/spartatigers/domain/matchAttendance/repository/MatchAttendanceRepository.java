@@ -1,4 +1,4 @@
-package com.sparta.spartatigers.domain.liveboard.matchAttendance.repository;
+package com.sparta.spartatigers.domain.matchAttendance.repository;
 
 import java.util.List;
 
@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.sparta.spartatigers.domain.liveboard.matchAttendance.model.MatchAttendance;
+import com.sparta.spartatigers.domain.matchAttendance.model.MatchAttendance;
 
 public interface MatchAttendanceRepository extends JpaRepository<MatchAttendance, Long> {
 

@@ -1,10 +1,10 @@
-package com.sparta.spartatigers.domain.liveboard.matchAttendance.dto;
+package com.sparta.spartatigers.domain.matchAttendance.dto;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.sparta.spartatigers.domain.liveboard.matchAttendance.model.AttendanceImage;
-import com.sparta.spartatigers.domain.liveboard.matchAttendance.model.MatchAttendance;
+import com.sparta.spartatigers.domain.matchAttendance.model.AttendanceImage;
+import com.sparta.spartatigers.domain.matchAttendance.model.MatchAttendance;
 
 public record MatchAttendanceResponseDto (
 	Long id,
