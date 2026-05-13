@@ -66,7 +66,7 @@ public class Match extends BaseEntity {
 
     @Column private String remark; // 비고
 
-    public void updateScore(Integer homeScore, Integer awayScore) {
+    public void updateScore(int homeScore, int awayScore) {
         this.homeScore = homeScore;
         this.awayScore = awayScore;
 

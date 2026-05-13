@@ -26,7 +26,7 @@ public class LiveBoardMatchSubscriber implements MessageListener {
     private final SimpMessagingTemplate messagingTemplate;
     private final RedisTemplate<String, Object> redisTemplate;
     private final com.sparta.spartatigers.domain.startinglineup.service.StartingLineupService startingLineupService;
-    private final com.sparta.spartatigers.domain.liveboard.match.repository.MatchRepository matchRepository;
+    private final LiveBoardMatchService liveBoardMatchService;
 
     private static final String LINEUP_CACHE_PREFIX = "lineup:match:";
     private static final Duration CACHE_TTL = Duration.ofHours(6);
@@ -44,8 +44,8 @@ public class LiveBoardMatchSubscriber implements MessageListener {
             // 2. 라인업 데이터 경량화 및 캐싱 (Phase 13)
             cacheLineupData(liveBoardData);
 
-            // 3. 경기 점수 DB 동기화 (Phase 24) - DRY를 위해 별도 메서드로 추출
-            updateMatchScore(liveBoardData);
+            // 3. 경기 점수 DB 동기화 (Phase 24) - 별도 서비스 호출로 트랜잭션 보장
+            liveBoardMatchService.updateMatchScore(liveBoardData);
 
         } catch (JsonProcessingException e) {
             log.error("Failed to parse LiveBoardData from Redis message: {}", e.getMessage(), e);
@@ -98,28 +98,4 @@ public class LiveBoardMatchSubscriber implements MessageListener {
         }
     }
 
-    /**
-     * 경기 점수 및 결과 정보를 DB에 동기화함.
-     * DRY 원칙에 따라 LiveBoardData에서 필요한 정보만 추출하여 Match 엔티티의 updateScore 활용.
-     */
-    @org.springframework.transaction.annotation.Transactional
-    protected void updateMatchScore(LiveBoardData data) {
-        if (data.getMatchId() == null || data.getMatchScore() == null) return;
-
-        matchRepository.findById(data.getMatchId()).ifPresent(match -> {
-            try {
-                int homeScore = Integer.parseInt(data.getMatchScore().getHomeScore());
-                int awayScore = Integer.parseInt(data.getMatchScore().getAwayScore());
-                
-                // 엔티티 내부 메서드를 활용한 상태 변경 (Zero Magic)
-                match.updateScore(homeScore, awayScore);
-                matchRepository.save(match);
-                log.debug("Successfully synchronized match score for matchId: {}. {}:{}", 
-                        data.getMatchId(), homeScore, awayScore);
-            } catch (NumberFormatException e) {
-                log.warn("Invalid score format for matchId: {}. Home: {}, Away: {}", 
-                        data.getMatchId(), data.getMatchScore().getHomeScore(), data.getMatchScore().getAwayScore());
-            }
-        });
-    }
 }
