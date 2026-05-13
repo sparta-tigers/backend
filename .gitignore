@@ -162,12 +162,14 @@ src/main/resources/vision-api-key.json
 # =================================
 **/**cursor**/
 **/**agents**/
+.planning/
 
 # ================================
 # Repomix
 # ================================
 repomix.config.json
 **/**backend-context**.txt
+
 # Review Documents
 docs/01_*.md
 docs/02_*.md
@@ -176,8 +178,3 @@ docs/04_*.md
 docs/05_*.md
 docs/06_*.md
 docs/PR.md
-
-# ===============================
-# Kiro IDE
-# ===============================
-.kiro/
