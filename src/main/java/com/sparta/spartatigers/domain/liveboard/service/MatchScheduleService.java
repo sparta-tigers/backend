@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.sparta.spartatigers.domain.favoriteteam.model.entity.FavoriteTeam;
 import com.sparta.spartatigers.domain.favoriteteam.repository.FavTeamRepository;
-import com.sparta.spartatigers.domain.liveboard.match.dto.MatchScheduleResponseDto;
+import com.sparta.spartatigers.domain.liveboard.dto.MatchScheduleResponseDto;
 import com.sparta.spartatigers.domain.liveboard.model.HomeAway;
 import com.sparta.spartatigers.domain.liveboard.model.LeagueType;
 import com.sparta.spartatigers.domain.liveboard.model.Match;
