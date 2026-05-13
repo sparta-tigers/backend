@@ -158,5 +158,12 @@ public class MatchAttendanceController {
 		return ApiResponse.success("");
 	}
 
-
+	@GetMapping("/count")
+	public ApiResponse<Long> getAttendanceCount(
+		@Auth TokenClaim tokenClaim,
+		@RequestParam(required = false) Integer year
+	) {
+		Long userId = tokenClaim.getUserId();
+		return ApiResponse.success(matchAttendanceService.getAttendanceCount(userId, year));
+	}
 }
