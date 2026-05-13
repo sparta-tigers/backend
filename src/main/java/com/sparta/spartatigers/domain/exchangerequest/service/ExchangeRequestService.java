@@ -1,5 +1,7 @@
 package com.sparta.spartatigers.domain.exchangerequest.service;
 
+import com.sparta.spartatigers.global.firebase.dto.NotificationMessage;
+import com.sparta.spartatigers.global.firebase.service.NotificationService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +35,7 @@ import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 import com.sparta.spartatigers.global.exception.internal.ServerException;
 
-import com.sparta.spartatigers.global.firebase.FCMService;
+import com.sparta.spartatigers.global.firebase.service.FCMService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +52,7 @@ public class ExchangeRequestService {
     private final ItemRepository itemRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final FCMService fcmService;
+    private final NotificationService notificationService;
 
     @Transactional
     public Long createExchangeRequest(ExchangeRequestDto request, TokenClaim tokenClaim) {
@@ -67,6 +70,13 @@ public class ExchangeRequestService {
 
         ExchangeRequest exchangeRequest = ExchangeRequest.of(item, sender, receiver, have);
         ExchangeRequest saved = exchangeRequestRepository.save(exchangeRequest);
+
+        sendNotification(receiver.getFcmToken(), "새 교환 요청",
+            String.format("'%s'에 %s님이 교환을 요청했어요.", item.getTitle(), sender.getNickname()));
+
+        log.info("[FCM 교환요청 알림] receiverId={}, senderId={}",
+            receiver.getId(),
+            sender.getId());
 
         // [FIX] 교환 요청 생성 시점에는 채팅방을 만들지 않고 PENDING 상태 유지
         // 채팅방은 교환 요청이 ACCEPTED 될 때 생성됨
@@ -116,12 +126,16 @@ public class ExchangeRequestService {
             // [FIX] 수락 시점에 명시적으로 채팅방 생성
             DirectRoomCreateResponseDto roomCreateDto = directRoomService.createRoom(exchangeRequestId, user.getId());
 
-            // [FIX] FCMService 캡슐화 적용: 트랜잭션 커밋 후 안전하게 알림 발송
-            fcmService.sendNotificationAfterCommit(
-                    exchangeRequest.getSender().getDeviceToken(),
-                    "교환 요청 수락",
-                    "교환 요청이 수락되었습니다. 채팅방에서 대화를 시작해보세요!",
-                    exchangeRequest.getSender().getId());
+            sendNotification(
+                exchangeRequest.getSender().getFcmToken(), "교환 요청 수락",
+                String.format("'%s'에 대한 교환 요청이 수락되었어요.", exchangeRequest.getItem().getTitle()));
+
+//            // [FIX] FCMService 캡슐화 적용: 트랜잭션 커밋 후 안전하게 알림 발송
+//            fcmService.sendNotificationAfterCommit(
+//                    exchangeRequest.getSender().getDeviceToken(),
+//                    "교환 요청 수락",
+//                    "교환 요청이 수락되었습니다. 채팅방에서 대화를 시작해보세요!",
+//                    exchangeRequest.getSender().getId());
             return ExchangeRoomResponseDto.from(roomCreateDto);
         }
 
@@ -251,5 +265,10 @@ public class ExchangeRequestService {
         if (isExisted) {
             throw new InvalidRequestException(ExceptionCode.EXCHANGE_REQUEST_DUPLICATED);
         }
+    }
+
+    private void sendNotification(String token, String title, String body) {
+        NotificationMessage message = NotificationMessage.of(token, title, body);
+        notificationService.send(message);
     }
 }

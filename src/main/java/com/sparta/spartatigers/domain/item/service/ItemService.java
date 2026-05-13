@@ -31,7 +31,7 @@ import com.sparta.spartatigers.domain.directRoom.repository.DirectRoomRepository
 import com.sparta.spartatigers.domain.exchangerequest.repository.ExchangeRequestRepository;
 import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeRequest;
 import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeStatus;
-import com.sparta.spartatigers.global.firebase.FCMService;
+import com.sparta.spartatigers.global.firebase.service.FCMService;
 import com.sparta.spartatigers.domain.stompchat.pubsub.RedisDirectMessagePublisher;
 
 import java.time.LocalDate;
