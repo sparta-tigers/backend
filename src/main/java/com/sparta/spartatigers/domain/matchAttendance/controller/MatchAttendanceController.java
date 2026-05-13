@@ -112,6 +112,16 @@ public class MatchAttendanceController {
 		return ApiResponse.success(matchAttendanceService.getAllAttendance(userId, page, size));
 	}
 
+	@GetMapping("/my/match/{matchId}")
+	public ApiResponse<MatchAttendanceResponseDto> getMyAttendanceByMatchId(
+		@Auth TokenClaim tokenClaim,
+		@PathVariable Long matchId
+	) {
+		Long userId = tokenClaim.getUserId();
+		MatchAttendanceResponseDto response = matchAttendanceService.getAttendanceByMatchId(userId, matchId);
+		return ApiResponse.success(response);
+	}
+
 	@PatchMapping(value = "/{attendanceId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ApiResponse<MatchAttendanceResponseDto> updateAttendance (
 		@Auth TokenClaim tokenClaim,

@@ -75,6 +75,13 @@ public class MatchAttendanceService {
 	}
 
 	@Transactional(readOnly = true)
+	public MatchAttendanceResponseDto getAttendanceByMatchId(Long userId, Long matchId) {
+		return matchAttendanceRepository.findByUser_IdAndMatch_Id(userId, matchId)
+			.map(MatchAttendanceResponseDto::from)
+			.orElse(null);
+	}
+
+	@Transactional(readOnly = true)
 	public Page< MatchAttendanceResponseDto> getAllAttendance(Long userId, int page, int size) {
 		Pageable pageable = PageRequest.of(
 			page-1, size, Sort.by(Sort.Direction.DESC, "createdAt")
