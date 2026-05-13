@@ -15,9 +15,9 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.sparta.spartatigers.domain.liveboard.match.model.Match;
-import com.sparta.spartatigers.domain.liveboard.match.model.MatchResult;
-import com.sparta.spartatigers.domain.liveboard.match.model.LeagueType;
+import com.sparta.spartatigers.domain.liveboard.model.Match;
+import com.sparta.spartatigers.domain.liveboard.model.MatchResult;
+import com.sparta.spartatigers.domain.liveboard.model.LeagueType;
 import com.sparta.spartatigers.domain.ranking.dto.MatchDetailDto;
 import com.sparta.spartatigers.domain.ranking.dto.PostSeasonResponseDto;
 import com.sparta.spartatigers.domain.ranking.dto.PostseasonStage;

@@ -14,8 +14,8 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Service;
 
 import com.sparta.spartatigers.domain.favoriteteam.repository.FavTeamRepository;
-import com.sparta.spartatigers.domain.liveboard.room.model.LiveBoardConnection;
-import com.sparta.spartatigers.domain.liveboard.room.repository.LiveBoardConnectionRepository;
+import com.sparta.spartatigers.domain.liveboard.model.LiveBoardConnection;
+import com.sparta.spartatigers.domain.liveboard.repository.LiveBoardConnectionRepository;
 import com.sparta.spartatigers.domain.stompchat.interceptor.StompPrincipal;
 import com.sparta.spartatigers.domain.stompchat.model.ChatMessage;
 import com.sparta.spartatigers.domain.stompchat.pubsub.RedisChatPublisher;

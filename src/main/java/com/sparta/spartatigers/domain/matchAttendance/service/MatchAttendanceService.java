@@ -12,8 +12,8 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.sparta.spartatigers.domain.image.service.ImageStorageService;
-import com.sparta.spartatigers.domain.liveboard.match.model.Match;
-import com.sparta.spartatigers.domain.liveboard.match.repository.MatchRepository;
+import com.sparta.spartatigers.domain.liveboard.model.Match;
+import com.sparta.spartatigers.domain.liveboard.repository.MatchRepository;
 import com.sparta.spartatigers.domain.liveboard.matchAttendance.dto.MatchAttendanceRequestDto;
 import com.sparta.spartatigers.domain.liveboard.matchAttendance.dto.MatchAttendanceResponseDto;
 import com.sparta.spartatigers.domain.liveboard.matchAttendance.dto.MatchAttendanceUpdateRequestDto;
@@ -72,6 +72,13 @@ public class MatchAttendanceService {
 		}
 
 		return MatchAttendanceResponseDto.from(attendance);
+	}
+
+	@Transactional(readOnly = true)
+	public MatchAttendanceResponseDto getAttendanceByMatchId(Long userId, Long matchId) {
+		return matchAttendanceRepository.findByUser_IdAndMatch_Id(userId, matchId)
+			.map(MatchAttendanceResponseDto::from)
+			.orElse(null);
 	}
 
 	@Transactional(readOnly = true)

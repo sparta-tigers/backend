@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
-import com.sparta.spartatigers.domain.liveboard.match.model.Match;
+import com.sparta.spartatigers.domain.liveboard.model.Match;
 import com.sparta.spartatigers.domain.user.model.User;
 
 import jakarta.persistence.CascadeType;
