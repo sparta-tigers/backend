@@ -39,5 +39,7 @@ public interface TicketAlarmRepository extends JpaRepository<TicketAlarm, Long> 
 	Page<TicketAlarm> findByUserId(Long userId, Pageable pageable);
 
 	Optional<TicketAlarm> findById(Long alarmId);
+	
+	long countByUserId(Long userId);
 
 }

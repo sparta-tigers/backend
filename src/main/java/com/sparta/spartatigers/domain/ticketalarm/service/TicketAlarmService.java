@@ -94,6 +94,10 @@ public class TicketAlarmService {
 			.map(TicketAlarmResponseDto::from);
 	}
 
+	public long getAlarmCount(Long userId) {
+		return ticketAlarmRepository.countByUserId(userId);
+	}
+
 	@Transactional
 	public TicketAlarmResponseDto updateAlarm(Long userId, Long alarmId, UpdateTicketAlarmRequestDto request) {
 		// 유저의 알람이 맞는지 (해당 알람을 만든 사람이 맞는지)

@@ -69,4 +69,12 @@ public class TicketAlarmController {
 		return ApiResponse.success("");
 	}
 
+	@GetMapping("/count")
+	public ApiResponse<Long> getAlarmCount(
+		@Auth TokenClaim tokenClaim
+	) {
+		Long userId = tokenClaim.getUserId();
+		return ApiResponse.success(ticketAlarmService.getAlarmCount(userId));
+	}
+
 }
