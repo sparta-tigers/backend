@@ -2,7 +2,7 @@ package com.sparta.spartatigers.domain.ticketalarm.dto.response;
 
 import java.time.LocalDateTime;
 
-import com.sparta.spartatigers.domain.liveboard.match.model.Match;
+import com.sparta.spartatigers.domain.liveboard.model.Match;
 import com.sparta.spartatigers.domain.ticketalarm.model.TeamBookingPolicy;
 import com.sparta.spartatigers.domain.ticketalarm.model.TicketAlarm;
 

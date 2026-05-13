@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sparta.spartatigers.domain.liveboard.dto.LineupCacheDto;
-import com.sparta.spartatigers.domain.liveboard.match.model.Match;
-import com.sparta.spartatigers.domain.liveboard.match.repository.MatchRepository;
+import com.sparta.spartatigers.domain.liveboard.model.Match;
+import com.sparta.spartatigers.domain.liveboard.repository.MatchRepository;
 import com.sparta.spartatigers.domain.startinglineup.model.LineupPlayer;
 import com.sparta.spartatigers.domain.startinglineup.model.StartingLineup;
 import com.sparta.spartatigers.domain.startinglineup.model.StartingLineupPK;

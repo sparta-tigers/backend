@@ -3,7 +3,7 @@ package com.sparta.spartatigers.domain.startinglineup.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sparta.spartatigers.domain.liveboard.match.model.Match;
+import com.sparta.spartatigers.domain.liveboard.model.Match;
 import com.sparta.spartatigers.domain.team.model.Team;
 
 import jakarta.persistence.CascadeType;

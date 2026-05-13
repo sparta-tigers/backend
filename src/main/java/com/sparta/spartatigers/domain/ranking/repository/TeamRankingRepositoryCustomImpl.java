@@ -11,11 +11,11 @@ import org.springframework.stereotype.Repository;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.sparta.spartatigers.domain.liveboard.match.model.LeagueType;
-import com.sparta.spartatigers.domain.liveboard.match.model.Match;
-import com.sparta.spartatigers.domain.liveboard.match.model.MatchResult;
-import com.sparta.spartatigers.domain.liveboard.match.model.QMatch;
-import com.sparta.spartatigers.domain.liveboard.match.model.QStadium;
+import com.sparta.spartatigers.domain.liveboard.model.LeagueType;
+import com.sparta.spartatigers.domain.liveboard.model.Match;
+import com.sparta.spartatigers.domain.liveboard.model.MatchResult;
+import com.sparta.spartatigers.domain.liveboard.model.QMatch;
+import com.sparta.spartatigers.domain.liveboard.model.QStadium;
 import com.sparta.spartatigers.domain.ranking.dto.TeamRankingStat;
 import com.sparta.spartatigers.domain.team.model.QTeam;
 

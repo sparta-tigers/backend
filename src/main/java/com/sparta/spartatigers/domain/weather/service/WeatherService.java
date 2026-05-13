@@ -13,8 +13,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.sparta.spartatigers.domain.liveboard.match.model.Stadium;
-import com.sparta.spartatigers.domain.liveboard.match.repository.StadiumRepository;
+import com.sparta.spartatigers.domain.liveboard.model.Stadium;
+import com.sparta.spartatigers.domain.liveboard.repository.StadiumRepository;
 import com.sparta.spartatigers.domain.weather.api.WeatherApiUrlGenerator;
 import com.sparta.spartatigers.domain.weather.dto.ForeCastResponseDto;
 import com.sparta.spartatigers.domain.weather.dto.NowCastResponseDto;

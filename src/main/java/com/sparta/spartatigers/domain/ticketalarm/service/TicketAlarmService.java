@@ -12,8 +12,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.sparta.spartatigers.domain.liveboard.match.model.Match;
-import com.sparta.spartatigers.domain.liveboard.match.repository.MatchRepository;
+import com.sparta.spartatigers.domain.liveboard.model.Match;
+import com.sparta.spartatigers.domain.liveboard.repository.MatchRepository;
 import com.sparta.spartatigers.domain.ticketalarm.dto.request.CreateTicketAlarmRequestDto;
 import com.sparta.spartatigers.domain.ticketalarm.dto.request.UpdateTicketAlarmRequestDto;
 import com.sparta.spartatigers.domain.ticketalarm.dto.response.TicketAlarmResponseDto;

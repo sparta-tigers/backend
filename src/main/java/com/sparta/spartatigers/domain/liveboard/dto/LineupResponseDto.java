@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.sparta.spartatigers.domain.liveboard.match.model.Match;
+import com.sparta.spartatigers.domain.liveboard.model.Match;
 import com.sparta.spartatigers.domain.liveboard.model.LineupBatter;
 import com.sparta.spartatigers.domain.startinglineup.model.LineupPlayer;
 import com.sparta.spartatigers.domain.startinglineup.model.StartingLineup;
