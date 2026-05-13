@@ -46,7 +46,12 @@ public class LiveBoardMatchSubscriber implements MessageListener {
             cacheLineupData(liveBoardData);
 
             // 3. 경기 점수 DB 동기화 (Phase 24) - 별도 서비스 호출로 트랜잭션 보장
-            liveBoardMatchService.updateMatchScore(liveBoardData);
+            try {
+                liveBoardMatchService.updateMatchScore(liveBoardData);
+            } catch (Exception e) {
+                log.error("Failed to update match score for matchId: {}. DB may be inconsistent with live broadcast.", 
+                        liveBoardData.getMatchId(), e);
+            }
 
         } catch (JsonProcessingException e) {
             log.error("Failed to parse LiveBoardData from Redis message: {}", e.getMessage(), e);

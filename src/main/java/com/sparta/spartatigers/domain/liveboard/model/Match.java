@@ -67,6 +67,9 @@ public class Match extends BaseEntity {
     @Column private String remark; // 비고
 
     public void updateScore(int homeScore, int awayScore) {
+        if (homeScore < 0 || awayScore < 0) {
+            throw new IllegalArgumentException("Score must be non-negative");
+        }
         this.homeScore = homeScore;
         this.awayScore = awayScore;
 
