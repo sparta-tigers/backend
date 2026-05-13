@@ -16,4 +16,6 @@ public interface MatchAttendanceRepository extends JpaRepository<MatchAttendance
 
     @EntityGraph(attributePaths = {"match", "match.homeTeam", "match.awayTeam", "match.stadium"})
     java.util.Optional<MatchAttendance> findByUser_IdAndMatch_Id(Long userId, Long matchId);
+
+    long countByUser_IdAndMatch_SeasonYear(Long userId, int seasonYear);
 }

@@ -156,4 +156,9 @@ public class MatchAttendanceService {
 			});
 		}
 	}
+
+	@Transactional(readOnly = true)
+	public long getAttendanceCount(Long userId, int year) {
+		return matchAttendanceRepository.countByUser_IdAndMatch_SeasonYear(userId, year);
+	}
 }
