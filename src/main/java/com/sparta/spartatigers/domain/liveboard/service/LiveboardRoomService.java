@@ -23,6 +23,8 @@ import com.sparta.spartatigers.domain.liveboard.model.Stadium;
 import com.sparta.spartatigers.domain.weather.dto.ForeCastResponseDto;
 import com.sparta.spartatigers.domain.weather.dto.NowCastResponseDto;
 import com.sparta.spartatigers.domain.weather.service.WeatherService;
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,21 +48,21 @@ public class LiveboardRoomService {
 		List<Match> dayOfMatches = matchRepository.findAllByMatchTimeBetween(start, end);
 
 		// 2. 오늘 경기가 없다면 return
-		if(dayOfMatches.isEmpty()) {
+		if (dayOfMatches.isEmpty()) {
 			return "[LIVEBOARD/ROOM] " + day + " | NO_MATCHES";
 		}
 
 		// 3. 매치ID들을 모아서 room 레파지토리에 기존재하는지 찾기
-		Set<Long> matchIds
-			= dayOfMatches.stream().map(Match::getId).collect(Collectors.toSet());
-		Set<Long> alreadyCreated
-			= roomRepository.findAllByMatchIdIn(matchIds).stream().map(LiveBoardRoom::getMatchId).collect(Collectors.toSet());
+		Set<Long> matchIds = dayOfMatches.stream().map(Match::getId).collect(Collectors.toSet());
+		Set<Long> alreadyCreated = roomRepository.findAllByMatchIdIn(matchIds).stream().map(LiveBoardRoom::getMatchId)
+				.collect(Collectors.toSet());
 
 		// 4. 룸 생성 로직
 		int createdCount = 0;
-		for(Match match : dayOfMatches) {
+		for (Match match : dayOfMatches) {
 			// 4-1. 매치ID에 대해 룸이 이미 생성되어 있다면 SKIP
-			if (alreadyCreated.contains(match.getId())) continue;
+			if (alreadyCreated.contains(match.getId()))
+				continue;
 			// 4-2.룸이 존재하지 않고, 결과가 NOT_PLAYED일때만 생성
 			if (MatchResult.NOT_PLAYED.equals(match.getMatchResult())) {
 				createRoom(match);
@@ -71,14 +73,15 @@ public class LiveboardRoomService {
 		// 5. string으로 응답
 		long totalRoomsToday = roomRepository.findAllByDate(anyday).size();
 		long creatableCount = dayOfMatches.stream()
-			.filter(match -> MatchResult.NOT_PLAYED.equals(match.getMatchResult()))
-			.filter(m -> !alreadyCreated.contains(m.getId()))
-			.count();
+				.filter(match -> MatchResult.NOT_PLAYED.equals(match.getMatchResult()))
+				.filter(m -> !alreadyCreated.contains(m.getId()))
+				.count();
 
-		if(createdCount == 0) {
+		if (createdCount == 0) {
 			return "[LIVEBOARD/ROOM] " + day + " | ALREADY_CREATED" + " | TOTAL : " + totalRoomsToday;
 		} else if (createdCount < creatableCount) {
-			return "[LIVEBOARD/ROOM] " + day + " | PARTIALLY_CREATED : " + createdCount + " | TOTAL : " + totalRoomsToday;
+			return "[LIVEBOARD/ROOM] " + day + " | PARTIALLY_CREATED : " + createdCount + " | TOTAL : "
+					+ totalRoomsToday;
 		} else {
 			return "[LIVEBOARD/ROOM] " + day + " | CREATED : " + createdCount + " | TOTAL : " + totalRoomsToday;
 		}
@@ -90,38 +93,38 @@ public class LiveboardRoomService {
 		List<Match> dayOfMatches = matchRepository.findAllByMatchTimeBetween(start, end);
 
 		Map<Long, LiveBoardRoom> roomMap = roomRepository.findAllByDate(anyday).stream()
-			.collect(Collectors.toMap(LiveBoardRoom::getMatchId, Function.identity()));
+				.collect(Collectors.toMap(LiveBoardRoom::getMatchId, Function.identity()));
 
-		List<LiveBoardRoomResponseDto> roomDtosForDay =
-			dayOfMatches.stream()
+		List<LiveBoardRoomResponseDto> roomDtosForDay = dayOfMatches.stream()
 				.map(match -> {
-				LiveBoardRoom room = roomMap.get(match.getId());
+					LiveBoardRoom room = roomMap.get(match.getId());
 
-				if(room == null) {
-					return LiveBoardRoomResponseDto.fromUpcomingMatch(match);
-				}
-
-				LocalDate matchDate = match.getMatchTime().toLocalDate();
-				LocalDate realToday = LocalDateTime.now(clock).toLocalDate();
-
-				if(matchDate.isEqual(realToday)) { // 당일 경기
-					long connectCount = connectionRepository.getConnectionCount(room.getRoomId());
-
-					Stadium stadium = match.getStadium();
-					if (stadium == null) {
-						log.warn("[ROOM] Stadium info missing for Match ID: {}. Skipping weather info.", match.getId());
-						return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, null, null);
+					if (room == null) {
+						return LiveBoardRoomResponseDto.fromUpcomingMatch(match);
 					}
 
-					NowCastResponseDto nowCast = weatherService.getNowCast(stadium.getId());
-					List<ForeCastResponseDto> foreCast = weatherService.getForeCast(stadium.getId());
-					return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, nowCast, foreCast);
-				} else if (matchDate.isBefore(realToday)) { // 지난 경기
-					return LiveBoardRoomResponseDto.fromPastMatch(match, room);
-				} else { // 그외의 예정 경기
-					return LiveBoardRoomResponseDto.fromUpcomingMatch(match);
-				}
-			}).toList();
+					LocalDate matchDate = match.getMatchTime().toLocalDate();
+					LocalDate realToday = LocalDateTime.now(clock).toLocalDate();
+
+					if (matchDate.isEqual(realToday)) { // 당일 경기
+						long connectCount = connectionRepository.getConnectionCount(room.getRoomId());
+
+						Stadium stadium = match.getStadium();
+						if (stadium == null) {
+							log.warn("[ROOM] Stadium info missing for Match ID: {}. Skipping weather info.",
+									match.getId());
+							return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, null, null);
+						}
+
+						NowCastResponseDto nowCast = weatherService.getNowCast(stadium.getId());
+						List<ForeCastResponseDto> foreCast = weatherService.getForeCast(stadium.getId());
+						return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, nowCast, foreCast);
+					} else if (matchDate.isBefore(realToday)) { // 지난 경기
+						return LiveBoardRoomResponseDto.fromPastMatch(match, room);
+					} else { // 그외의 예정 경기
+						return LiveBoardRoomResponseDto.fromUpcomingMatch(match);
+					}
+				}).toList();
 
 		return roomDtosForDay;
 	}
@@ -130,7 +133,7 @@ public class LiveboardRoomService {
 		// 1. 삭제할 날짜의 Room 선택
 		String day = anyday.format(DateTimeFormatter.ofPattern("MM/dd"));
 		List<LiveBoardRoom> roomsToDelete = roomRepository.findAllByDate(anyday);
-		if(roomsToDelete.isEmpty()) {
+		if (roomsToDelete.isEmpty()) {
 			return "[LIVEBOARD/ROOM] " + day + " | NO_ROOMS_FOUND";
 		}
 
@@ -141,15 +144,17 @@ public class LiveboardRoomService {
 		List<Match> matches = matchRepository.findAllByIdIn(matchIds);
 		Map<Long, Match> matchMap = matches.stream().collect(Collectors.toMap(Match::getId, Function.identity()));
 
-		for(LiveBoardRoom room : roomsToDelete) {
+		for (LiveBoardRoom room : roomsToDelete) {
 			Match match = matchMap.get(room.getMatchId());
-			if(match == null) continue;
+			if (match == null)
+				continue;
 
-			if(MatchResult.NOT_PLAYED.equals(match.getMatchResult())) continue;
+			if (MatchResult.NOT_PLAYED.equals(match.getMatchResult()))
+				continue;
 
 			roomRepository.deleteRoom(room.getRoomId());
 			connectionRepository.deleteAllConnections(room.getRoomId());
-			deletedCount ++;
+			deletedCount++;
 		}
 		long totalRoomsLeft = roomRepository.findAllByDate(anyday).size();
 
@@ -160,6 +165,46 @@ public class LiveboardRoomService {
 		}
 	}
 
+	public LiveBoardRoomResponseDto getRoomByMatchId(Long matchId) {
+		Match match = matchRepository.findByMatchId(matchId)
+				.orElseThrow(() -> new InvalidRequestException(ExceptionCode.MATCH_NOT_FOUND));
+
+		String roomId = "LIVEBOARD_" + matchId;
+		LiveBoardRoom room = roomRepository.findRoomById(roomId);
+
+		LocalDate matchDate = match.getMatchTime().toLocalDate();
+		LocalDate realToday = LocalDateTime.now(clock).toLocalDate();
+
+		if (matchDate.isEqual(realToday)) {
+			long connectCount = (room != null) ? connectionRepository.getConnectionCount(room.getRoomId()) : 0L;
+			Stadium stadium = match.getStadium();
+
+			NowCastResponseDto nowCast = null;
+			List<ForeCastResponseDto> foreCast = null;
+
+			if (stadium != null) {
+				nowCast = weatherService.getNowCast(stadium.getId());
+				foreCast = weatherService.getForeCast(stadium.getId());
+			}
+
+			// 룸이 아직 생성되지 않았더라도(드문 경우) Match 정보를 기반으로 TODAY 응답 생성 가능
+			if (room == null) {
+				return LiveBoardRoomResponseDto.fromTodayMatch(match, LiveBoardRoom.of(roomId, matchId,
+						match.getAwayTeam().getName() + "VS" + match.getHomeTeam().getName(), match.getMatchTime()), 0L,
+						nowCast, foreCast);
+			}
+			return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, nowCast, foreCast);
+		} else if (matchDate.isBefore(realToday)) {
+			if (room == null) {
+				// 과거 경기인데 룸이 없다면 기본 정보로 생성해서 반환 (일관성)
+				return LiveBoardRoomResponseDto.fromPastMatch(match,
+						LiveBoardRoom.of(roomId, matchId, "PAST_MATCH", match.getMatchTime()));
+			}
+			return LiveBoardRoomResponseDto.fromPastMatch(match, room);
+		} else {
+			return LiveBoardRoomResponseDto.fromUpcomingMatch(match);
+		}
+	}
 
 	// ✅분리 메서드 - 경기별로 룸 하나씩 생성
 	private LiveBoardRoom createRoom(Match match) {
