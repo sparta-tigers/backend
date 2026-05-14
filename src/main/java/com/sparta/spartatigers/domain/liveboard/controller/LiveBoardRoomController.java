@@ -28,8 +28,7 @@ public class LiveBoardRoomController {
 
 	@PostMapping
 	public ApiResponse<String> createRoomsForDay(
-		@RequestParam (required = false)
-		@DateTimeFormat(pattern = "yyyyMMdd") LocalDate anyday) {
+			@RequestParam(required = false) @DateTimeFormat(pattern = "yyyyMMdd") LocalDate anyday) {
 		if (anyday == null) {
 			anyday = LocalDate.now(clock);
 		}
@@ -38,18 +37,22 @@ public class LiveBoardRoomController {
 
 	@GetMapping
 	public List<LiveBoardRoomResponseDto> getRoomsForDay(
-		@RequestParam (required = false)
-		@DateTimeFormat(pattern = "yyyyMMdd") LocalDate anyday) {
+			@RequestParam(required = false) @DateTimeFormat(pattern = "yyyyMMdd") LocalDate anyday) {
 		if (anyday == null) {
 			anyday = LocalDate.now(clock);
 		}
 		return liveboardRoomService.getRoomsForDay(anyday);
 	}
 
+	@GetMapping("/{matchId}")
+	public ApiResponse<LiveBoardRoomResponseDto> getRoomByMatchId(
+			@org.springframework.web.bind.annotation.PathVariable Long matchId) {
+		return ApiResponse.success(liveboardRoomService.getRoomByMatchId(matchId));
+	}
+
 	@DeleteMapping
 	public ApiResponse<String> deleteRoomsForDay(
-		@RequestParam (required = false)
-		@DateTimeFormat(pattern = "yyyyMMdd") LocalDate anyday) {
+			@RequestParam(required = false) @DateTimeFormat(pattern = "yyyyMMdd") LocalDate anyday) {
 		if (anyday == null) {
 			anyday = LocalDate.now(clock);
 		}

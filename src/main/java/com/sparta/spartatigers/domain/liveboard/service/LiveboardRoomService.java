@@ -161,6 +161,45 @@ public class LiveboardRoomService {
 	}
 
 
+	public LiveBoardRoomResponseDto getRoomByMatchId(Long matchId) {
+		Match match = matchRepository.findByMatchId(matchId)
+			.orElseThrow(() -> new com.sparta.spartatigers.global.exception.internal.InvalidRequestException(
+				com.sparta.spartatigers.global.exception.enums.ExceptionCode.MATCH_NOT_FOUND));
+
+		String roomId = "LIVEBOARD_" + matchId;
+		LiveBoardRoom room = roomRepository.findRoomById(roomId);
+
+		LocalDate matchDate = match.getMatchTime().toLocalDate();
+		LocalDate realToday = LocalDateTime.now(clock).toLocalDate();
+
+		if (matchDate.isEqual(realToday)) {
+			long connectCount = (room != null) ? connectionRepository.getConnectionCount(room.getRoomId()) : 0L;
+			Stadium stadium = match.getStadium();
+			
+			NowCastResponseDto nowCast = null;
+			List<ForeCastResponseDto> foreCast = null;
+			
+			if (stadium != null) {
+				nowCast = weatherService.getNowCast(stadium.getId());
+				foreCast = weatherService.getForeCast(stadium.getId());
+			}
+
+			// 룸이 아직 생성되지 않았더라도(드문 경우) Match 정보를 기반으로 TODAY 응답 생성 가능
+			if (room == null) {
+				return LiveBoardRoomResponseDto.fromTodayMatch(match, LiveBoardRoom.of(roomId, matchId, match.getAwayTeam().getName() + "VS" + match.getHomeTeam().getName(), match.getMatchTime()), 0L, nowCast, foreCast);
+			}
+			return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, nowCast, foreCast);
+		} else if (matchDate.isBefore(realToday)) {
+			if (room == null) {
+				// 과거 경기인데 룸이 없다면 기본 정보로 생성해서 반환 (일관성)
+				return LiveBoardRoomResponseDto.fromPastMatch(match, LiveBoardRoom.of(roomId, matchId, "PAST_MATCH", match.getMatchTime()));
+			}
+			return LiveBoardRoomResponseDto.fromPastMatch(match, room);
+		} else {
+			return LiveBoardRoomResponseDto.fromUpcomingMatch(match);
+		}
+	}
+
 	// ✅분리 메서드 - 경기별로 룸 하나씩 생성
 	private LiveBoardRoom createRoom(Match match) {
 		String roomId = "LIVEBOARD_" + match.getId();
