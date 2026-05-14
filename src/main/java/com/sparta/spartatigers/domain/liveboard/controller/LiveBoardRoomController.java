@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import com.sparta.spartatigers.domain.liveboard.dto.LiveBoardRoomResponseDto;
 import com.sparta.spartatigers.domain.liveboard.service.LiveboardRoomService;
@@ -45,8 +46,7 @@ public class LiveBoardRoomController {
 	}
 
 	@GetMapping("/{matchId}")
-	public ApiResponse<LiveBoardRoomResponseDto> getRoomByMatchId(
-			@org.springframework.web.bind.annotation.PathVariable Long matchId) {
+	public ApiResponse<LiveBoardRoomResponseDto> getRoomByMatchId(@PathVariable Long matchId) {
 		return ApiResponse.success(liveboardRoomService.getRoomByMatchId(matchId));
 	}
 
