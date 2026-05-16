@@ -11,6 +11,7 @@ import com.sparta.spartatigers.domain.liveboard.model.MatchResult;
 import com.sparta.spartatigers.domain.team.model.TeamCode;
 import com.sparta.spartatigers.domain.weather.dto.ForeCastResponseDto;
 import com.sparta.spartatigers.domain.weather.dto.NowCastResponseDto;
+import com.sparta.spartatigers.domain.liveboard.model.LiveBoardData;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -44,6 +45,7 @@ public class LiveBoardRoomResponseDto {
 	private final NowCastResponseDto nowCast;
 	private final List<ForeCastResponseDto> foreCast;
 	private final InningTexts inningTexts;
+	private final LiveBoardData liveBoardData;
 
 	public static LiveBoardRoomResponseDto fromUpcomingMatch(Match match) {
 		return LiveBoardRoomResponseDto.builder()
@@ -62,7 +64,7 @@ public class LiveBoardRoomResponseDto {
 			.build();
 	}
 
-	public static LiveBoardRoomResponseDto fromTodayMatch(Match match, LiveBoardRoom room, long connectCount, NowCastResponseDto nowCast, List<ForeCastResponseDto> foreCast, InningTexts inningTexts) {
+	public static LiveBoardRoomResponseDto fromTodayMatch(Match match, LiveBoardRoom room, long connectCount, NowCastResponseDto nowCast, List<ForeCastResponseDto> foreCast, InningTexts inningTexts, LiveBoardData liveBoardData) {
 		return LiveBoardRoomResponseDto.builder()
 			.roomId(room.getRoomId())
 			.matchId(match.getId())
@@ -79,6 +81,7 @@ public class LiveBoardRoomResponseDto {
 			.nowCast(nowCast)
 			.foreCast(foreCast)
 			.inningTexts(inningTexts)
+			.liveBoardData(liveBoardData)
 			.build();
 	}
 

@@ -118,7 +118,7 @@ public class LiveboardRoomService {
 									match.getId());
 							LiveBoardData liveData = liveBoardDataService.getLiveBoardData(match.getId());
 							InningTexts inningTexts = (liveData != null) ? liveData.getInningTexts() : null;
-							return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, null, null, inningTexts);
+							return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, null, null, inningTexts, liveData);
 						}
 
 						NowCastResponseDto nowCast = weatherService.getNowCast(stadium.getId());
@@ -127,7 +127,7 @@ public class LiveboardRoomService {
 						LiveBoardData liveData = liveBoardDataService.getLiveBoardData(match.getId());
 						InningTexts inningTexts = (liveData != null) ? liveData.getInningTexts() : null;
 
-						return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, nowCast, foreCast, inningTexts);
+						return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, nowCast, foreCast, inningTexts, liveData);
 					} else if (matchDate.isBefore(realToday)) { // 지난 경기
 						return LiveBoardRoomResponseDto.fromPastMatch(match, room);
 					} else { // 그외의 예정 경기
@@ -203,9 +203,9 @@ public class LiveboardRoomService {
 			if (room == null) {
 				return LiveBoardRoomResponseDto.fromTodayMatch(match, LiveBoardRoom.of(roomId, matchId,
 						match.getAwayTeam().getName() + "VS" + match.getHomeTeam().getName(), match.getMatchTime()), 0L,
-						nowCast, foreCast, inningTexts);
+						nowCast, foreCast, inningTexts, liveData);
 			}
-			return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, nowCast, foreCast, inningTexts);
+			return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, nowCast, foreCast, inningTexts, liveData);
 		} else if (matchDate.isBefore(realToday)) {
 			if (room == null) {
 				// 과거 경기인데 룸이 없다면 기본 정보로 생성해서 반환 (일관성)
