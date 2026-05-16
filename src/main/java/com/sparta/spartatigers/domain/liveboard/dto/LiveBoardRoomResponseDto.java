@@ -3,6 +3,7 @@ package com.sparta.spartatigers.domain.liveboard.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.sparta.spartatigers.domain.liveboard.model.InningTexts;
 import com.sparta.spartatigers.domain.liveboard.model.LiveBoardRoom;
 import com.sparta.spartatigers.domain.liveboard.model.LiveBoardStatus;
 import com.sparta.spartatigers.domain.liveboard.model.Match;
@@ -42,6 +43,7 @@ public class LiveBoardRoomResponseDto {
 
 	private final NowCastResponseDto nowCast;
 	private final List<ForeCastResponseDto> foreCast;
+	private final InningTexts inningTexts;
 
 	public static LiveBoardRoomResponseDto fromUpcomingMatch(Match match) {
 		return LiveBoardRoomResponseDto.builder()
@@ -60,7 +62,7 @@ public class LiveBoardRoomResponseDto {
 			.build();
 	}
 
-	public static LiveBoardRoomResponseDto fromTodayMatch(Match match, LiveBoardRoom room, long connectCount, NowCastResponseDto nowCast, List<ForeCastResponseDto> foreCast) {
+	public static LiveBoardRoomResponseDto fromTodayMatch(Match match, LiveBoardRoom room, long connectCount, NowCastResponseDto nowCast, List<ForeCastResponseDto> foreCast, InningTexts inningTexts) {
 		return LiveBoardRoomResponseDto.builder()
 			.roomId(room.getRoomId())
 			.matchId(match.getId())
@@ -76,6 +78,7 @@ public class LiveBoardRoomResponseDto {
 			.connectCount(connectCount)
 			.nowCast(nowCast)
 			.foreCast(foreCast)
+			.inningTexts(inningTexts)
 			.build();
 	}
 
