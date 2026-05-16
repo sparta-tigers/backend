@@ -34,8 +34,7 @@ public class LiveBoardMatchService {
                 // 엔티티 내부 메서드를 활용한 상태 변경 (Zero Magic)
                 match.updateScore(homeScore, awayScore);
                 
-                log.debug("Successfully synchronized match score for matchId: {}. {}:{}", 
-                        data.getMatchId(), homeScore, awayScore);
+
             } catch (NumberFormatException e) {
                 log.warn("Invalid score format for matchId: {}. Home: {}, Away: {}", 
                         data.getMatchId(), data.getMatchScore().getHomeScore(), data.getMatchScore().getAwayScore());

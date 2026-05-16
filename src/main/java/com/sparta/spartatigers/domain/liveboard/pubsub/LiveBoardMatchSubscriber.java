@@ -92,8 +92,7 @@ public class LiveBoardMatchSubscriber implements MessageListener {
                 // 🚨 앙드레 카파시: 안전한 역직렬화 (단순 캐스팅 금지)
                 LineupCacheDto cached = objectMapper.convertValue(existingData, LineupCacheDto.class);
                 if (newCache.equals(cached)) {
-                    log.debug("Lineup data for matchId {} is identical to existing cache, skipping update",
-                            data.getMatchId());
+
                     return; // 변경사항 없음
                 }
             } catch (IllegalArgumentException e) {
