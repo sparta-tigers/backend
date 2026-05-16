@@ -40,6 +40,11 @@ public enum Position  {
 			if (position.code.equals(trimmed)) {
 				return position;
 			}
+			// 3. 영문 약어 비교 (예: "DH" 또는 "D")
+			if (position.name().equals(trimmed) || 
+				(position == DH && "D".equals(trimmed))) {
+				return position;
+			}
 		}
 		
 		throw new IllegalArgumentException("알 수 없는 포지션입니다: [" + positionStr + "]");
