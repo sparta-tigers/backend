@@ -16,6 +16,8 @@ import com.sparta.spartatigers.domain.liveboard.model.LiveBoardData;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import com.sparta.spartatigers.domain.liveboard.service.LiveBoardDataService;
 import com.sparta.spartatigers.domain.liveboard.service.LiveBoardMatchService;
 
 @Slf4j
@@ -28,6 +30,7 @@ public class LiveBoardMatchSubscriber implements MessageListener {
     private final RedisTemplate<String, Object> redisTemplate;
     private final com.sparta.spartatigers.domain.startinglineup.service.StartingLineupService startingLineupService;
     private final LiveBoardMatchService liveBoardMatchService;
+    private final LiveBoardDataService liveBoardDataService;
 
     private static final String LINEUP_CACHE_PREFIX = "lineup:match:";
     private static final Duration CACHE_TTL = Duration.ofHours(6);
@@ -42,14 +45,17 @@ public class LiveBoardMatchSubscriber implements MessageListener {
             messagingTemplate.convertAndSend(
                     "/server/liveboard/room/" + liveBoardData.getMatchId() + "/match", liveBoardData);
 
-            // 2. 라인업 데이터 경량화 및 캐싱 (Phase 13)
+            // 2. 실시간 데이터 캐싱 (REST API 초기 로드용)
+            liveBoardDataService.cacheLiveBoardData(liveBoardData);
+
+            // 3. 라인업 데이터 경량화 및 캐싱 (Phase 13)
             cacheLineupData(liveBoardData);
 
             // 3. 경기 점수 DB 동기화 (Phase 24) - 별도 서비스 호출로 트랜잭션 보장
             try {
                 liveBoardMatchService.updateMatchScore(liveBoardData);
             } catch (Exception e) {
-                log.error("Failed to update match score for matchId: {}. DB may be inconsistent with live broadcast.", 
+                log.error("Failed to update match score for matchId: {}. DB may be inconsistent with live broadcast.",
                         liveBoardData.getMatchId(), e);
             }
 
@@ -63,7 +69,8 @@ public class LiveBoardMatchSubscriber implements MessageListener {
      * 🚨 앙드레 카파시: 무거운 전체 데이터를 피하고 필요한 정보만 선별적으로 캐싱하여 메모리 절약.
      */
     private void cacheLineupData(LiveBoardData data) {
-        if (data.getMatchId() == null) return;
+        if (data.getMatchId() == null)
+            return;
 
         LineupCacheDto newCache = LineupCacheDto.builder()
                 .matchId(data.getMatchId())
@@ -77,7 +84,7 @@ public class LiveBoardMatchSubscriber implements MessageListener {
         }
 
         String cacheKey = LINEUP_CACHE_PREFIX + data.getMatchId();
-        
+
         // 중복 쓰기 방지: 기존 데이터와 비교
         Object existingData = redisTemplate.opsForValue().get(cacheKey);
         if (existingData != null) {
@@ -85,7 +92,8 @@ public class LiveBoardMatchSubscriber implements MessageListener {
                 // 🚨 앙드레 카파시: 안전한 역직렬화 (단순 캐스팅 금지)
                 LineupCacheDto cached = objectMapper.convertValue(existingData, LineupCacheDto.class);
                 if (newCache.equals(cached)) {
-                    log.debug("Lineup data for matchId {} is identical to existing cache, skipping update", data.getMatchId());
+                    log.debug("Lineup data for matchId {} is identical to existing cache, skipping update",
+                            data.getMatchId());
                     return; // 변경사항 없음
                 }
             } catch (IllegalArgumentException e) {
