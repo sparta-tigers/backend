@@ -46,7 +46,12 @@ public class LiveBoardMatchSubscriber implements MessageListener {
                     "/server/liveboard/room/" + liveBoardData.getMatchId() + "/match", liveBoardData);
 
             // 2. 실시간 데이터 캐싱 (REST API 초기 로드용)
-            liveBoardDataService.cacheLiveBoardData(liveBoardData);
+            try {
+                liveBoardDataService.cacheLiveBoardData(liveBoardData);
+            } catch (Exception e) {
+                log.warn("Failed to cache liveboard data for matchId: {}. Continuing message flow.",
+                        liveBoardData.getMatchId(), e);
+            }
 
             // 3. 라인업 데이터 경량화 및 캐싱 (Phase 13)
             cacheLineupData(liveBoardData);

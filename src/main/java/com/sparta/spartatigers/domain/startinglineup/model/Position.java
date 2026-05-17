@@ -24,6 +24,10 @@ public enum Position  {
 		return koreanName;
 	}
 
+	public String getCode() {
+		return code;
+	}
+
 	public static Position fromKorean(String positionStr) {
 		if (positionStr == null) {
 			throw new IllegalArgumentException("포지션 정보가 없습니다.");

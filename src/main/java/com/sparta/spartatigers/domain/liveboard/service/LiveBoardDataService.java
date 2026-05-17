@@ -41,6 +41,9 @@ public class LiveBoardDataService {
      * 캐싱된 실시간 중계 데이터 조회
      */
     public LiveBoardData getLiveBoardData(Long matchId) {
+        if (matchId == null) {
+            return null;
+        }
         String key = DATA_CACHE_PREFIX + matchId;
         try {
             Object cached = redisTemplate.opsForValue().get(key);
