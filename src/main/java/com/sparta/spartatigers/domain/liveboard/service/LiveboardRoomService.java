@@ -19,6 +19,8 @@ import com.sparta.spartatigers.domain.liveboard.repository.LiveBoardRoomReposito
 import com.sparta.spartatigers.domain.liveboard.model.Match;
 import com.sparta.spartatigers.domain.liveboard.model.MatchResult;
 import com.sparta.spartatigers.domain.liveboard.repository.MatchRepository;
+import com.sparta.spartatigers.domain.liveboard.model.InningTexts;
+import com.sparta.spartatigers.domain.liveboard.model.LiveBoardData;
 import com.sparta.spartatigers.domain.liveboard.model.Stadium;
 import com.sparta.spartatigers.domain.weather.dto.ForeCastResponseDto;
 import com.sparta.spartatigers.domain.weather.dto.NowCastResponseDto;
@@ -38,6 +40,7 @@ public class LiveboardRoomService {
 	private final LiveBoardConnectionRepository connectionRepository;
 	private final MatchRepository matchRepository;
 	private final WeatherService weatherService;
+	private final LiveBoardDataService liveBoardDataService;
 	private final Clock clock;
 
 	public String createRoomsForDay(LocalDate anyday) {
@@ -113,12 +116,18 @@ public class LiveboardRoomService {
 						if (stadium == null) {
 							log.warn("[ROOM] Stadium info missing for Match ID: {}. Skipping weather info.",
 									match.getId());
-							return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, null, null);
+							LiveBoardData liveData = liveBoardDataService.getLiveBoardData(match.getId());
+							InningTexts inningTexts = (liveData != null) ? liveData.getInningTexts() : null;
+							return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, null, null, inningTexts, liveData);
 						}
 
 						NowCastResponseDto nowCast = weatherService.getNowCast(stadium.getId());
 						List<ForeCastResponseDto> foreCast = weatherService.getForeCast(stadium.getId());
-						return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, nowCast, foreCast);
+						
+						LiveBoardData liveData = liveBoardDataService.getLiveBoardData(match.getId());
+						InningTexts inningTexts = (liveData != null) ? liveData.getInningTexts() : null;
+
+						return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, nowCast, foreCast, inningTexts, liveData);
 					} else if (matchDate.isBefore(realToday)) { // 지난 경기
 						return LiveBoardRoomResponseDto.fromPastMatch(match, room);
 					} else { // 그외의 예정 경기
@@ -187,13 +196,16 @@ public class LiveboardRoomService {
 				foreCast = weatherService.getForeCast(stadium.getId());
 			}
 
+			LiveBoardData liveData = liveBoardDataService.getLiveBoardData(matchId);
+			InningTexts inningTexts = (liveData != null) ? liveData.getInningTexts() : null;
+
 			// 룸이 아직 생성되지 않았더라도(드문 경우) Match 정보를 기반으로 TODAY 응답 생성 가능
 			if (room == null) {
 				return LiveBoardRoomResponseDto.fromTodayMatch(match, LiveBoardRoom.of(roomId, matchId,
 						match.getAwayTeam().getName() + "VS" + match.getHomeTeam().getName(), match.getMatchTime()), 0L,
-						nowCast, foreCast);
+						nowCast, foreCast, inningTexts, liveData);
 			}
-			return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, nowCast, foreCast);
+			return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, nowCast, foreCast, inningTexts, liveData);
 		} else if (matchDate.isBefore(realToday)) {
 			if (room == null) {
 				// 과거 경기인데 룸이 없다면 기본 정보로 생성해서 반환 (일관성)
