@@ -5,5 +5,6 @@ public enum MatchResult {
     AWAY_WIN,
     DRAW,
     CANCEL,
-    NOT_PLAYED
+    NOT_PLAYED,
+    PROCEEDING
 }

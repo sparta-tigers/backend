@@ -73,12 +73,29 @@ public class Match extends BaseEntity {
         this.homeScore = homeScore;
         this.awayScore = awayScore;
 
-        if (homeScore > awayScore) {
-            this.matchResult = MatchResult.HOME_WIN;
-        } else if (homeScore < awayScore) {
-            this.matchResult = MatchResult.AWAY_WIN;
-        } else {
-            this.matchResult = MatchResult.DRAW;
+        validateMatchTimeState(this.matchResult);
+
+        // 경기 시작 전(NOT_PLAYED)에 스코어가 업데이트되면 진행 중(PROCEEDING) 상태로 변환합니다.
+        if (this.matchResult == MatchResult.NOT_PLAYED) {
+            this.matchResult = MatchResult.PROCEEDING;
+        }
+    }
+
+    public void updateFinalResult(MatchResult result, int homeScore, int awayScore) {
+        validateMatchTimeState(result);
+        if (homeScore < 0 || awayScore < 0) {
+            throw new IllegalArgumentException("Score must be non-negative");
+        }
+        this.homeScore = homeScore;
+        this.awayScore = awayScore;
+        this.matchResult = result;
+    }
+
+    private void validateMatchTimeState(MatchResult targetResult) {
+        if (targetResult != null && LocalDateTime.now().isBefore(this.matchTime)) {
+            if (targetResult != MatchResult.CANCEL && targetResult != MatchResult.NOT_PLAYED) {
+                throw new IllegalStateException("경기 예정 시간 이전에는 CANCEL 또는 NOT_PLAYED 상태만 가질 수 있습니다. (요청 상태: " + targetResult + ")");
+            }
         }
     }
 }
