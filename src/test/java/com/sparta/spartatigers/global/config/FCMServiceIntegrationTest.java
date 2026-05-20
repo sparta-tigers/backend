@@ -12,7 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.external.FirebaseException;
-import com.sparta.spartatigers.global.firebase.FCMService;
+import com.sparta.spartatigers.global.firebase.service.FCMService;
 
 @SpringBootTest(classes = {FCMService.class, FirebaseConfig.class})
 class FCMServiceIntegrationTest {

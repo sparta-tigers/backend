@@ -140,12 +140,6 @@ public class ExchangeRequestService {
         }
 
         if (exchangeRequest.getStatus() == ExchangeStatus.REJECTED) {
-            // [FIX] FCMService 캡슐화 적용: 트랜잭션 커밋 후 안전하게 알림 발송
-            fcmService.sendNotificationAfterCommit(
-                    exchangeRequest.getSender().getDeviceToken(),
-                    "교환 요청 거절",
-                    "아쉽게도 교환 요청이 거절되었습니다.",
-                    exchangeRequest.getSender().getId());
             // 거절 내역(History) 유지를 위해 삭제하지 않음. DirectRoom 또한 보존하지만 프론트엔드에서 disabled 처리됨.
             return ExchangeRoomResponseDto.rejected(exchangeRequestId);
         }
@@ -161,15 +155,7 @@ public class ExchangeRequestService {
         for (ExchangeRequest req : pendingRequests) {
             if (!req.getId().equals(acceptedRequestId)) {
                 req.updateStatus(ExchangeStatus.REJECTED);
-                // [FIX] 자동 거절된 요청자에게도 알림 발송
                 req.updateStatus(ExchangeStatus.REJECTED);
-
-                // [FIX] FCMService 캡슐화 적용: 트랜잭션 커밋 후 안전하게 알림 발송
-                fcmService.sendNotificationAfterCommit(
-                        req.getSender().getDeviceToken(),
-                        "교환 요청 거절",
-                        "아쉽게도 교환 요청이 거절되었습니다.",
-                        req.getSender().getId());
             }
         }
     }
