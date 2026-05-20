@@ -4,6 +4,7 @@ import com.sparta.spartatigers.domain.liveboard.model.InningTexts;
 import com.sparta.spartatigers.domain.liveboard.model.LiveBoardData;
 import com.sparta.spartatigers.domain.liveboard.model.MatchScore;
 import com.sparta.spartatigers.domain.liveboard.model.Player;
+import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Builder;
@@ -34,7 +35,7 @@ public class LiveBoardDataResponseDto {
                 .matchScore(data.getMatchScore())
                 .inningTexts(data.getInningTexts())
                 .currentInning(data.getCurrentInning())
-                .players(data.getPlayers())
+                .players(data.getPlayers() == null ? null : new ArrayList<>(data.getPlayers()))
                 .build();
     }
 }
