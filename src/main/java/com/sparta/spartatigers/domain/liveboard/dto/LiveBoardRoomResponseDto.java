@@ -45,7 +45,7 @@ public class LiveBoardRoomResponseDto {
 	private final NowCastResponseDto nowCast;
 	private final List<ForeCastResponseDto> foreCast;
 	private final InningTexts inningTexts;
-	private final LiveBoardData liveBoardData;
+	private final LiveBoardDataResponseDto liveBoardData;
 
 	public static LiveBoardRoomResponseDto fromUpcomingMatch(Match match) {
 		return LiveBoardRoomResponseDto.builder()
@@ -81,7 +81,7 @@ public class LiveBoardRoomResponseDto {
 			.nowCast(nowCast)
 			.foreCast(foreCast)
 			.inningTexts(inningTexts)
-			.liveBoardData(liveBoardData)
+			.liveBoardData(LiveBoardDataResponseDto.from(liveBoardData))
 			.build();
 	}
 
