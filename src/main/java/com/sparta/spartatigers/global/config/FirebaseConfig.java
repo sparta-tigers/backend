@@ -31,28 +31,24 @@ public class FirebaseConfig {
         log.info("project id: {}", projectId);
         log.info("service account path: {}", serviceAccountPath);
 
-        GoogleCredentials credentials;
+        List<FirebaseApp> firebaseApps = FirebaseApp.getApps();
 
-        try (FileInputStream serviceAccount =
-            new FileInputStream(serviceAccountPath)) {
+        if (firebaseApps != null && !firebaseApps.isEmpty()) {
+            for (FirebaseApp app : firebaseApps) {
+                if (app.getName().equals(FirebaseApp.DEFAULT_APP_NAME)) {
+                    log.info("Firebase가 이미 초기화되어있습니다.");
+                    return app;
+                }
+            }
+        }
 
-            credentials = GoogleCredentials.fromStream(serviceAccount);
+        try (FileInputStream serviceAccount = new FileInputStream(serviceAccountPath)) {
+            GoogleCredentials credentials = GoogleCredentials.fromStream(serviceAccount);
 
             FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(credentials)
                 .setProjectId(projectId)
                 .build();
-
-            List<FirebaseApp> firebaseApps = FirebaseApp.getApps();
-
-            if (firebaseApps != null && !firebaseApps.isEmpty()) {
-                for (FirebaseApp app : firebaseApps) {
-                    if (app.getName().equals(FirebaseApp.DEFAULT_APP_NAME)) {
-                        log.info("Firebase가 이미 초기화되어있습니다.");
-                        return app;
-                    }
-                }
-            }
 
             log.info("FirebaseApp가 초기화되었습니다.");
             return FirebaseApp.initializeApp(options);
