@@ -1,4 +1,4 @@
-package com.sparta.spartatigers.global.firebase;
+package com.sparta.spartatigers.global.firebase.service;
 
 import org.springframework.stereotype.Service;
 

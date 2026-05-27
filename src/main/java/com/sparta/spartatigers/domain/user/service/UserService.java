@@ -1,5 +1,7 @@
 package com.sparta.spartatigers.domain.user.service;
 
+import com.sparta.spartatigers.domain.auth.model.TokenClaim;
+import com.sparta.spartatigers.global.firebase.dto.FcmTokenRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,5 +31,13 @@ public class UserService {
         user.changePassword(hashedPassword);
 
         return userRepository.save(user);
+    }
+
+    @Transactional
+    public void updateFcmToken(TokenClaim tokenClaim, FcmTokenRequest request) {
+        User user = userRepository.findById(tokenClaim.getUserId())
+            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.USER_NOT_FOUND));
+
+        user.updateFcmToken(request.fcmToken());
     }
 }

@@ -31,7 +31,7 @@ import com.sparta.spartatigers.domain.directRoom.repository.DirectRoomRepository
 import com.sparta.spartatigers.domain.exchangerequest.repository.ExchangeRequestRepository;
 import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeRequest;
 import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeStatus;
-import com.sparta.spartatigers.global.firebase.FCMService;
+import com.sparta.spartatigers.global.firebase.service.FCMService;
 import com.sparta.spartatigers.domain.stompchat.pubsub.RedisDirectMessagePublisher;
 
 import java.time.Clock;
@@ -132,12 +132,6 @@ public class ItemService {
                                 });
                     } else if (req.getStatus() == ExchangeStatus.PENDING) {
                         req.updateStatus(ExchangeStatus.REJECTED);
-                        // [FIX] FCMService 캡슐화 적용: 트랜잭션 커밋 후 안전하게 알림 발송
-                        fcmService.sendNotificationAfterCommit(
-                                req.getSender().getDeviceToken(),
-                                "교환 요청 거절",
-                                "다른 사용자와 교환이 완료되어 요청이 거절되었습니다.",
-                                req.getSender().getId());
                     }
                 }
 
@@ -155,13 +149,6 @@ public class ItemService {
                 for (ExchangeRequest req : activeRequests) {
                     ExchangeStatus previousStatus = req.getStatus();
                     req.updateStatus(ExchangeStatus.REJECTED);
-
-                    // [FIX] FCMService 캡슐화 적용: 트랜잭션 커밋 후 안전하게 알림 발송
-                    fcmService.sendNotificationAfterCommit(
-                            req.getSender().getDeviceToken(),
-                            "교환 취소",
-                            "상대방의 사정으로 교환이 취소되었습니다.",
-                            req.getSender().getId());
 
                     // [FIX] 상태 변경 전 ACCEPTED 였던 경우에만 시스템 메시지 발행
                     if (previousStatus == ExchangeStatus.ACCEPTED) {
