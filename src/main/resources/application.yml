@@ -84,7 +84,7 @@ cloud:
 # ===========================================
 firebase:
   project-id: "yaguunivfcm"
-  service-account: "firebase-key.json"
+  service-account: ${FIREBASE_SERVICE_ACCOUNT_PATH:firebase-key.json}
 # ===============================
 # Weather API
 # ===============================
