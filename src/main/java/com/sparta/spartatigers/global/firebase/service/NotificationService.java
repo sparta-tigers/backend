@@ -16,7 +16,7 @@ public class NotificationService {
 
     public void send(NotificationMessage message) {
 
-        if (!message.hasValidToken()) {
+        if (message == null || !message.hasValidToken()) {
             return;
         }
 
