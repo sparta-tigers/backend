@@ -1,7 +1,9 @@
 package com.sparta.spartatigers.global.firebase.dto;
 
+import jakarta.validation.constraints.NotBlank;
+
 public record FcmTokenRequest(
-    String fcmToken
+    @NotBlank String fcmToken
 ) {
 
 }
