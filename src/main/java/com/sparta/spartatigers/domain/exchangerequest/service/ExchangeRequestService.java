@@ -155,7 +155,6 @@ public class ExchangeRequestService {
         for (ExchangeRequest req : pendingRequests) {
             if (!req.getId().equals(acceptedRequestId)) {
                 req.updateStatus(ExchangeStatus.REJECTED);
-                req.updateStatus(ExchangeStatus.REJECTED);
             }
         }
     }
@@ -255,6 +254,6 @@ public class ExchangeRequestService {
 
     private void sendNotification(String token, String title, String body) {
         NotificationMessage message = NotificationMessage.of(token, title, body);
-        notificationService.send(message);
+        notificationService.sendAfterCommit(message);
     }
 }
