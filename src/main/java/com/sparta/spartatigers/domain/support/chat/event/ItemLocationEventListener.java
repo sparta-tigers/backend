@@ -1,7 +1,7 @@
 package com.sparta.spartatigers.domain.support.chat.event;
 
 import org.springframework.scheduling.annotation.Async;
-import com.sparta.spartatigers.domain.core.trade.event.ItemLocationUpdatedEvent;
+import com.sparta.spartatigers.domain.foundation.common.event.ItemLocationUpdatedEvent;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;

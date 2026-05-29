@@ -6,7 +6,7 @@ import com.sparta.spartatigers.domain.core.trade.dto.request.UpdateItemRequestDt
 import com.sparta.spartatigers.domain.core.trade.dto.response.ItemResponseDto;
 import com.sparta.spartatigers.domain.core.trade.dto.response.ReadItemResponseDto;
 import com.sparta.spartatigers.domain.core.trade.dto.response.ReadItemDetailResponseDto;
-import com.sparta.spartatigers.domain.core.trade.event.ItemLocationUpdatedEvent;
+import com.sparta.spartatigers.domain.foundation.common.event.ItemLocationUpdatedEvent;
 import com.sparta.spartatigers.domain.core.trade.model.Item;
 import com.sparta.spartatigers.domain.core.trade.model.ItemStatus;
 import com.sparta.spartatigers.domain.core.trade.repository.ItemRepository;
@@ -27,12 +27,12 @@ import com.sparta.spartatigers.domain.core.trade.dto.request.ItemCreateRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sparta.spartatigers.domain.core.direct.repository.DirectRoomRepository;
+import com.sparta.spartatigers.domain.foundation.common.event.ItemStatusChangedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import com.sparta.spartatigers.domain.core.trade.repository.ExchangeRequestRepository;
 import com.sparta.spartatigers.domain.core.trade.model.ExchangeRequest;
 import com.sparta.spartatigers.domain.core.trade.model.ExchangeStatus;
 import com.sparta.spartatigers.global.firebase.service.FCMService;
-import com.sparta.spartatigers.domain.core.direct.pubsub.RedisDirectMessagePublisher;
 
 import java.time.Clock;
 import java.time.LocalDate;
@@ -55,9 +55,7 @@ public class ItemService {
     private final LocationService locationService;
     private final ObjectMapper objectMapper;
     private final ExchangeRequestRepository exchangeRequestRepository;
-    private final DirectRoomRepository directRoomRepository;
     private final FCMService fcmService;
-    private final RedisDirectMessagePublisher redisDirectMessagePublisher;
     private final Clock clock;
 
     @Transactional(readOnly = true)
@@ -125,11 +123,7 @@ public class ItemService {
                 for (ExchangeRequest req : activeRequests) {
                     if (req.getStatus() == ExchangeStatus.ACCEPTED) {
                         req.updateStatus(ExchangeStatus.COMPLETED);
-                        directRoomRepository.findByExchangeRequestId(req.getId())
-                                .ifPresent(room -> {
-                                    room.complete();
-                                    publishSystemStatusUpdatedMessage(room.getId());
-                                });
+                        applicationEventPublisher.publishEvent(new ItemStatusChangedEvent(req.getId(), "거래가 완료되었습니다."));
                     } else if (req.getStatus() == ExchangeStatus.PENDING) {
                         req.updateStatus(ExchangeStatus.REJECTED);
                     }
@@ -152,8 +146,7 @@ public class ItemService {
 
                     // [FIX] 상태 변경 전 ACCEPTED 였던 경우에만 시스템 메시지 발행
                     if (previousStatus == ExchangeStatus.ACCEPTED) {
-                        directRoomRepository.findByExchangeRequestId(req.getId())
-                                .ifPresent(room -> publishSystemStatusUpdatedMessage(room.getId()));
+                        applicationEventPublisher.publishEvent(new ItemStatusChangedEvent(req.getId(), "STATUS_UPDATED"));
                     }
                 }
 
@@ -297,11 +290,5 @@ public class ItemService {
         }
     }
 
-    private void publishSystemStatusUpdatedMessage(Long roomId) {
-        Map<String, Object> payload = Map.of(
-                "type", "SYSTEM",
-                "action", "STATUS_UPDATED",
-                "roomId", roomId);
-        redisDirectMessagePublisher.publish("/server/directRoom/" + roomId, payload);
-    }
+
 }

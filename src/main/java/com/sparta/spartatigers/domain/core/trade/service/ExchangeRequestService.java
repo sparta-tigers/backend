@@ -23,8 +23,8 @@ import com.sparta.spartatigers.domain.core.trade.dto.response.ReceiveRequestResp
 import com.sparta.spartatigers.domain.core.trade.model.ExchangeRequest;
 import com.sparta.spartatigers.domain.core.trade.model.ExchangeStatus;
 import com.sparta.spartatigers.domain.core.trade.repository.ExchangeRequestRepository;
-import com.sparta.spartatigers.domain.core.trade.event.ItemLocationUpdatedEvent;
-import com.sparta.spartatigers.domain.core.trade.event.TradeAcceptedEvent;
+import com.sparta.spartatigers.domain.foundation.common.event.ItemLocationUpdatedEvent;
+import com.sparta.spartatigers.domain.foundation.common.event.TradeAcceptedEvent;
 import com.sparta.spartatigers.domain.core.trade.model.Item;
 import com.sparta.spartatigers.domain.core.trade.repository.ItemRepository;
 import com.sparta.spartatigers.domain.foundation.user.account.model.User;

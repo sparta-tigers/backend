@@ -4,7 +4,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import com.sparta.spartatigers.domain.core.direct.service.DirectRoomService;
-import com.sparta.spartatigers.domain.core.trade.event.TradeAcceptedEvent;
+import com.sparta.spartatigers.domain.foundation.common.event.TradeAcceptedEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

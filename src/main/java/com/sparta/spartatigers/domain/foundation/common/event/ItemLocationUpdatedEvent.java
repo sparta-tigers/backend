@@ -1,4 +1,4 @@
-package com.sparta.spartatigers.domain.core.trade.event;
+package com.sparta.spartatigers.domain.foundation.common.event;
 
 import lombok.Getter;
 

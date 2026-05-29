@@ -17,9 +17,11 @@ import com.sparta.spartatigers.domain.core.direct.dto.response.DirectRoomRespons
 import com.sparta.spartatigers.domain.core.direct.model.DirectRoom;
 import com.sparta.spartatigers.domain.core.direct.repository.DirectMessageRepository;
 import com.sparta.spartatigers.domain.core.direct.repository.DirectRoomRepository;
-import com.sparta.spartatigers.domain.core.trade.model.ExchangeRequest;
-import com.sparta.spartatigers.domain.core.trade.repository.ExchangeRequestRepository;
-import com.sparta.spartatigers.domain.core.trade.model.Item;
+import com.sparta.spartatigers.domain.core.direct.repository.TradeQueryDao;
+import com.sparta.spartatigers.domain.core.direct.repository.TradeQueryDao.ExchangeUsersInfo;
+import com.sparta.spartatigers.domain.core.direct.repository.TradeQueryDao.TradeItemDetailInfo;
+import com.sparta.spartatigers.domain.core.direct.repository.TradeQueryDao.TradeItemInfo;
+import com.sparta.spartatigers.domain.foundation.user.account.repository.UserRepository;
 import com.sparta.spartatigers.domain.foundation.user.account.model.User;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
@@ -32,10 +34,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DirectRoomService {
 
-        private final ExchangeRequestRepository exchangeRequestRepository;
+        private final TradeQueryDao tradeQueryDao;
         private final DirectRoomRepository directRoomRepository;
         private final DirectMessageRepository directMessageRepository;
         private final UserConnectService userConnectService;
+        private final UserRepository userRepository;
 
         @Transactional
         public DirectRoomCreateResponseDto createRoom(Long exchangeRequestId, Long currentUserId) {
@@ -43,22 +46,24 @@ public class DirectRoomService {
                                 "[createRoom] 교환요청 기반 채팅방 생성 시도 - exchangeRequestId: {}, currentUserId: {}",
                                 exchangeRequestId,
                                 currentUserId);
-                ExchangeRequest exchangeRequest = exchangeRequestRepository.findByIdOrElseThrow(exchangeRequestId);
+                ExchangeUsersInfo usersInfo = tradeQueryDao.getExchangeUsers(exchangeRequestId);
 
                 // 권한 확인: 요청한 사람이 교환 요청의 sender 또는 receiver여야 함
-                if (!exchangeRequest.getSender().getId().equals(currentUserId)
-                                && !exchangeRequest.getReceiver().getId().equals(currentUserId)) {
+                if (!usersInfo.senderId().equals(currentUserId)
+                                && !usersInfo.receiverId().equals(currentUserId)) {
                         log.warn(
                                         "[createRoom] 권한 없음 - 요청자 ID: {}, 교환요청 sender: {}, receiver: {}",
                                         currentUserId,
-                                        exchangeRequest.getSender().getId(),
-                                        exchangeRequest.getReceiver().getId());
+                                        usersInfo.senderId(),
+                                        usersInfo.receiverId());
                         throw new InvalidRequestException(ExceptionCode.UNAUTHORIZED);
                 }
 
                 // sender/receiver는 교환 요청 그대로
-                User sender = exchangeRequest.getSender();
-                User receiver = exchangeRequest.getReceiver();
+                User sender = userRepository.findById(usersInfo.senderId())
+                        .orElseThrow(() -> new InvalidRequestException(ExceptionCode.USER_NOT_FOUND));
+                User receiver = userRepository.findById(usersInfo.receiverId())
+                        .orElseThrow(() -> new InvalidRequestException(ExceptionCode.USER_NOT_FOUND));
 
                 DirectRoom room = directRoomRepository
                                 .findByExchangeRequestId(exchangeRequestId)
@@ -111,8 +116,8 @@ public class DirectRoomService {
                                         log.debug("[getRoomsForUser] 채팅방 ID: {}, 상대방 ID: {}, 상대방 온라인 여부: {}",
                                                         room.getId(), opponentId,
                                                         isOnline);
-                                        ExchangeRequest exchangeRequest = exchangeRequestRepository.findByIdOrElseThrow(room.getExchangeRequestId());
-                                        return DirectRoomResponseDto.from(room, exchangeRequest, unreadCount, currentUserId, isOnline);
+                                        TradeItemInfo itemInfo = tradeQueryDao.getTradeItemInfo(room.getExchangeRequestId());
+                                        return DirectRoomResponseDto.from(room, itemInfo, room.getExchangeRequestId(), unreadCount, currentUserId, isOnline);
                                 });
         }
 
@@ -122,33 +127,36 @@ public class DirectRoomService {
                                 .findById(directRoomId)
                                 .orElseThrow(() -> new InvalidRequestException(ExceptionCode.CHATROOM_NOT_FOUND));
 
-                ExchangeRequest exchangeRequest = exchangeRequestRepository.findByIdOrElseThrow(room.getExchangeRequestId());
+                TradeItemDetailInfo detailInfo = tradeQueryDao.getTradeItemDetail(room.getExchangeRequestId());
 
                 // [FIX] 문제 1: 권한 검사 시에도 room이 아닌 exchangeRequest.getSender() / getReceiver()를
                 // 사용하여 추후 발생할 수 있는 검증 불일치 방지 및 대칭성 보장
-                boolean isSender = exchangeRequest.getSender().getId().equals(currentUserId);
-                boolean isReceiver = exchangeRequest.getReceiver().getId().equals(currentUserId);
+                boolean isSender = detailInfo.senderId().equals(currentUserId);
+                boolean isReceiver = detailInfo.receiverId().equals(currentUserId);
                 if (!isSender && !isReceiver) {
                         throw new InvalidRequestException(ExceptionCode.FORBIDDEN_REQUEST);
                 }
-
-                Item item = exchangeRequest.getItem();
 
                 // [FIX] 상대방 정보를 exchangeRequest의 sender/receiver만으로 대칭 처리
                 // 기존: sender면 item.getUser()에서 가져왔으나, 아이템 소유자 분리 시 잘못된 상대방 반환 가능
                 // 개선: exchangeRequest.getReceiver() == 아이템 소유자임이 항상 보장됨
                 Long opponentId;
                 String opponentNickname;
-                if (currentUserId.equals(exchangeRequest.getSender().getId())) {
-                        opponentId = exchangeRequest.getReceiver().getId();
-                        opponentNickname = exchangeRequest.getReceiver().getNickname();
+                
+                // 프론트의 사용자 정보는 repository로 가져올 수도 있지만 단순 ID만 반환하거나 방의 상대방을 찾는다
+                if (currentUserId.equals(detailInfo.senderId())) {
+                        opponentId = room.getReceiver().getId();
+                        opponentNickname = room.getReceiver().getNickname();
                 } else {
-                        opponentId = exchangeRequest.getSender().getId();
-                        opponentNickname = exchangeRequest.getSender().getNickname();
+                        opponentId = room.getSender().getId();
+                        opponentNickname = room.getSender().getNickname();
                 }
 
-                return DirectRoomItemResponseDto.from(item, exchangeRequest.getStatus().name(), opponentId,
-                                opponentNickname);
+                return DirectRoomItemResponseDto.from(
+                        detailInfo.itemId(), detailInfo.title(), detailInfo.description(),
+                        detailInfo.category(), detailInfo.status(),
+                        detailInfo.ownerId(), detailInfo.ownerNickname(),
+                        detailInfo.exchangeStatus(), opponentId, opponentNickname);
         }
 
         // 유저가 직접 채팅방을 삭제할 수도 있음
@@ -210,11 +218,11 @@ public class DirectRoomService {
                 DirectRoom room = directRoomRepository.findById(roomId)
                                 .orElseThrow(() -> new InvalidRequestException(ExceptionCode.CHATROOM_NOT_FOUND));
 
-                // [FIX] 문제 4: 권한 검사 시에도 room이 아닌 exchangeRequest.getSender() / getReceiver()를
+                // [FIX] 문제 4: 권한 검사 시에도 room이 아닌 usersInfo.senderId() / receiverId()를
                 // 사용하여 getRoomItem 메서드와 검증 기준을 완벽하게 통일 (단일 진실의 원천)
-                ExchangeRequest exchangeRequest = exchangeRequestRepository.findByIdOrElseThrow(room.getExchangeRequestId());
-                boolean isSender = exchangeRequest.getSender().getId().equals(currentUserId);
-                boolean isReceiver = exchangeRequest.getReceiver().getId().equals(currentUserId);
+                ExchangeUsersInfo usersInfo = tradeQueryDao.getExchangeUsers(room.getExchangeRequestId());
+                boolean isSender = usersInfo.senderId().equals(currentUserId);
+                boolean isReceiver = usersInfo.receiverId().equals(currentUserId);
                 if (!isSender && !isReceiver) {
                         throw new InvalidRequestException(ExceptionCode.FORBIDDEN_REQUEST);
                 }

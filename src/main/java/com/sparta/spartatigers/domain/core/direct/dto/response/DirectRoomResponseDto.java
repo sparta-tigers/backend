@@ -3,8 +3,7 @@ package com.sparta.spartatigers.domain.core.direct.dto.response;
 import java.time.LocalDateTime;
 
 import com.sparta.spartatigers.domain.core.direct.model.DirectRoom;
-import com.sparta.spartatigers.domain.core.trade.model.ExchangeRequest;
-import com.sparta.spartatigers.domain.core.trade.model.Item;
+import com.sparta.spartatigers.domain.core.direct.repository.TradeQueryDao.TradeItemInfo;
 import com.sparta.spartatigers.domain.foundation.user.account.model.User;
 
 import lombok.AllArgsConstructor;
@@ -32,8 +31,7 @@ public class DirectRoomResponseDto {
     private boolean opponentOnline;
 
     public static DirectRoomResponseDto from(
-            DirectRoom room, ExchangeRequest exchangeRequest, Long unreadCount, Long currentUserId, boolean opponentOnline) {
-        Item item = exchangeRequest.getItem();
+            DirectRoom room, TradeItemInfo itemInfo, Long exchangeRequestId, Long unreadCount, Long currentUserId, boolean opponentOnline) {
 
         boolean isSender = room.getSender().getId().equals(currentUserId);
         User opponent = isSender ? room.getReceiver() : room.getSender();
@@ -41,15 +39,15 @@ public class DirectRoomResponseDto {
         return new DirectRoomResponseDto(
                 room.getId(),
                 unreadCount,
-                exchangeRequest.getId(),
+                exchangeRequestId,
                 room.getSender().getId(),
                 room.getReceiver().getId(),
                 room.getCompletedAt(),
                 room.getCreatedAt(),
                 room.isCompleted(),
-                item.getTitle(),
-                item.getCategory().name(),
-                item.getImage(),
+                itemInfo.title(),
+                itemInfo.category(),
+                itemInfo.image(),
                 opponent.getNickname(),
                 opponent.getProfileImageUrl(),
                 opponentOnline);

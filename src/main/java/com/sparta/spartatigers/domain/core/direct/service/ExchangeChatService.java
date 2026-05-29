@@ -14,9 +14,7 @@ import com.sparta.spartatigers.domain.core.direct.model.DirectRoom;
 import com.sparta.spartatigers.domain.support.chat.registry.RedisUserSessionRegistry;
 import com.sparta.spartatigers.domain.core.direct.repository.DirectMessageRepository;
 import com.sparta.spartatigers.domain.core.direct.repository.DirectRoomRepository;
-import com.sparta.spartatigers.domain.core.trade.repository.ExchangeRequestRepository;
-import com.sparta.spartatigers.domain.core.trade.model.ExchangeRequest;
-import com.sparta.spartatigers.domain.core.trade.model.ExchangeStatus;
+import com.sparta.spartatigers.domain.core.direct.repository.TradeQueryDao;
 import com.sparta.spartatigers.domain.core.direct.pubsub.RedisDirectMessagePublisher;
 import com.sparta.spartatigers.domain.foundation.user.account.model.User;
 import com.sparta.spartatigers.domain.foundation.user.account.repository.UserRepository;
@@ -43,7 +41,7 @@ public class ExchangeChatService {
     private final RedisDirectMessagePublisher redisPublisher;
     private final RedisRateLimiter redisRateLimiter;
     private final RedisUserSessionRegistry sessionRegistry;
-    private final ExchangeRequestRepository exchangeRequestRepository;
+    private final TradeQueryDao tradeQueryDao;
 
     @Transactional
     public void sendMessage(Long senderId, ChatMessageRequest request) {
@@ -76,26 +74,25 @@ public class ExchangeChatService {
 
         // [FIX] PENDING 상태에서 메시지 전송 차단 — 프론트 UI 제어에만 의존하지 말고 백엔드에서 강제
         // 교환 요청이 ACCEPTED 상태여야만 메시지 전송 가능
-        ExchangeRequest exchangeRequest = exchangeRequestRepository.findByIdOrElseThrow(room.getExchangeRequestId());
-        ExchangeStatus exchangeStatus = exchangeRequest.getStatus();
+        String exchangeStatusStr = tradeQueryDao.getExchangeStatus(room.getExchangeRequestId());
         
         // [FIX] 문제 3: switch 문을 통해 모든 도메인 상태를 명시적으로 매핑하여 모호함 제거
-        switch (exchangeStatus) {
-            case ACCEPTED -> { /* 전송 허용 */ }
-            case PENDING -> {
+        switch (exchangeStatusStr) {
+            case "ACCEPTED" -> { /* 전송 허용 */ }
+            case "PENDING" -> {
                 log.warn("[sendMessage] 비수락(PENDING) 상태 채팅방 전송 차단 - roomId: {}, senderId: {}", roomId, senderId);
                 throw new InvalidRequestException(ExceptionCode.EXCHANGE_NOT_ACCEPTED_PENDING);
             }
-            case COMPLETED -> {
+            case "COMPLETED" -> {
                 log.warn("[sendMessage] 완료(COMPLETED) 상태 채팅방 전송 차단 - roomId: {}, senderId: {}", roomId, senderId);
                 throw new InvalidRequestException(ExceptionCode.EXCHANGE_ALREADY_COMPLETED);
             }
-            case REJECTED -> {
+            case "REJECTED" -> {
                 log.warn("[sendMessage] 거절(REJECTED) 상태 채팅방 전송 차단 - roomId: {}, senderId: {}", roomId, senderId);
                 throw new InvalidRequestException(ExceptionCode.EXCHANGE_ALREADY_REJECTED);
             }
             default -> {
-                log.error("[sendMessage] 알 수 없는 상태 - roomId: {}, status: {}", roomId, exchangeStatus);
+                log.error("[sendMessage] 알 수 없는 상태 - roomId: {}, status: {}", roomId, exchangeStatusStr);
                 throw new InvalidRequestException(ExceptionCode.INVALID_EXCHANGE_STATUS);
             }
         }
