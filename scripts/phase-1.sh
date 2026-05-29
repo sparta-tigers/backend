@@ -176,15 +176,18 @@ mv $BASE/domain/startinglineup/service/StartingLineupService.java       $BASE/do
 
 echo "  ✅ lineup 파일 이동 완료 (12개)"
 
-# --- Player.java (liveboard → team, C-1 대기) ---
-# ⚠️ 아래는 임시 처리: liveboard/Player를 team/model로 이동
-#    C-1 결정 전이므로 통합 없이 이동만 수행
-#    team/model/Player.java와 충돌 시 수동 해결 필요
-echo "[1-4-1-1] ⚠️ Player.java: liveboard → team/model (C-1 수동 통합 필요)"
+# --- Player.java (liveboard -> match/dto/MatchPlayerDto) ---
+echo "[1-4-2] liveboard/Player.java -> match/dto/MatchPlayerDto.java"
 if [ -f "$BASE/domain/liveboard/model/Player.java" ]; then
-    mv $BASE/domain/liveboard/model/Player.java $BASE/domain/foundation/baseball/team/model/LiveboardPlayer.java
-    echo "  ⚠️ liveboard/Player.java → team/model/LiveboardPlayer.java (임시 리네이밍)"
-    echo "  📌 C-1: 두 Player 파일 필드 비교 후 통합 결정 필요"
+    mv $BASE/domain/liveboard/model/Player.java $BASE/domain/foundation/baseball/match/dto/MatchPlayerDto.java
+    sed -i 's/class Player/class MatchPlayerDto/g' $BASE/domain/foundation/baseball/match/dto/MatchPlayerDto.java
+    sed -i 's/package com\.sparta\.spartatigers\.domain\.liveboard\.model;/package com.sparta.spartatigers.domain.foundation.baseball.match.dto;/' $BASE/domain/foundation/baseball/match/dto/MatchPlayerDto.java
+    
+    # Update references in project
+    find $BASE -name '*.java' -exec sed -i 's/com\.sparta\.spartatigers\.domain\.liveboard\.model\.Player;/com.sparta.spartatigers.domain.foundation.baseball.match.dto.MatchPlayerDto;/g' {} +
+    find $BASE -name '*.java' -exec sed -i 's/List<Player>/List<MatchPlayerDto>/g' {} +
+    find $BASE -name '*.java' -exec sed -i 's/new Player/new MatchPlayerDto/g' {} +
+    echo "  ✅ liveboard/Player.java -> MatchPlayerDto 이동 및 리네이밍 완료"
 fi
 
 # --- liveboard import 일괄 치환 (SED-3: LiveBoardMatchSubscriber 제외) ---
@@ -221,9 +224,6 @@ find $BASE -name '*.java' \
 find $BASE -name '*.java' \
     -not -path "*/liveboard/pubsub/LiveBoardMatchSubscriber.java" \
     -exec sed -i 's/com\.sparta\.spartatigers\.domain\.liveboard\.model\.LiveBoard/com.sparta.spartatigers.domain.foundation.baseball.match.model.LiveBoard/g' {} +
-find $BASE -name '*.java' \
-    -not -path "*/liveboard/pubsub/LiveBoardMatchSubscriber.java" \
-    -exec sed -i 's/com\.sparta\.spartatigers\.domain\.liveboard\.model\.Player/com.sparta.spartatigers.domain.foundation.baseball.team.model.Player/g' {} +
 
 # lineup model
 find $BASE -name '*.java' \
@@ -338,7 +338,6 @@ echo "Phase 1 완료"
 echo "=========================================="
 echo ""
 echo "📌 수동 처리 필요:"
-echo "  [C-1] foundation/baseball/team/model/LiveboardPlayer.java ↔ Player.java 통합 결정"
 echo "  [C-2] foundation/baseball/match/dto/LiveBoardRoomResponseDto.java 날씨 필드 제거"
 echo "  [C-2] foundation/baseball/match/service/LiveboardRoomService.java WeatherService 코드 제거"
 echo ""
