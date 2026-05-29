@@ -14,8 +14,8 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.sparta.spartatigers.domain.image.service.ImageStorageService;
-import com.sparta.spartatigers.domain.liveboard.model.Match;
-import com.sparta.spartatigers.domain.liveboard.repository.MatchRepository;
+import com.sparta.spartatigers.domain.foundation.baseball.match.model.Match;
+import com.sparta.spartatigers.domain.foundation.baseball.match.repository.MatchRepository;
 import com.sparta.spartatigers.domain.matchAttendance.dto.MatchAttendanceRequestDto;
 import com.sparta.spartatigers.domain.matchAttendance.dto.MatchAttendanceResponseDto;
 import com.sparta.spartatigers.domain.matchAttendance.dto.MatchAttendanceUpdateRequestDto;
@@ -23,8 +23,8 @@ import com.sparta.spartatigers.domain.matchAttendance.model.AttendanceImage;
 import com.sparta.spartatigers.domain.matchAttendance.model.AttendanceImageType;
 import com.sparta.spartatigers.domain.matchAttendance.model.MatchAttendance;
 import com.sparta.spartatigers.domain.matchAttendance.repository.MatchAttendanceRepository;
-import com.sparta.spartatigers.domain.user.model.User;
-import com.sparta.spartatigers.domain.user.repository.UserRepository;
+import com.sparta.spartatigers.domain.foundation.user.account.model.User;
+import com.sparta.spartatigers.domain.foundation.user.account.repository.UserRepository;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 

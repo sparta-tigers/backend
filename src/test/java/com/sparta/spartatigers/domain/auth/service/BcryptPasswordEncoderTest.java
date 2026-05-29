@@ -1,4 +1,4 @@
-package com.sparta.spartatigers.domain.auth.service;
+package com.sparta.spartatigers.domain.foundation.user.auth.service;
 
 import static org.assertj.core.api.Assertions.*;
 

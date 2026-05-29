@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.sparta.spartatigers.domain.auth.model.TokenClaim;
+import com.sparta.spartatigers.global.aop.TokenClaim;
 import com.sparta.spartatigers.domain.image.service.ImageStorageService;
 import com.sparta.spartatigers.domain.matchAttendance.dto.MatchAttendanceRequestDto;
 import com.sparta.spartatigers.domain.matchAttendance.dto.MatchAttendanceResponseDto;

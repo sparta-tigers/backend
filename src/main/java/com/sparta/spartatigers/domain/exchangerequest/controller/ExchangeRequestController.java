@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sparta.spartatigers.domain.auth.model.TokenClaim;
+import com.sparta.spartatigers.global.aop.TokenClaim;
 import com.sparta.spartatigers.domain.exchangerequest.dto.request.ExchangeRequestDto;
 import com.sparta.spartatigers.domain.exchangerequest.dto.request.UpdateExchangeRequestDto;
 import com.sparta.spartatigers.domain.exchangerequest.dto.response.ExchangeRoomResponseDto;

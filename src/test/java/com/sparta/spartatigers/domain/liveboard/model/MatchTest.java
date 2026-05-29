@@ -1,4 +1,4 @@
-package com.sparta.spartatigers.domain.liveboard.model;
+package com.sparta.spartatigers.domain.foundation.baseball.match.model;
 
 import static org.assertj.core.api.Assertions.*;
 

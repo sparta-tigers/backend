@@ -14,7 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.sparta.spartatigers.domain.auth.model.TokenClaim;
+import com.sparta.spartatigers.global.aop.TokenClaim;
 import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomCreateResponseDto;
 import com.sparta.spartatigers.domain.directRoom.model.DirectRoom;
 import com.sparta.spartatigers.domain.directRoom.repository.DirectRoomRepository;
@@ -29,8 +29,8 @@ import com.sparta.spartatigers.domain.exchangerequest.repository.ExchangeRequest
 import com.sparta.spartatigers.domain.item.event.ItemLocationUpdatedEvent;
 import com.sparta.spartatigers.domain.item.model.Item;
 import com.sparta.spartatigers.domain.item.repository.ItemRepository;
-import com.sparta.spartatigers.domain.user.model.User;
-import com.sparta.spartatigers.domain.user.repository.UserRepository;
+import com.sparta.spartatigers.domain.foundation.user.account.model.User;
+import com.sparta.spartatigers.domain.foundation.user.account.repository.UserRepository;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 import com.sparta.spartatigers.global.exception.internal.ServerException;

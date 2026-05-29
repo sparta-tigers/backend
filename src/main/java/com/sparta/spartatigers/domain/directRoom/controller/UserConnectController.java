@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sparta.spartatigers.domain.auth.model.TokenClaim;
+import com.sparta.spartatigers.global.aop.TokenClaim;
 import com.sparta.spartatigers.domain.directRoom.service.UserConnectService;
 import com.sparta.spartatigers.global.aop.Auth;
 import com.sparta.spartatigers.global.response.ApiResponse;

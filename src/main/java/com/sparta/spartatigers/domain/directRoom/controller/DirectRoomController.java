@@ -16,7 +16,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.List;
 import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomMessageResponse;
-import com.sparta.spartatigers.domain.auth.model.TokenClaim;
+import com.sparta.spartatigers.global.aop.TokenClaim;
 import com.sparta.spartatigers.domain.directRoom.dto.request.CreateDirectRoomRequestDto;
 import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomCreateResponseDto;
 import com.sparta.spartatigers.domain.directRoom.dto.response.DirectRoomItemResponseDto;

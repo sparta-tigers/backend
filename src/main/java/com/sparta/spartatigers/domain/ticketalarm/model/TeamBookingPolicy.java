@@ -1,6 +1,6 @@
 package com.sparta.spartatigers.domain.ticketalarm.model;
 
-import com.sparta.spartatigers.domain.team.model.Team;
+import com.sparta.spartatigers.domain.foundation.baseball.team.model.Team;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

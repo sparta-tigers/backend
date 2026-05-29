@@ -7,7 +7,7 @@ import com.sparta.spartatigers.domain.item.model.Item;
 import com.sparta.spartatigers.domain.item.model.ItemCategory;
 import com.sparta.spartatigers.domain.item.model.ItemStatus;
 import com.sparta.spartatigers.domain.item.service.ItemService;
-import com.sparta.spartatigers.domain.user.dto.UserResponseDto;
+import com.sparta.spartatigers.domain.foundation.user.account.dto.UserResponseDto;
 
 public record ReadItemResponseDto(
     Long id,

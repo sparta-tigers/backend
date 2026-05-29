@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
 import com.sparta.spartatigers.domain.item.dto.request.UpdateItemRequestDto;
-import com.sparta.spartatigers.domain.user.model.User;
+import com.sparta.spartatigers.domain.foundation.user.account.model.User;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 

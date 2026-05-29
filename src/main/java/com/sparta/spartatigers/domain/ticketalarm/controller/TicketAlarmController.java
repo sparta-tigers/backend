@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sparta.spartatigers.domain.auth.model.TokenClaim;
+import com.sparta.spartatigers.global.aop.TokenClaim;
 import com.sparta.spartatigers.domain.ticketalarm.dto.request.CreateTicketAlarmRequestDto;
 import com.sparta.spartatigers.domain.ticketalarm.dto.request.UpdateTicketAlarmRequestDto;
 import com.sparta.spartatigers.domain.ticketalarm.dto.response.TicketAlarmResponseDto;

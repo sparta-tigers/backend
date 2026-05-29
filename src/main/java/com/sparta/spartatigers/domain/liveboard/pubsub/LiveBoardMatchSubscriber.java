@@ -11,14 +11,14 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sparta.spartatigers.domain.liveboard.dto.LineupCacheDto;
-import com.sparta.spartatigers.domain.liveboard.model.LiveBoardData;
+import com.sparta.spartatigers.domain.foundation.baseball.lineup.dto.LineupCacheDto;
+import com.sparta.spartatigers.domain.foundation.baseball.match.model.LiveBoardData;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import com.sparta.spartatigers.domain.liveboard.service.LiveBoardDataService;
-import com.sparta.spartatigers.domain.liveboard.service.LiveBoardMatchService;
+import com.sparta.spartatigers.domain.foundation.baseball.match.service.LiveBoardDataService;
+import com.sparta.spartatigers.domain.foundation.baseball.match.service.LiveBoardMatchService;
 
 @Slf4j
 @Component
@@ -28,7 +28,7 @@ public class LiveBoardMatchSubscriber implements MessageListener {
     private final ObjectMapper objectMapper;
     private final SimpMessagingTemplate messagingTemplate;
     private final RedisTemplate<String, Object> redisTemplate;
-    private final com.sparta.spartatigers.domain.startinglineup.service.StartingLineupService startingLineupService;
+    private final com.sparta.spartatigers.domain.foundation.baseball.lineup.service.StartingLineupService startingLineupService;
     private final LiveBoardMatchService liveBoardMatchService;
     private final LiveBoardDataService liveBoardDataService;
 

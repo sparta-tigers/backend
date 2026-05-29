@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import com.sparta.spartatigers.domain.weather.model.RainType;
 import com.sparta.spartatigers.domain.weather.model.SkyStatus;
-import com.sparta.spartatigers.domain.liveboard.model.Stadium;
+import com.sparta.spartatigers.domain.foundation.baseball.team.model.Stadium;
 import com.sparta.spartatigers.domain.weather.model.WindDirection;
 
 import lombok.Getter;

@@ -12,8 +12,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.sparta.spartatigers.domain.liveboard.model.Match;
-import com.sparta.spartatigers.domain.liveboard.repository.MatchRepository;
+import com.sparta.spartatigers.domain.foundation.baseball.match.model.Match;
+import com.sparta.spartatigers.domain.foundation.baseball.match.repository.MatchRepository;
 import com.sparta.spartatigers.domain.ticketalarm.dto.request.CreateTicketAlarmRequestDto;
 import com.sparta.spartatigers.domain.ticketalarm.dto.request.UpdateTicketAlarmRequestDto;
 import com.sparta.spartatigers.domain.ticketalarm.dto.response.TicketAlarmResponseDto;
@@ -23,8 +23,8 @@ import com.sparta.spartatigers.domain.ticketalarm.model.TeamBookingPolicy;
 import com.sparta.spartatigers.domain.ticketalarm.model.TicketAlarm;
 import com.sparta.spartatigers.domain.ticketalarm.repository.TeamBookingPolicyRepository;
 import com.sparta.spartatigers.domain.ticketalarm.repository.TicketAlarmRepository;
-import com.sparta.spartatigers.domain.user.model.User;
-import com.sparta.spartatigers.domain.user.repository.UserRepository;
+import com.sparta.spartatigers.domain.foundation.user.account.model.User;
+import com.sparta.spartatigers.domain.foundation.user.account.repository.UserRepository;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 

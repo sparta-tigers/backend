@@ -8,12 +8,12 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.stereotype.Component;
 
-import com.sparta.spartatigers.domain.auth.model.TokenClaim;
-import com.sparta.spartatigers.domain.auth.service.JwtTokenService;
+import com.sparta.spartatigers.global.aop.TokenClaim;
+import com.sparta.spartatigers.domain.foundation.user.auth.service.JwtTokenService;
 import com.sparta.spartatigers.domain.directRoom.registry.RedisUserSessionRegistry;
 import com.sparta.spartatigers.domain.stompchat.model.ChatDomainType;
-import com.sparta.spartatigers.domain.user.model.User;
-import com.sparta.spartatigers.domain.user.repository.UserRepository;
+import com.sparta.spartatigers.domain.foundation.user.account.model.User;
+import com.sparta.spartatigers.domain.foundation.user.account.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -2,7 +2,7 @@ package com.sparta.spartatigers.domain.exchangerequest.model;
 
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
 import com.sparta.spartatigers.domain.item.model.Item;
-import com.sparta.spartatigers.domain.user.model.User;
+import com.sparta.spartatigers.domain.foundation.user.account.model.User;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.ServerException;
 

@@ -3,8 +3,8 @@ package com.sparta.spartatigers.domain.ticketalarm.model;
 import java.time.LocalDateTime;
 
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
-import com.sparta.spartatigers.domain.liveboard.model.Match;
-import com.sparta.spartatigers.domain.user.model.User;
+import com.sparta.spartatigers.domain.foundation.baseball.match.model.Match;
+import com.sparta.spartatigers.domain.foundation.user.account.model.User;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -2,7 +2,7 @@ package com.sparta.spartatigers.domain.weather.dto;
 
 import java.time.LocalDateTime;
 
-import com.sparta.spartatigers.domain.liveboard.model.Stadium;
+import com.sparta.spartatigers.domain.foundation.baseball.team.model.Stadium;
 import com.sparta.spartatigers.domain.weather.model.RainType;
 import com.sparta.spartatigers.domain.weather.model.SkyStatus;
 

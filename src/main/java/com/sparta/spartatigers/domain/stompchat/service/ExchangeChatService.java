@@ -16,8 +16,8 @@ import com.sparta.spartatigers.domain.directRoom.repository.DirectMessageReposit
 import com.sparta.spartatigers.domain.directRoom.repository.DirectRoomRepository;
 import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeStatus;
 import com.sparta.spartatigers.domain.stompchat.pubsub.RedisDirectMessagePublisher;
-import com.sparta.spartatigers.domain.user.model.User;
-import com.sparta.spartatigers.domain.user.repository.UserRepository;
+import com.sparta.spartatigers.domain.foundation.user.account.model.User;
+import com.sparta.spartatigers.domain.foundation.user.account.repository.UserRepository;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 import com.sparta.spartatigers.global.util.RedisRateLimiter;

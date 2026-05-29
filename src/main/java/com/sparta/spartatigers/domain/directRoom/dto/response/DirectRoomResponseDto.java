@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import com.sparta.spartatigers.domain.directRoom.model.DirectRoom;
 import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeRequest;
 import com.sparta.spartatigers.domain.item.model.Item;
-import com.sparta.spartatigers.domain.user.model.User;
+import com.sparta.spartatigers.domain.foundation.user.account.model.User;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -13,14 +13,14 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Service;
 
-import com.sparta.spartatigers.domain.favoriteteam.repository.FavTeamRepository;
-import com.sparta.spartatigers.domain.liveboard.model.LiveBoardConnection;
-import com.sparta.spartatigers.domain.liveboard.repository.LiveBoardConnectionRepository;
+import com.sparta.spartatigers.domain.foundation.user.favoriteteam.repository.FavTeamRepository;
+import com.sparta.spartatigers.domain.foundation.baseball.match.model.LiveBoardConnection;
+import com.sparta.spartatigers.domain.foundation.baseball.match.repository.LiveBoardConnectionRepository;
 import com.sparta.spartatigers.domain.stompchat.interceptor.StompPrincipal;
 import com.sparta.spartatigers.domain.stompchat.model.ChatMessage;
 import com.sparta.spartatigers.domain.stompchat.pubsub.RedisChatPublisher;
 import com.sparta.spartatigers.domain.stompchat.pubsub.RedisChatSubscriber;
-import com.sparta.spartatigers.domain.user.repository.UserRepository;
+import com.sparta.spartatigers.domain.foundation.user.account.repository.UserRepository;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 
