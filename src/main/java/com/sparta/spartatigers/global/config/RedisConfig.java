@@ -17,9 +17,9 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.sparta.spartatigers.domain.liveboard.pubsub.LiveBoardMatchSubscriber;
+import com.sparta.spartatigers.domain.support.chat.pubsub.LiveBoardMatchSubscriber;
 import com.sparta.spartatigers.domain.stompchat.pubsub.RedisDirectMessageSubscriber;
-import com.sparta.spartatigers.domain.stompchat.pubsub.RedisLocationSubscriber;
+import com.sparta.spartatigers.domain.support.chat.pubsub.RedisLocationSubscriber;
 
 import lombok.extern.slf4j.Slf4j;
 

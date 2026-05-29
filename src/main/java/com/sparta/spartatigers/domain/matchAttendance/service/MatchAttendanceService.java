@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import com.sparta.spartatigers.domain.image.service.ImageStorageService;
+import com.sparta.spartatigers.domain.support.image.service.ImageStorageService;
 import com.sparta.spartatigers.domain.foundation.baseball.match.model.Match;
 import com.sparta.spartatigers.domain.foundation.baseball.match.repository.MatchRepository;
 import com.sparta.spartatigers.domain.matchAttendance.dto.MatchAttendanceRequestDto;

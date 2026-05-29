@@ -22,7 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.sparta.spartatigers.domain.stompchat.service.LocationService;
+import com.sparta.spartatigers.domain.support.chat.service.LocationService;
 import com.sparta.spartatigers.domain.item.dto.request.ItemCreateRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;

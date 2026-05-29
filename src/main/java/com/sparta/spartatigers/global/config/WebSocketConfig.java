@@ -7,7 +7,7 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
-import com.sparta.spartatigers.domain.stompchat.interceptor.StompInterceptor;
+import com.sparta.spartatigers.domain.support.chat.interceptor.StompInterceptor;
 
 import lombok.RequiredArgsConstructor;
 

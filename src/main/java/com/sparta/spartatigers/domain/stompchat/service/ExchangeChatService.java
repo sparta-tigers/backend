@@ -11,7 +11,7 @@ import com.sparta.spartatigers.domain.directRoom.dto.request.ChatMessageRequest;
 import com.sparta.spartatigers.domain.directRoom.dto.response.RedisMessage;
 import com.sparta.spartatigers.domain.directRoom.model.DirectMessage;
 import com.sparta.spartatigers.domain.directRoom.model.DirectRoom;
-import com.sparta.spartatigers.domain.directRoom.registry.RedisUserSessionRegistry;
+import com.sparta.spartatigers.domain.support.chat.registry.RedisUserSessionRegistry;
 import com.sparta.spartatigers.domain.directRoom.repository.DirectMessageRepository;
 import com.sparta.spartatigers.domain.directRoom.repository.DirectRoomRepository;
 import com.sparta.spartatigers.domain.exchangerequest.model.ExchangeStatus;

@@ -28,7 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.spartatigers.global.aop.TokenClaim;
-import com.sparta.spartatigers.domain.image.service.ImageStorageService;
+import com.sparta.spartatigers.domain.support.image.service.ImageStorageService;
 import com.sparta.spartatigers.domain.item.dto.request.ItemCreateRequest;
 import com.sparta.spartatigers.domain.item.dto.request.UpdateItemRequestDto;
 import com.sparta.spartatigers.domain.item.dto.request.UpdateItemStatusRequestDto;

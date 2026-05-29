@@ -3,7 +3,7 @@ package com.sparta.spartatigers.domain.directRoom.service;
 import org.springframework.stereotype.Service;
 
 import com.sparta.spartatigers.domain.directRoom.model.DirectRoom;
-import com.sparta.spartatigers.domain.directRoom.registry.RedisUserSessionRegistry;
+import com.sparta.spartatigers.domain.support.chat.registry.RedisUserSessionRegistry;
 import com.sparta.spartatigers.domain.directRoom.repository.DirectRoomRepository;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;

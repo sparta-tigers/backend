@@ -8,7 +8,7 @@ import org.springframework.stereotype.Controller;
 import com.sparta.spartatigers.domain.directRoom.dto.request.ChatMessageRequest;
 import com.sparta.spartatigers.domain.directRoom.service.DirectMessageService;
 import com.sparta.spartatigers.domain.stompchat.service.ExchangeChatService;
-import com.sparta.spartatigers.domain.stompchat.interceptor.StompPrincipal;
+import com.sparta.spartatigers.domain.support.chat.interceptor.StompPrincipal;
 
 import lombok.RequiredArgsConstructor;
 
