@@ -70,29 +70,27 @@ com.sparta.spartatigers.domain.matchAttendance.
 
 ### 핵심 의존성 제거: trade → direct 직접 참조
 
-**현재 위반 코드 (ExchangeRequestService):**
+**현재 위반 코드 (ItemService):**
 ```java
 // ❌ core/trade → core/direct 직접 참조 (금지)
-import ...directRoom.dto.response.DirectRoomCreateResponseDto;
-import ...directRoom.service.DirectRoomService;
-import ...directRoom.model.DirectRoom;
 import ...directRoom.repository.DirectRoomRepository;
+import ...stompchat.pubsub.RedisDirectMessagePublisher;
 ```
 
-**해결: TradeAcceptedEvent 패턴**
+**해결: ItemStatusChangedEvent 패턴**
 
-1. **이벤트 정의** (`core/trade/event/TradeAcceptedEvent.java`):
-   - 최소 페이로드: `exchangeRequestId`, `requesterId`, `responderId`, `itemId`
-   - `Yagu-Loose-Coupling-Event-Pattern` 준수: ID만 포함, 리스너가 최신 데이터를 직접 조회
+1. **이벤트 정의** (`foundation/common/event/ItemStatusChangedEvent.java`):
+   - 최소 페이로드: `exchangeRequestId`, `message`
+   - `Yagu-Loose-Coupling-Event-Pattern` 준수: ID와 필요한 문자열만 포함
 
-2. **발행 (Publisher)** — `ExchangeRequestService`:
-   - 교환 수락 처리 후 `applicationEventPublisher.publishEvent(new TradeAcceptedEvent(...))`
-   - 기존 `DirectRoomService` 직접 호출 코드를 삭제
+2. **발행 (Publisher)** — `ItemService`:
+   - 교환 상태 변경(ACCEPTED/COMPLETED 등) 시 `applicationEventPublisher.publishEvent(new ItemStatusChangedEvent(...))`
+   - 기존 `DirectRoomRepository` 등을 이용하던 코드를 리스너로 위임
 
-3. **구독 (Listener)** — `core/direct/event/TradeAcceptedEventListener.java`:
+3. **구독 (Listener)** — `core/direct/event/ItemStatusChangedEventListener.java`:
    - `@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)`
    - `@Async` 적용
-   - `DirectRoomService.createDirectRoom(...)` 호출
+   - `DirectRoom` 상태 변경 및 시스템 메시지 발행 수행
 
 **적용 후 의존성 흐름:**
 ```
@@ -141,7 +139,7 @@ trade ──(event)──→ direct
 
 | 파일 | 역할 |
 |---|---|
-| `core/direct/event/TradeAcceptedEventListener.java` | 교환 성사 이벤트 구독 → 채팅방 자동 생성 |
+| `core/direct/event/ItemStatusChangedEventListener.java` | 교환 상태 변경 이벤트 구독 → 채팅방 상태 갱신 및 알림 전송 |
 
 ### 핵심 의존성 제거: direct → trade 역참조
 
@@ -154,10 +152,10 @@ import ...item.model.Item;
 ```
 
 **해결:**
-- `DirectRoom`이 `ExchangeRequest`를 `@ManyToOne`으로 참조한다면, JPA 관계를 ID 참조(`exchangeRequestId`)로 전환
-- `DirectRoomService`에서 `ExchangeRequest` 조회가 필요하면:
-  - 채팅방 생성 시 필요한 정보를 `TradeAcceptedEvent`의 페이로드에 포함
-  - 또는 `DirectRoom` 엔티티에 `exchangeRequestId`(Long)만 저장하고, 상세 조회가 필요할 때 API 레벨에서 두 도메인을 조합
+- `DirectRoomService` 및 `ExchangeChatService`에서 `ExchangeRequestRepository` 의존성 주입 제거
+- `core/direct/repository/TradeQueryDao.java` (JdbcTemplate 사용) 신규 생성
+- 프론트엔드 응답(DTO) 스펙(상대방 정보, 아이템 정보 등)을 유지하기 위해 CQRS 패턴을 적용하여, Entity 참조 없이 SQL로 필요한 데이터만 읽기 전용으로 조회
+- 이를 통해 사이드이펙트 제로(0)로 백엔드 결합도 제거 달성
 
 ---
 
@@ -187,31 +185,27 @@ Phase 3 완료 후 프로젝트에 존재해야 할 이벤트 목록:
 | 이벤트 | 발행 위치 | 구독 위치 | 트리거 |
 |---|---|---|---|
 | `ItemLocationUpdatedEvent` | `core/trade/service/ItemService` | `support/chat/event/ItemLocationEventListener` | 아이템 CRUD 시 주변 유저 알림 |
-| `TradeAcceptedEvent` | `core/trade/service/ExchangeRequestService` | `core/direct/event/TradeAcceptedEventListener` | 교환 수락 → 채팅방 자동 생성 |
+| `ItemStatusChangedEvent` | `core/trade/service/ItemService` | `core/direct/event/ItemStatusChangedEventListener` | 아이템 상태 변경 → 채팅방 갱신 및 알림 |
 
 ### 이벤트 설계 원칙 (Yagu-Loose-Coupling-Event-Pattern)
 
 ```java
-// ✅ 이벤트 객체: 최소한의 정보(ID)만 포함
-public record TradeAcceptedEvent(
+// ✅ 이벤트 객체: 최소한의 정보만 포함
+public record ItemStatusChangedEvent(
     Long exchangeRequestId,
-    Long requesterId,
-    Long responderId,
-    Long itemId
+    String message
 ) {}
 
 // ✅ 리스너: AFTER_COMMIT + @Async
 @Component
 @RequiredArgsConstructor
-public class TradeAcceptedEventListener {
-    private final DirectRoomService directRoomService;
+public class ItemStatusChangedEventListener {
+    // 필요한 의존성 주입 (DirectRoomRepository 등)
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleTradeAccepted(TradeAcceptedEvent event) {
-        directRoomService.createDirectRoom(
-            event.requesterId(), event.responderId(), event.itemId()
-        );
+    public void handleItemStatusChanged(ItemStatusChangedEvent event) {
+        // 채팅방 상태 갱신 및 메시지 발송 로직
     }
 }
 ```
