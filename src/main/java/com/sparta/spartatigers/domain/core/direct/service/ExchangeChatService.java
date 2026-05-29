@@ -1,0 +1,142 @@
+package com.sparta.spartatigers.domain.core.direct.service;
+
+import java.time.Clock;
+import java.time.Duration;
+import java.time.LocalDateTime;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.sparta.spartatigers.domain.core.direct.dto.request.ChatMessageRequest;
+import com.sparta.spartatigers.domain.core.direct.dto.response.RedisMessage;
+import com.sparta.spartatigers.domain.core.direct.model.DirectMessage;
+import com.sparta.spartatigers.domain.core.direct.model.DirectRoom;
+import com.sparta.spartatigers.domain.support.chat.registry.RedisUserSessionRegistry;
+import com.sparta.spartatigers.domain.core.direct.repository.DirectMessageRepository;
+import com.sparta.spartatigers.domain.core.direct.repository.DirectRoomRepository;
+import com.sparta.spartatigers.domain.core.trade.repository.ExchangeRequestRepository;
+import com.sparta.spartatigers.domain.core.trade.model.ExchangeRequest;
+import com.sparta.spartatigers.domain.core.trade.model.ExchangeStatus;
+import com.sparta.spartatigers.domain.core.direct.pubsub.RedisDirectMessagePublisher;
+import com.sparta.spartatigers.domain.foundation.user.account.model.User;
+import com.sparta.spartatigers.domain.foundation.user.account.repository.UserRepository;
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
+import com.sparta.spartatigers.global.util.RedisRateLimiter;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class ExchangeChatService {
+
+    // TODO: 운영 단계에서는 조정
+    private static final int MESSAGE_LIMIT = 10;
+    private static final Duration LIMIT_DURATION = Duration.ofSeconds(2);
+
+    private final DirectRoomRepository directRoomRepository;
+    private final Clock clock;
+    private final UserRepository userRepository;
+    private final DirectMessageRepository directMessageRepository;
+    private final RedisDirectMessagePublisher redisPublisher;
+    private final RedisRateLimiter redisRateLimiter;
+    private final RedisUserSessionRegistry sessionRegistry;
+    private final ExchangeRequestRepository exchangeRequestRepository;
+
+    @Transactional
+    public void sendMessage(Long senderId, ChatMessageRequest request) {
+
+        // 메세지 연속 전송 제한
+        log.info(
+            "[sendMessage] 메시지 전송 요청 - senderId: {}, roomId: {}", senderId, request.getRoomId());
+
+        String rateLimitKey = "rate-limit:user:" + senderId;
+        boolean isLimited =
+            redisRateLimiter.isRateLimited(rateLimitKey, MESSAGE_LIMIT, LIMIT_DURATION);
+        if (isLimited) {
+            log.warn("[sendMessage] 메시지 전송 레이트 리밋 초과 - senderId: {}", senderId);
+            throw new InvalidRequestException(ExceptionCode.TOO_MANY_MESSAGE);
+        }
+
+        // 방, 발신자 조회
+        Long roomId = request.getRoomId();
+        String messageText = request.getMessage();
+
+        DirectRoom room = directRoomRepository.findByIdWithLock(roomId)
+                .orElseThrow(() -> {
+                    log.warn("[sendMessage] 채팅방 없음 - roomId: {}", roomId);
+                    return new InvalidRequestException(ExceptionCode.CHATROOM_NOT_FOUND);});
+
+        if (room.isCompleted()) {
+            log.warn("[sendMessage] 완료된 채팅방 전송 차단 - roomId: {}, senderId: {}", roomId, senderId);
+            throw new InvalidRequestException(ExceptionCode.FORBIDDEN_REQUEST);
+        }
+
+        // [FIX] PENDING 상태에서 메시지 전송 차단 — 프론트 UI 제어에만 의존하지 말고 백엔드에서 강제
+        // 교환 요청이 ACCEPTED 상태여야만 메시지 전송 가능
+        ExchangeRequest exchangeRequest = exchangeRequestRepository.findByIdOrElseThrow(room.getExchangeRequestId());
+        ExchangeStatus exchangeStatus = exchangeRequest.getStatus();
+        
+        // [FIX] 문제 3: switch 문을 통해 모든 도메인 상태를 명시적으로 매핑하여 모호함 제거
+        switch (exchangeStatus) {
+            case ACCEPTED -> { /* 전송 허용 */ }
+            case PENDING -> {
+                log.warn("[sendMessage] 비수락(PENDING) 상태 채팅방 전송 차단 - roomId: {}, senderId: {}", roomId, senderId);
+                throw new InvalidRequestException(ExceptionCode.EXCHANGE_NOT_ACCEPTED_PENDING);
+            }
+            case COMPLETED -> {
+                log.warn("[sendMessage] 완료(COMPLETED) 상태 채팅방 전송 차단 - roomId: {}, senderId: {}", roomId, senderId);
+                throw new InvalidRequestException(ExceptionCode.EXCHANGE_ALREADY_COMPLETED);
+            }
+            case REJECTED -> {
+                log.warn("[sendMessage] 거절(REJECTED) 상태 채팅방 전송 차단 - roomId: {}, senderId: {}", roomId, senderId);
+                throw new InvalidRequestException(ExceptionCode.EXCHANGE_ALREADY_REJECTED);
+            }
+            default -> {
+                log.error("[sendMessage] 알 수 없는 상태 - roomId: {}, status: {}", roomId, exchangeStatus);
+                throw new InvalidRequestException(ExceptionCode.INVALID_EXCHANGE_STATUS);
+            }
+        }
+
+        User sender = userRepository.findById(senderId)
+                .orElseThrow(() -> {
+                        log.warn("[sendMessage] 사용자 없음 - senderId: {}", senderId);
+                        return new InvalidRequestException(ExceptionCode.USER_NOT_FOUND);});
+
+        // DB에 메세지 저장 (UNREAD 상태) -> 알아서 flush 됨
+        DirectMessage savedMessage = directMessageRepository.save(DirectMessage.of(room, sender, messageText, LocalDateTime.now(clock)));
+
+        // redis 발행 (UNREAD 상태)
+        redisPublisher.publish("directRoom:" + roomId, RedisMessage.from(savedMessage));
+        log.info("[1:1 채팅] PUBLISH / roomId={} , messageId={}", roomId, savedMessage.getId());
+
+        // 수신자 조회
+        Long receiverId = getOpponentId(room, senderId);
+
+        // 수신자가 접속중이면 읽음 처리
+        boolean receiverOnline = sessionRegistry.isUserInRoom(roomId, receiverId);
+        if (receiverOnline) {
+            savedMessage.markAsRead();
+            directMessageRepository.save(savedMessage);
+            RedisMessage readStatusMessage = RedisMessage.readStatus(savedMessage.getId(), roomId, true);
+            redisPublisher.publish("directRoom:" + roomId, readStatusMessage);
+            log.info("[1:1 채팅] REPUBLISH / roomId={} , messageId={} , read={}", roomId, readStatusMessage.getMessageId(), readStatusMessage.isRead());
+        }
+
+    }
+
+    // 수신자 찾기 (sender = 발신자임) (room의 sender, receiver는 의미 없음 그냥 유저 1,2)
+    public Long getOpponentId (DirectRoom room, Long senderId) {
+        if (room.getSender().getId().equals(senderId)) {
+            return room.getReceiver().getId();
+        } else if (room.getReceiver().getId().equals(senderId)) {
+            return room.getSender().getId();
+        } else {
+            throw new InvalidRequestException(ExceptionCode.USER_NOT_FOUND);
+        }
+    }
+
+
+}

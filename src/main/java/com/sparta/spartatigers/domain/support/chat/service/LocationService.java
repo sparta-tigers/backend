@@ -1,5 +1,4 @@
 package com.sparta.spartatigers.domain.support.chat.service;
-import com.sparta.spartatigers.domain.item.model.Item;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -147,13 +146,13 @@ public class LocationService {
         }
     }
 
-    public Integer calculateDistance(Double latitude, Double longitude, Item item) {
+    public Integer calculateDistance(Double latitude, Double longitude, Double itemLat, Double itemLon) {
         if (latitude == null || longitude == null ||
-            item.getLatitude() == null || item.getLongitude() == null) {
+            itemLat == null || itemLon == null) {
             return null;
         }
 
-        return calculateDistanceMeter(latitude, longitude, item.getLatitude(), item.getLongitude());
+        return calculateDistanceMeter(latitude, longitude, itemLat, itemLon);
     }
 
     private int calculateDistanceMeter(double userLat, double userLon, double itemLat,
