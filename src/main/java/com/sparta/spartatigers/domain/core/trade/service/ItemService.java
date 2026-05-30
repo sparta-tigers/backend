@@ -31,7 +31,6 @@ import com.sparta.spartatigers.domain.foundation.common.event.ItemStatusChangedE
 import com.sparta.spartatigers.domain.core.trade.repository.ExchangeRequestRepository;
 import com.sparta.spartatigers.domain.core.trade.model.ExchangeRequest;
 import com.sparta.spartatigers.domain.core.trade.model.ExchangeStatus;
-import com.sparta.spartatigers.global.firebase.service.FCMService;
 
 import java.time.Clock;
 import java.time.LocalDate;
@@ -54,7 +53,6 @@ public class ItemService {
     private final LocationService locationService;
     private final ObjectMapper objectMapper;
     private final ExchangeRequestRepository exchangeRequestRepository;
-    private final FCMService fcmService;
     private final Clock clock;
 
     @Transactional(readOnly = true)
