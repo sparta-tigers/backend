@@ -21,19 +21,19 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class OcrTestController {
 
-	private final OcrService ocrService;
+    private final OcrService ocrService;
 
-	@PostMapping("/test")
-	public String testOcr(
-			@RequestParam MultipartFile file) throws IOException {
-		log.info("1. 파일 업로드 : {}", file.getOriginalFilename());
+    @PostMapping("/test")
+    public String testOcr(
+            @RequestParam MultipartFile file) throws IOException {
+        log.info("1. 파일 업로드 : {}", file.getOriginalFilename());
 
-		String fullText = ocrService.extractTextFromImage(file);
-		log.info("2. OCR 추출 완료");
+        String fullText = ocrService.extractTextFromImage(file);
+        log.info("2. OCR 추출 완료");
 
-		String seatInfo = ocrService.parseSeatInfo(fullText);
-		log.info("3. 좌석 파싱 결과 : {}", seatInfo);
+        String seatInfo = ocrService.parseSeatInfo(fullText);
+        log.info("3. 좌석 파싱 결과 : {}", seatInfo);
 
-		return "파싱 결과 : \n" + seatInfo;
-	}
+        return "파싱 결과 : \n" + seatInfo;
+    }
 }

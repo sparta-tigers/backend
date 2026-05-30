@@ -5,11 +5,13 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import jakarta.persistence.LockModeType;
 import com.sparta.spartatigers.domain.core.trade.model.ExchangeRequest;
 import com.sparta.spartatigers.domain.core.trade.model.ExchangeStatus;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
@@ -40,11 +42,11 @@ public interface ExchangeRequestRepository extends JpaRepository<ExchangeRequest
     Optional<ExchangeRequest> findByIdAndStatus(
             Long exchangeRequestId, ExchangeStatus status);
 
-    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT e FROM exchange_request e WHERE e.id = :id")
     Optional<ExchangeRequest> findByIdForUpdate(@Param("id") Long id);
 
-    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT e FROM exchange_request e WHERE e.item.id = :itemId AND e.status = :status")
     List<ExchangeRequest> findByItemIdAndStatusForUpdate(@Param("itemId") Long itemId,
             @Param("status") ExchangeStatus status);

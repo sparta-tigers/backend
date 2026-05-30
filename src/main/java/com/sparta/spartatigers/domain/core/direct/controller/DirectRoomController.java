@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.List;
+import java.time.LocalDateTime;
 import com.sparta.spartatigers.domain.core.direct.dto.response.DirectRoomMessageResponse;
 import com.sparta.spartatigers.global.aop.TokenClaim;
 import com.sparta.spartatigers.domain.core.direct.dto.request.CreateDirectRoomRequestDto;
@@ -74,7 +75,7 @@ public class DirectRoomController {
     @GetMapping("/{directRoomId}/messages/after")
     public ApiResponse<List<DirectRoomMessageResponse>> getMessagesAfter(
             @PathVariable Long directRoomId,
-            @RequestParam("timestamp") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime timestamp,
+            @RequestParam("timestamp") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime timestamp,
             @Auth TokenClaim tokenClaim,
             @PageableDefault(size = 100, sort = "sentAt", direction = Sort.Direction.ASC) Pageable pageable) {
         Long currentUserId = tokenClaim.getUserId();

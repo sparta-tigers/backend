@@ -26,63 +26,63 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TicketAlarm extends BaseEntity {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "ticket_alarm_id")
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ticket_alarm_id")
+    private Long id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id", nullable = false)
-	private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "match_id", nullable = false)
-	private Match match;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "match_id", nullable = false)
+    private Match match;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "booking_policy_id", nullable = false)
-	private TeamBookingPolicy teamBookingPolicy;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "booking_policy_id", nullable = false)
+    private TeamBookingPolicy teamBookingPolicy;
 
-	@Column(nullable = false)
-	private Integer minusBefore;
+    @Column(nullable = false)
+    private Integer minusBefore;
 
-	@Column(nullable = false)
-	private LocalDateTime alarmTime;
+    @Column(nullable = false)
+    private LocalDateTime alarmTime;
 
-	@Column(nullable = false)
-	private LocalDateTime openBookingTime;
+    @Column(nullable = false)
+    private LocalDateTime openBookingTime;
 
-	public TicketAlarm(
-			User user,
-			Match match,
-			TeamBookingPolicy policy,
-			Integer minusBefore,
-			LocalDateTime alarmTime,
-			LocalDateTime openBookingTime) {
-		this.user = user;
-		this.match = match;
-		this.teamBookingPolicy = policy;
-		this.minusBefore = minusBefore;
-		this.alarmTime = alarmTime;
-		this.openBookingTime = openBookingTime;
-	}
+    public TicketAlarm(
+            User user,
+            Match match,
+            TeamBookingPolicy policy,
+            Integer minusBefore,
+            LocalDateTime alarmTime,
+            LocalDateTime openBookingTime) {
+        this.user = user;
+        this.match = match;
+        this.teamBookingPolicy = policy;
+        this.minusBefore = minusBefore;
+        this.alarmTime = alarmTime;
+        this.openBookingTime = openBookingTime;
+    }
 
-	public static TicketAlarm of(User user, Match match, TeamBookingPolicy policy, Integer minusBefore,
-			LocalDateTime alarmTime, LocalDateTime openBookingTime) {
-		return new TicketAlarm(
-				user,
-				match,
-				policy,
-				minusBefore,
-				alarmTime,
-				openBookingTime);
-	}
+    public static TicketAlarm of(User user, Match match, TeamBookingPolicy policy, Integer minusBefore,
+            LocalDateTime alarmTime, LocalDateTime openBookingTime) {
+        return new TicketAlarm(
+                user,
+                match,
+                policy,
+                minusBefore,
+                alarmTime,
+                openBookingTime);
+    }
 
-	public void update(TeamBookingPolicy newBookingPolicy, Integer minusBefore, LocalDateTime alarmTime,
-			LocalDateTime openBookingTime) {
-		this.teamBookingPolicy = newBookingPolicy;
-		this.minusBefore = minusBefore;
-		this.alarmTime = alarmTime;
-		this.openBookingTime = openBookingTime;
-	}
+    public void update(TeamBookingPolicy newBookingPolicy, Integer minusBefore, LocalDateTime alarmTime,
+            LocalDateTime openBookingTime) {
+        this.teamBookingPolicy = newBookingPolicy;
+        this.minusBefore = minusBefore;
+        this.alarmTime = alarmTime;
+        this.openBookingTime = openBookingTime;
+    }
 }

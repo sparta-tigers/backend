@@ -28,48 +28,48 @@ import lombok.NoArgsConstructor;
 @Table(name = "match_attendance")
 public class MatchAttendance extends BaseEntity {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id")
-	private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "match_id")
-	private Match match;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "match_id")
+    private Match match;
 
-	private String contents;
+    private String contents;
 
-	@OneToMany(mappedBy = "attendance", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<AttendanceImage> images = new ArrayList<>();
+    @OneToMany(mappedBy = "attendance", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AttendanceImage> images = new ArrayList<>();
 
-	private String seat;
+    private String seat;
 
-	private MatchAttendance(User user, Match match, String contents, String seat) {
-		this.user = user;
-		this.match = match;
-		this.contents = contents;
-		this.seat = seat;
-	}
+    private MatchAttendance(User user, Match match, String contents, String seat) {
+        this.user = user;
+        this.match = match;
+        this.contents = contents;
+        this.seat = seat;
+    }
 
-	public static MatchAttendance create(User user, Match match, String contents, String seat) {
-		return new MatchAttendance(user, match, contents, seat);
-	}
+    public static MatchAttendance create(User user, Match match, String contents, String seat) {
+        return new MatchAttendance(user, match, contents, seat);
+    }
 
-	public void addImage(String imageUrl, AttendanceImageType imageType) {
-		AttendanceImage image = AttendanceImage.create(this, imageUrl, imageType);
-		this.images.add(image);
-	}
+    public void addImage(String imageUrl, AttendanceImageType imageType) {
+        AttendanceImage image = AttendanceImage.create(this, imageUrl, imageType);
+        this.images.add(image);
+    }
 
-	public void update(String contents, String seat) {
-		this.contents = contents;
-		this.seat = seat;
-	}
+    public void update(String contents, String seat) {
+        this.contents = contents;
+        this.seat = seat;
+    }
 
-	public void clearImages() {
-		this.images.clear();
-	}
+    public void clearImages() {
+        this.images.clear();
+    }
 
 }

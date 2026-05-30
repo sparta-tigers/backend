@@ -9,15 +9,15 @@ import com.sparta.spartatigers.domain.core.ticketalarm.model.TeamBookingPolicy;
 
 public interface TeamBookingPolicyRepository extends JpaRepository<TeamBookingPolicy, Long> {
 
-	List<TeamBookingPolicy> findAllByTeamId(Long teamId);
+    List<TeamBookingPolicy> findAllByTeamId(Long teamId);
 
-	TeamBookingPolicy findByTeamIdAndMembership(Long teamId, String membership);
+    TeamBookingPolicy findByTeamIdAndMembership(Long teamId, String membership);
 
-	@Query("""
-			SELECT p
-			FROM TeamBookingPolicy p
-			WHERE p.team.id = :teamId
-				AND p.membership = '일반'
-			""")
-	TeamBookingPolicy findDefaultPolicyByTeamId(Long teamId);
+    @Query("""
+            SELECT p
+            FROM TeamBookingPolicy p
+            WHERE p.team.id = :teamId
+            	AND p.membership = '일반'
+            """)
+    TeamBookingPolicy findDefaultPolicyByTeamId(Long teamId);
 }

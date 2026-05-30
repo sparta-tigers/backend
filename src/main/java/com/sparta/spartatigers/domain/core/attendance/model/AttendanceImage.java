@@ -19,27 +19,27 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AttendanceImage extends BaseEntity {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long Id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long Id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "attendance_id")
-	private MatchAttendance attendance;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "attendance_id")
+    private MatchAttendance attendance;
 
-	private String imageUrl;
+    private String imageUrl;
 
-	@Enumerated(EnumType.STRING)
-	private AttendanceImageType imageType;
+    @Enumerated(EnumType.STRING)
+    private AttendanceImageType imageType;
 
-	private AttendanceImage(MatchAttendance attendance, String imageUrl, AttendanceImageType imageType) {
-		this.attendance = attendance;
-		this.imageUrl = imageUrl;
-		this.imageType = imageType;
-	}
+    private AttendanceImage(MatchAttendance attendance, String imageUrl, AttendanceImageType imageType) {
+        this.attendance = attendance;
+        this.imageUrl = imageUrl;
+        this.imageType = imageType;
+    }
 
-	public static AttendanceImage create(MatchAttendance attendance, String imageUrl, AttendanceImageType imageType) {
-		return new AttendanceImage(attendance, imageUrl, imageType);
-	}
+    public static AttendanceImage create(MatchAttendance attendance, String imageUrl, AttendanceImageType imageType) {
+        return new AttendanceImage(attendance, imageUrl, imageType);
+    }
 
 }

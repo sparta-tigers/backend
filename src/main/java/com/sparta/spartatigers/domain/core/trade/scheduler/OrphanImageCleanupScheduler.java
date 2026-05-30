@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -127,7 +128,7 @@ public class OrphanImageCleanupScheduler {
      * DB의 item.image 필드에서 참조 중인 모든 파일명을 추출한다.
      * image 필드는 JSON 배열(["url1", "url2"]) 또는 단일 URL 문자열일 수 있다.
      */
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     private Set<String> collectReferencedFileNames() {
         Set<String> fileNames = new HashSet<>();
         try (java.util.stream.Stream<String> allImageUrls = itemRepository.findAllImageUrls()) {

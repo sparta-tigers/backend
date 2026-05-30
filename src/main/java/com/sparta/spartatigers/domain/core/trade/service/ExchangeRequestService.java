@@ -33,8 +33,6 @@ import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 import com.sparta.spartatigers.global.exception.internal.ServerException;
 
-import com.sparta.spartatigers.global.firebase.service.FCMService;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

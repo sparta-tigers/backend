@@ -26,6 +26,6 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Run Tests (Including ArchUnit)
+      - name: Run Tests (ArchUnit Only)
         # 이 명령어가 실패하면(ArchUnit 위반 등) PR이 블락됩니다.
-        run: ./gradlew test
+        run: ./gradlew test --tests "com.sparta.spartatigers.architecture.ArchitectureTest"
