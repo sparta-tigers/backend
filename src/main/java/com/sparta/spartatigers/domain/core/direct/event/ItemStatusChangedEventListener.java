@@ -2,9 +2,11 @@ package com.sparta.spartatigers.domain.core.direct.event;
 
 import java.util.Map;
 
-import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.sparta.spartatigers.domain.core.direct.dto.response.RedisMessage;
 import com.sparta.spartatigers.domain.core.direct.pubsub.RedisDirectMessagePublisher;
@@ -22,7 +24,8 @@ public class ItemStatusChangedEventListener {
     private final DirectRoomRepository directRoomRepository;
     private final RedisDirectMessagePublisher redisDirectMessagePublisher;
 
-    @EventListener
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional
     public void handleItemStatusChangedEvent(ItemStatusChangedEvent event) {
         log.info("[ItemStatusChangedEventListener] 거래 상태 변경 이벤트 수신 - exchangeRequestId: {}", event.getExchangeRequestId());
