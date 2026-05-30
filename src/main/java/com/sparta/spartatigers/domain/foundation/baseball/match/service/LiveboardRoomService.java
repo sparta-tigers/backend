@@ -115,13 +115,15 @@ public class LiveboardRoomService {
 									match.getId());
 							LiveBoardData liveData = liveBoardDataService.getLiveBoardData(match.getId());
 							InningTexts inningTexts = (liveData != null) ? liveData.getInningTexts() : null;
-							return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, inningTexts, liveData);
+							return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, inningTexts,
+									liveData);
 						}
 
 						LiveBoardData liveData = liveBoardDataService.getLiveBoardData(match.getId());
 						InningTexts inningTexts = (liveData != null) ? liveData.getInningTexts() : null;
 
-						return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, inningTexts, liveData);
+						return LiveBoardRoomResponseDto.fromTodayMatch(match, room, connectCount, inningTexts,
+								liveData);
 					} else if (matchDate.isBefore(realToday)) { // 지난 경기
 						return LiveBoardRoomResponseDto.fromPastMatch(match, room);
 					} else { // 그외의 예정 경기
@@ -180,7 +182,7 @@ public class LiveboardRoomService {
 
 		if (matchDate.isEqual(realToday)) {
 			long connectCount = (room != null) ? connectionRepository.getConnectionCount(room.getRoomId()) : 0L;
-			Stadium stadium = match.getStadium();
+			// Stadium stadium = match.getStadium();
 
 			LiveBoardData liveData = liveBoardDataService.getLiveBoardData(matchId);
 			InningTexts inningTexts = (liveData != null) ? liveData.getInningTexts() : null;

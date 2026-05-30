@@ -39,24 +39,25 @@ public class MatchAttendanceService {
 	private final MatchAttendanceRepository matchAttendanceRepository;
 	private final UserRepository userRepository;
 	private final MatchRepository matchRepository;
-	private final OcrService ocrService;
 	private final ImageStorageService imageStorageService;
 
 	@Transactional
-	public MatchAttendanceResponseDto createAttendance (Long userId, MatchAttendanceRequestDto request, List<String> uploadedImageUrls) {
+	public MatchAttendanceResponseDto createAttendance(Long userId, MatchAttendanceRequestDto request,
+			List<String> uploadedImageUrls) {
 
-		User user = userRepository.findById(userId).orElseThrow(()-> new InvalidRequestException(ExceptionCode.USER_NOT_FOUND));
-		Match match = matchRepository.findById(request.matchId()).orElseThrow(()-> new InvalidRequestException(ExceptionCode.MATCH_NOT_FOUND));
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new InvalidRequestException(ExceptionCode.USER_NOT_FOUND));
+		Match match = matchRepository.findById(request.matchId())
+				.orElseThrow(() -> new InvalidRequestException(ExceptionCode.MATCH_NOT_FOUND));
 
 		MatchAttendance attendance = MatchAttendance.create(
-			user,
-			match,
-			request.contents(),
-			request.seat()
-		);
+				user,
+				match,
+				request.contents(),
+				request.seat());
 
-		if(uploadedImageUrls !=null && !uploadedImageUrls.isEmpty()) {
-			for(String imageUrl : uploadedImageUrls) {
+		if (uploadedImageUrls != null && !uploadedImageUrls.isEmpty()) {
+			for (String imageUrl : uploadedImageUrls) {
 				attendance.addImage(imageUrl, AttendanceImageType.NORMAL);
 			}
 		}
@@ -68,8 +69,9 @@ public class MatchAttendanceService {
 
 	@Transactional(readOnly = true)
 	public MatchAttendanceResponseDto getAttendance(Long userId, Long attendanceId) {
-		MatchAttendance attendance = matchAttendanceRepository.findById(attendanceId).orElseThrow(()-> new InvalidRequestException(ExceptionCode.MATCH_ATTENDANCE_NOT_FOUND));
-		if(!attendance.getUser().getId().equals(userId)) {
+		MatchAttendance attendance = matchAttendanceRepository.findById(attendanceId)
+				.orElseThrow(() -> new InvalidRequestException(ExceptionCode.MATCH_ATTENDANCE_NOT_FOUND));
+		if (!attendance.getUser().getId().equals(userId)) {
 			throw new InvalidRequestException(ExceptionCode.MATCH_ATTENDANCE_FORBIDDEN);
 		}
 
@@ -79,24 +81,25 @@ public class MatchAttendanceService {
 	@Transactional(readOnly = true)
 	public MatchAttendanceResponseDto getAttendanceByMatchId(Long userId, Long matchId) {
 		return matchAttendanceRepository.findByUser_IdAndMatch_Id(userId, matchId)
-			.map(MatchAttendanceResponseDto::from)
-			.orElse(null);
+				.map(MatchAttendanceResponseDto::from)
+				.orElse(null);
 	}
 
 	@Transactional(readOnly = true)
-	public Page< MatchAttendanceResponseDto> getAllAttendance(Long userId, int page, int size) {
+	public Page<MatchAttendanceResponseDto> getAllAttendance(Long userId, int page, int size) {
 		Pageable pageable = PageRequest.of(
-			page-1, size, Sort.by(Sort.Direction.DESC, "createdAt")
-		);
+				page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 		Page<MatchAttendance> attendances = matchAttendanceRepository.findAllByUser_Id(userId, pageable);
 		return attendances.map(MatchAttendanceResponseDto::from);
 	}
 
 	@Transactional
-	public MatchAttendanceResponseDto updateAttendance(Long userId, Long attendanceId, MatchAttendanceUpdateRequestDto request, List<String> newImageUrls) {
-		MatchAttendance attendance = matchAttendanceRepository.findById(attendanceId).orElseThrow(()->new InvalidRequestException(ExceptionCode.MATCH_ATTENDANCE_NOT_FOUND));
+	public MatchAttendanceResponseDto updateAttendance(Long userId, Long attendanceId,
+			MatchAttendanceUpdateRequestDto request, List<String> newImageUrls) {
+		MatchAttendance attendance = matchAttendanceRepository.findById(attendanceId)
+				.orElseThrow(() -> new InvalidRequestException(ExceptionCode.MATCH_ATTENDANCE_NOT_FOUND));
 
-		if(!attendance.getUser().getId().equals(userId)) {
+		if (!attendance.getUser().getId().equals(userId)) {
 			throw new InvalidRequestException(ExceptionCode.MATCH_ATTENDANCE_FORBIDDEN);
 		}
 
@@ -107,10 +110,11 @@ public class MatchAttendanceService {
 		List<String> oldImageUrls = attendance.getImages().stream().map(AttendanceImage::getImageUrl).toList();
 
 		// 새로운 request에 없는 url 필터링
-		List<String> urlsToDelete = oldImageUrls.stream().filter(oldUrl-> request.oldImageUrls()==null || !request.oldImageUrls().contains(oldUrl)).toList();
+		List<String> urlsToDelete = oldImageUrls.stream()
+				.filter(oldUrl -> request.oldImageUrls() == null || !request.oldImageUrls().contains(oldUrl)).toList();
 
 		// 삭제
-		if(!urlsToDelete.isEmpty()) {
+		if (!urlsToDelete.isEmpty()) {
 			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
 				@Override
 				public void afterCommit() {
@@ -122,15 +126,15 @@ public class MatchAttendanceService {
 		// 이미지 갱신 로직 ========
 		attendance.clearImages(); // 고아 객체 삭제
 
-		if(request.oldImageUrls() != null) {
-			for(String url : request.oldImageUrls()) {
+		if (request.oldImageUrls() != null) {
+			for (String url : request.oldImageUrls()) {
 				attendance.addImage(url, AttendanceImageType.NORMAL);
 			}
 		}
 
-		if(newImageUrls != null) {
+		if (newImageUrls != null) {
 			for (String url : newImageUrls) {
-				attendance.addImage(url,AttendanceImageType.NORMAL);
+				attendance.addImage(url, AttendanceImageType.NORMAL);
 			}
 		}
 
@@ -139,9 +143,10 @@ public class MatchAttendanceService {
 
 	@Transactional
 	public void deleteAttendance(Long userId, Long attendanceId) {
-		MatchAttendance attendance = matchAttendanceRepository.findById(attendanceId).orElseThrow(()->new InvalidRequestException(ExceptionCode.MATCH_ATTENDANCE_NOT_FOUND));
+		MatchAttendance attendance = matchAttendanceRepository.findById(attendanceId)
+				.orElseThrow(() -> new InvalidRequestException(ExceptionCode.MATCH_ATTENDANCE_NOT_FOUND));
 
-		if(!attendance.getUser().getId().equals(userId)) {
+		if (!attendance.getUser().getId().equals(userId)) {
 			throw new InvalidRequestException(ExceptionCode.MATCH_ATTENDANCE_FORBIDDEN);
 		}
 
@@ -149,7 +154,7 @@ public class MatchAttendanceService {
 
 		matchAttendanceRepository.delete(attendance);
 
-		if(!urlsToDelete.isEmpty()) {
+		if (!urlsToDelete.isEmpty()) {
 			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
 				@Override
 				public void afterCommit() {

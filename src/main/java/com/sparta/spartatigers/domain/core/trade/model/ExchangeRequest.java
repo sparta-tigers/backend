@@ -1,7 +1,6 @@
 package com.sparta.spartatigers.domain.core.trade.model;
 
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
-import com.sparta.spartatigers.domain.core.trade.model.Item;
 import com.sparta.spartatigers.domain.foundation.user.account.model.User;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.ServerException;
@@ -19,7 +18,6 @@ import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 
 @Entity(name = "exchange_request")
 @Getter

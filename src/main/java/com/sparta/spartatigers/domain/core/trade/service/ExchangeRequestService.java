@@ -47,7 +47,6 @@ public class ExchangeRequestService {
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
-    private final FCMService fcmService;
     private final NotificationService notificationService;
 
     @Transactional
@@ -68,11 +67,11 @@ public class ExchangeRequestService {
         ExchangeRequest saved = exchangeRequestRepository.save(exchangeRequest);
 
         sendNotification(receiver.getFcmToken(), "새 교환 요청",
-            String.format("'%s'에 %s님이 교환을 요청했어요.", item.getTitle(), sender.getNickname()));
+                String.format("'%s'에 %s님이 교환을 요청했어요.", item.getTitle(), sender.getNickname()));
 
         log.info("[FCM 교환요청 알림] receiverId={}, senderId={}",
-            receiver.getId(),
-            sender.getId());
+                receiver.getId(),
+                sender.getId());
 
         // [FIX] 교환 요청 생성 시점에는 채팅방을 만들지 않고 PENDING 상태 유지
         // 채팅방은 교환 요청이 ACCEPTED 될 때 생성됨
@@ -119,18 +118,17 @@ public class ExchangeRequestService {
         if (exchangeRequest.getStatus() == ExchangeStatus.ACCEPTED) {
             // 다른 PENDING 요청 자동 거절 (내부에서 거절 알림도 함께 발송)
             rejectOtherPendingRequests(exchangeRequest.getItem(), exchangeRequest.getId());
-            
+
             // [FIX] 수락 시점에 명시적으로 채팅방 생성 대신 이벤트 발행
             applicationEventPublisher.publishEvent(new TradeAcceptedEvent(
                     exchangeRequestId,
                     exchangeRequest.getSender().getId(),
                     user.getId(),
-                    exchangeRequest.getItem().getId()
-            ));
+                    exchangeRequest.getItem().getId()));
 
             sendNotification(
-                exchangeRequest.getSender().getFcmToken(), "교환 요청 수락",
-                String.format("'%s'에 대한 교환 요청이 수락되었어요.", exchangeRequest.getItem().getTitle()));
+                    exchangeRequest.getSender().getFcmToken(), "교환 요청 수락",
+                    String.format("'%s'에 대한 교환 요청이 수락되었어요.", exchangeRequest.getItem().getTitle()));
 
             return ExchangeRoomResponseDto.created(exchangeRequestId);
         }
