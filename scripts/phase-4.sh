@@ -18,8 +18,8 @@ echo "[4-1] 빈 디렉토리 제거"
 find $BASE/domain -type d -empty -print -delete
 echo "  ✅ 빈 디렉토리 제거 완료"
 
-echo "[4-2] 의존성 룰 검사"
-./scripts/check-dependencies.sh
+echo "[4-2] 의존성 룰 검사 (ArchUnit)"
+./gradlew test --tests "com.sparta.spartatigers.architecture.ArchitectureTest"
 
 echo "[4-3] Spotless 코드 포매팅"
 ./gradlew spotlessApply
