@@ -36,7 +36,7 @@ public class TeamRankingRepositoryCustomImpl implements TeamRankingRepositoryCus
 	public List<TeamRankingStat> applyTeamRecords(LocalDateTime anyday, LeagueType leagueType) {
 		// 파악된 시즌 연도와 리그 종류를 기준으로 집계 범위 확정
 		int currentSeason = anyday.getYear();
-		LocalDateTime to = anyday.toLocalDate().atTime(23,59,59);
+		LocalDateTime to = anyday.toLocalDate().atTime(23, 59, 59);
 
 		// 홈+원정 데이터 각각 집계
 		List<TeamRankingStat> homeAgg = aggregateHome(leagueType, currentSeason, to);
@@ -53,7 +53,7 @@ public class TeamRankingRepositoryCustomImpl implements TeamRankingRepositoryCus
 	@Override
 	public List<TeamRankingStat> applyTeamRecordsByYear(int year, LeagueType leagueType) {
 
-		LocalDateTime endOfyear = Year.of(year).atMonth(12).atEndOfMonth().atTime(23,59,59);
+		LocalDateTime endOfyear = Year.of(year).atMonth(12).atEndOfMonth().atTime(23, 59, 59);
 
 		// 홈+원정 데이터 각각 집계
 		List<TeamRankingStat> homeAgg = aggregateHome(leagueType, year, endOfyear);
@@ -70,89 +70,81 @@ public class TeamRankingRepositoryCustomImpl implements TeamRankingRepositoryCus
 	@Override
 	public List<Match> findAllPostSeasonMatches(int year) {
 		return queryFactory
-			.selectFrom(match)
-			.join(match.homeTeam, homeTeam).fetchJoin()
-			.join(match.awayTeam, awayTeam).fetchJoin()
-			.leftJoin(match.stadium, stadium).fetchJoin()
-			.where(
-				match.leagueType.eq(LeagueType.POST_SEASON),
-				match.seasonYear.eq(year)
-			)
-			.orderBy(match.matchTime.asc())
-			.fetch();
+				.selectFrom(match)
+				.join(match.homeTeam, homeTeam).fetchJoin()
+				.join(match.awayTeam, awayTeam).fetchJoin()
+				.leftJoin(match.stadium, stadium).fetchJoin()
+				.where(
+						match.leagueType.eq(LeagueType.POST_SEASON),
+						match.seasonYear.eq(year))
+				.orderBy(match.matchTime.asc())
+				.fetch();
 	}
-
 
 	// 집계결과를 팀별 누적 집계에 합산합니다.
 	private void mergeInto(Map<Long, TeamRankingStat> rankingStatMap, List<TeamRankingStat> rowStats) {
-		for ( TeamRankingStat stat : rowStats) {
+		for (TeamRankingStat stat : rowStats) {
 			TeamRankingStat alreadyApplied = rankingStatMap.get(stat.getTeamId());
-			if(alreadyApplied == null) {
+			if (alreadyApplied == null) {
 				rankingStatMap.put(stat.getTeamId(), stat);
 				continue;
 			}
 
 			rankingStatMap.put(stat.getTeamId(),
-				new TeamRankingStat(
-					stat.getLeagueType(),
-					stat.getTeamId(),
-					stat.getTeamName(),
-					stat.getTeamCode(),
-					alreadyApplied.getWinCount() + stat.getWinCount(),
-					alreadyApplied.getLoseCount() + stat.getLoseCount(),
-					alreadyApplied.getDrawCount() + stat.getDrawCount()
-				)
-			);
+					new TeamRankingStat(
+							stat.getLeagueType(),
+							stat.getTeamId(),
+							stat.getTeamName(),
+							stat.getTeamCode(),
+							alreadyApplied.getWinCount() + stat.getWinCount(),
+							alreadyApplied.getLoseCount() + stat.getLoseCount(),
+							alreadyApplied.getDrawCount() + stat.getDrawCount()));
 		}
 	}
 
 	// 특정 기간의 경기중 홈팀에 대해 승/패/무 횟수를 집계합니다.
 	private List<TeamRankingStat> aggregateHome(LeagueType leagueType, int seasonYear, LocalDateTime anyday) {
 		return queryFactory
-			.select(Projections.constructor(
-				TeamRankingStat.class,
-				match.leagueType,
-				homeTeam.id,
-				homeTeam.name,
-				homeTeam.code,
-				new CaseBuilder().when(match.matchResult.eq(MatchResult.HOME_WIN)).then(1).otherwise(0).sum(),
-				new CaseBuilder().when(match.matchResult.eq(MatchResult.AWAY_WIN)).then(1).otherwise(0).sum(),
-				new CaseBuilder().when(match.matchResult.eq(MatchResult.DRAW)).then(1).otherwise(0).sum()
-			))
-			.from(match)
-			.join(match.homeTeam, homeTeam)
-			.where(
-				match.leagueType.eq(leagueType),
-				match.seasonYear.eq(seasonYear),
-				match.matchTime.loe(anyday),
-				match.matchResult.in(MatchResult.HOME_WIN, MatchResult.AWAY_WIN, MatchResult.DRAW)
-			)
-			.groupBy(homeTeam.id, homeTeam.name, homeTeam.code)
-			.fetch();
+				.select(Projections.constructor(
+						TeamRankingStat.class,
+						match.leagueType,
+						homeTeam.id,
+						homeTeam.name,
+						homeTeam.code,
+						new CaseBuilder().when(match.matchResult.eq(MatchResult.HOME_WIN)).then(1).otherwise(0).sum(),
+						new CaseBuilder().when(match.matchResult.eq(MatchResult.AWAY_WIN)).then(1).otherwise(0).sum(),
+						new CaseBuilder().when(match.matchResult.eq(MatchResult.DRAW)).then(1).otherwise(0).sum()))
+				.from(match)
+				.join(match.homeTeam, homeTeam)
+				.where(
+						match.leagueType.eq(leagueType),
+						match.seasonYear.eq(seasonYear),
+						match.matchTime.loe(anyday),
+						match.matchResult.in(MatchResult.HOME_WIN, MatchResult.AWAY_WIN, MatchResult.DRAW))
+				.groupBy(homeTeam.id, homeTeam.name, homeTeam.code)
+				.fetch();
 	}
 
 	// 특정 기간의 경기중 원정팀에 대해 승/패/무 횟수를 집계합니다.
 	private List<TeamRankingStat> aggregateAway(LeagueType leagueType, int seasonYear, LocalDateTime anyday) {
 		return queryFactory
-			.select(Projections.constructor(
-				TeamRankingStat.class,
-				match.leagueType,
-				awayTeam.id,
-				awayTeam.name,
-				awayTeam.code,
-				new CaseBuilder().when(match.matchResult.eq(MatchResult.AWAY_WIN)).then(1).otherwise(0).sum(),
-				new CaseBuilder().when(match.matchResult.eq(MatchResult.HOME_WIN)).then(1).otherwise(0).sum(),
-				new CaseBuilder().when(match.matchResult.eq(MatchResult.DRAW)).then(1).otherwise(0).sum()
-			))
-			.from(match)
-			.join(match.awayTeam, awayTeam)
-			.where(
-				match.leagueType.eq(leagueType),
-				match.seasonYear.eq(seasonYear),
-				match.matchTime.loe(anyday),
-				match.matchResult.in(MatchResult.HOME_WIN, MatchResult.AWAY_WIN, MatchResult.DRAW)
-			)
-			.groupBy(awayTeam.id, awayTeam.name, awayTeam.code)
-			.fetch();
+				.select(Projections.constructor(
+						TeamRankingStat.class,
+						match.leagueType,
+						awayTeam.id,
+						awayTeam.name,
+						awayTeam.code,
+						new CaseBuilder().when(match.matchResult.eq(MatchResult.AWAY_WIN)).then(1).otherwise(0).sum(),
+						new CaseBuilder().when(match.matchResult.eq(MatchResult.HOME_WIN)).then(1).otherwise(0).sum(),
+						new CaseBuilder().when(match.matchResult.eq(MatchResult.DRAW)).then(1).otherwise(0).sum()))
+				.from(match)
+				.join(match.awayTeam, awayTeam)
+				.where(
+						match.leagueType.eq(leagueType),
+						match.seasonYear.eq(seasonYear),
+						match.matchTime.loe(anyday),
+						match.matchResult.in(MatchResult.HOME_WIN, MatchResult.AWAY_WIN, MatchResult.DRAW))
+				.groupBy(awayTeam.id, awayTeam.name, awayTeam.code)
+				.fetch();
 	}
 }

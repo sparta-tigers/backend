@@ -31,16 +31,17 @@ public class OcrService {
 		requests.add(request);
 
 		GoogleCredentials credentials = GoogleCredentials.fromStream(credentialKey.getInputStream());
-		ImageAnnotatorSettings settings = ImageAnnotatorSettings.newBuilder().setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
+		ImageAnnotatorSettings settings = ImageAnnotatorSettings.newBuilder()
+				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
 
-		try (ImageAnnotatorClient client =  ImageAnnotatorClient.create(settings)) {
+		try (ImageAnnotatorClient client = ImageAnnotatorClient.create(settings)) {
 			BatchAnnotateImagesResponse response = client.batchAnnotateImages(requests);
 			List<AnnotateImageResponse> responses = response.getResponsesList();
 
 			StringBuilder resultText = new StringBuilder();
 			for (AnnotateImageResponse res : responses) {
-				if(res.hasError()) {
-					throw new RuntimeException("OCR 인식 오류 : "+ res.getError().getMessage());
+				if (res.hasError()) {
+					throw new RuntimeException("OCR 인식 오류 : " + res.getError().getMessage());
 				}
 				resultText.append(res.getFullTextAnnotation().getText());
 			}

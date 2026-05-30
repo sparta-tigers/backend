@@ -11,7 +11,7 @@ public enum UserRole {
         if (value == null) {
             throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
         }
-        for (UserRole role: values()) {
+        for (UserRole role : values()) {
             if (role.toString().equals(value.toUpperCase())) {
                 return role;
             }

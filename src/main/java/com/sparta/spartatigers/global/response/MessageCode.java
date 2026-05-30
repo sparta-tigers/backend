@@ -32,7 +32,8 @@ public enum MessageCode {
     // 직관 기록
     WATCH_LIST_DELETED("직관 기록이 삭제되었습니다.")
 
-// 공통
-;
+    // 공통
+    ;
+
     private final String message;
 }

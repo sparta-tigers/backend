@@ -16,16 +16,17 @@ public class LocationController {
     private final LocationService locationService;
 
     // @MessageMapping("/location.update")
-    // public void updateLocation(@Payload LocationRequestDto request, Principal principal) {
-    //     Long userId;
+    // public void updateLocation(@Payload LocationRequestDto request, Principal
+    // principal) {
+    // Long userId;
     //
-    //     if (principal instanceof StompPrincipal stompPrincipal) {
-    //         userId = Long.parseLong(stompPrincipal.getName());
-    //     } else {
-    //         throw new IllegalStateException("지원하지 않는 principal 타입");
-    //     }
+    // if (principal instanceof StompPrincipal stompPrincipal) {
+    // userId = Long.parseLong(stompPrincipal.getName());
+    // } else {
+    // throw new IllegalStateException("지원하지 않는 principal 타입");
+    // }
     //
-    //     locationService.updateLocation(request, userId);
+    // locationService.updateLocation(request, userId);
     // }
     @MessageMapping("/location.update")
     public void updateLocation(@Payload LocationRequestDto request, Principal principal) {

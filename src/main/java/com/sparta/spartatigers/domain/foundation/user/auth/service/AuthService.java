@@ -36,13 +36,11 @@ public class AuthService {
     public Token login(final String email, final String password) {
         User user = userRepository
                 .findByEmail(email)
-                .orElseThrow(() ->
-                        new InvalidRequestException(ExceptionCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new InvalidRequestException(ExceptionCode.USER_NOT_FOUND));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new InvalidRequestException(ExceptionCode.INVALID_PASSWORD);
         }
-
 
         TokenClaim tokenClaim = TokenClaim.from(user);
         return tokenService.generateToken(tokenClaim);
@@ -60,9 +58,9 @@ public class AuthService {
         }
 
         User user = oauthRepository
-            .findByProviderAndProviderId(OAuthProvider.KAKAO, info.id())
-            .map(Oauth::getUser)
-            .orElseGet(() -> findOrCreateKakaoUser(info));
+                .findByProviderAndProviderId(OAuthProvider.KAKAO, info.id())
+                .map(Oauth::getUser)
+                .orElseGet(() -> findOrCreateKakaoUser(info));
 
         TokenClaim tokenClaim = TokenClaim.from(user);
         return tokenService.generateToken(tokenClaim);
@@ -91,14 +89,14 @@ public class AuthService {
         }
 
         RefreshToken saved = refreshTokenRepository.findById(refreshToken)
-            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.INVALID_REFRESH_TOKEN));
+                .orElseThrow(() -> new InvalidRequestException(ExceptionCode.INVALID_REFRESH_TOKEN));
 
-        if (saved.getSubject()==null || !saved.getSubject().equals(subject)) {
+        if (saved.getSubject() == null || !saved.getSubject().equals(subject)) {
             throw new InvalidRequestException(ExceptionCode.INVALID_REFRESH_TOKEN);
         }
 
         User user = userRepository.findByEmail(subject)
-            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new InvalidRequestException(ExceptionCode.USER_NOT_FOUND));
 
         refreshTokenRepository.deleteById(refreshToken);
 
@@ -108,19 +106,18 @@ public class AuthService {
 
     private User findOrCreateKakaoUser(KakaoUserInfo info) {
         return userRepository.findByEmail(info.email())
-            .map(existingUser -> {
-                if (!oauthRepository.existsByUserAndProvider(existingUser, OAuthProvider.KAKAO)) {
-                    oauthRepository.save(
-                        Oauth.builder()
-                            .provider(OAuthProvider.KAKAO)
-                            .providerId(info.id())
-                            .user(existingUser)
-                            .build()
-                    );
-                }
-                return existingUser;
-            })
-            .orElseGet(() -> createKakaoUser(info));
+                .map(existingUser -> {
+                    if (!oauthRepository.existsByUserAndProvider(existingUser, OAuthProvider.KAKAO)) {
+                        oauthRepository.save(
+                                Oauth.builder()
+                                        .provider(OAuthProvider.KAKAO)
+                                        .providerId(info.id())
+                                        .user(existingUser)
+                                        .build());
+                    }
+                    return existingUser;
+                })
+                .orElseGet(() -> createKakaoUser(info));
     }
 
     private User createKakaoUser(KakaoUserInfo info) {
@@ -129,22 +126,20 @@ public class AuthService {
         String encodedPassword = passwordEncoder.hash(randomPassword);
 
         User user = userRepository.save(
-            User.builder()
-                .email(info.email())
-                .password(encodedPassword)
-                .nickname(info.nickname())
-                .profileImageUrl(info.profileImageUrl())
-                .role(UserRole.ROLE_USER)
-                .build()
-        );
+                User.builder()
+                        .email(info.email())
+                        .password(encodedPassword)
+                        .nickname(info.nickname())
+                        .profileImageUrl(info.profileImageUrl())
+                        .role(UserRole.ROLE_USER)
+                        .build());
 
         oauthRepository.save(
-            Oauth.builder()
-                .provider(OAuthProvider.KAKAO)
-                .providerId(info.id())
-                .user(user)
-                .build()
-        );
+                Oauth.builder()
+                        .provider(OAuthProvider.KAKAO)
+                        .providerId(info.id())
+                        .user(user)
+                        .build());
 
         return user;
     }

@@ -17,6 +17,7 @@ import jakarta.persistence.OneToMany;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -39,8 +40,10 @@ public class StartingLineup {
 	private List<LineupPlayer> lineupPlayers = new ArrayList<>();
 
 	public static StartingLineup create(Match match, Team team) {
-		if (match == null) throw new IllegalArgumentException("Match must not be null");
-		if (team == null) throw new IllegalArgumentException("Team must not be null");
+		if (match == null)
+			throw new IllegalArgumentException("Match must not be null");
+		if (team == null)
+			throw new IllegalArgumentException("Team must not be null");
 
 		StartingLineup lineup = new StartingLineup();
 		lineup.id = new StartingLineupPK(match.getId(), team.getId());
@@ -50,12 +53,13 @@ public class StartingLineup {
 	}
 
 	public void addPlayers(List<LineupPlayer> players) {
-		if (players == null) return;
+		if (players == null)
+			return;
 		for (LineupPlayer player : players) {
-			if (player == null) continue;
+			if (player == null)
+				continue;
 			player.setStartingLineup(this);
 			this.lineupPlayers.add(player);
 		}
 	}
 }
-

@@ -12,7 +12,7 @@ import com.sparta.spartatigers.domain.support.weather.model.WeatherApiStatus;
  * status는 세 API 중 가장 심각한 상태를 대표값으로 전달한다.
  */
 public record WeatherBundle(
-                WeatherApiStatus status,
-                NowCastResponseDto nowCast,
-                List<ForeCastResponseDto> foreCast) {
+        WeatherApiStatus status,
+        NowCastResponseDto nowCast,
+        List<ForeCastResponseDto> foreCast) {
 }

@@ -26,11 +26,15 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * 고아(Orphan) 이미지 파일을 주기적으로 정리하는 스케줄러.
  *
- * <p>문제 상황: 이미지 업로드 성공 후 아이템 DB 저장에 실패하면 try-catch로 파일을 삭제하지만,
- * 서버 크래시나 OOM 발생 시 삭제 로직이 실행되지 않아 디스크에 고아 파일이 영구 잔류한다.</p>
+ * <p>
+ * 문제 상황: 이미지 업로드 성공 후 아이템 DB 저장에 실패하면 try-catch로 파일을 삭제하지만,
+ * 서버 크래시나 OOM 발생 시 삭제 로직이 실행되지 않아 디스크에 고아 파일이 영구 잔류한다.
+ * </p>
  *
- * <p>해결: 매일 새벽 3시에 업로드 디렉토리를 스캔하고, DB의 item.image에 참조되지 않으면서
- * 생성 후 24시간이 지난 파일을 일괄 삭제한다.</p>
+ * <p>
+ * 해결: 매일 새벽 3시에 업로드 디렉토리를 스캔하고, DB의 item.image에 참조되지 않으면서
+ * 생성 후 24시간이 지난 파일을 일괄 삭제한다.
+ * </p>
  */
 @Component
 @Slf4j
@@ -75,15 +79,18 @@ public class OrphanImageCleanupScheduler {
 
         try (Stream<Path> files = Files.list(uploadDirPath)) {
             for (Path file : (Iterable<Path>) files::iterator) {
-                if (!Files.isRegularFile(file)) continue;
+                if (!Files.isRegularFile(file))
+                    continue;
                 scannedCount++;
 
                 String fileName = file.getFileName().toString();
 
                 // DB에 참조되어 있으면 건너뛰기
-                if (referencedFileNames.contains(fileName)) continue;
+                if (referencedFileNames.contains(fileName))
+                    continue;
 
-                // [FIX] 문제 4: creationTime()은 리눅스 파일시스템에서 신뢰성이 낮음 (lastModifiedTime과 동일하거나 epoch 반환 가능)
+                // [FIX] 문제 4: creationTime()은 리눅스 파일시스템에서 신뢰성이 낮음 (lastModifiedTime과 동일하거나
+                // epoch 반환 가능)
                 // 안전을 위해 생성 시간과 수정 시간 중 더 최근 시각을 기준으로 24시간이 경과했는지 판단
                 try {
                     BasicFileAttributes attrs = Files.readAttributes(file, BasicFileAttributes.class);
@@ -129,7 +136,8 @@ public class OrphanImageCleanupScheduler {
                     // JSON 배열 형태인 경우
                     if (imageField.startsWith("[")) {
                         try {
-                            List<String> urls = objectMapper.readValue(imageField, new TypeReference<List<String>>() {});
+                            List<String> urls = objectMapper.readValue(imageField, new TypeReference<List<String>>() {
+                            });
                             for (String url : urls) {
                                 extractFileName(url, fileNames);
                             }
@@ -164,7 +172,8 @@ public class OrphanImageCleanupScheduler {
      * 예: "/api/images/uuid_file.jpg" → "uuid_file.jpg"
      */
     private void extractFileName(String url, Set<String> fileNames) {
-        if (url == null || url.isBlank()) return;
+        if (url == null || url.isBlank())
+            return;
         int lastSlash = url.lastIndexOf('/');
         String fileName = lastSlash >= 0 ? url.substring(lastSlash + 1) : url;
         if (!fileName.isBlank()) {

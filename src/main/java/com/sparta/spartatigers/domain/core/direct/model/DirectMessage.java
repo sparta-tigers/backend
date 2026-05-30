@@ -42,7 +42,7 @@ public class DirectMessage extends BaseEntity {
     @Column(nullable = false)
     private LocalDateTime sentAt;
 
-    @Column (nullable = false)
+    @Column(nullable = false)
     private boolean isRead;
 
     public static DirectMessage of(DirectRoom directRoom, User sender, String message, LocalDateTime sentAt) {

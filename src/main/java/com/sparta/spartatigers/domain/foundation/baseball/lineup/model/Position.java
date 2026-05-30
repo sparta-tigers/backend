@@ -1,6 +1,6 @@
 package com.sparta.spartatigers.domain.foundation.baseball.lineup.model;
 
-public enum Position  {
+public enum Position {
 	P("투수", "1"),
 	C("포수", "2"),
 	FIRST_BASE("1루수", "3"),
@@ -34,7 +34,7 @@ public enum Position  {
 		}
 
 		String trimmed = positionStr.trim();
-		
+
 		for (Position position : values()) {
 			// 1. 한글 명칭 비교 (예: "우익수")
 			if (position.koreanName.equals(trimmed)) {
@@ -45,12 +45,12 @@ public enum Position  {
 				return position;
 			}
 			// 3. 영문 약어 비교 (예: "DH" 또는 "D")
-			if (position.name().equals(trimmed) || 
-				(position == DH && "D".equals(trimmed))) {
+			if (position.name().equals(trimmed) ||
+					(position == DH && "D".equals(trimmed))) {
 				return position;
 			}
 		}
-		
+
 		throw new IllegalArgumentException("알 수 없는 포지션입니다: [" + positionStr + "]");
 	}
 }

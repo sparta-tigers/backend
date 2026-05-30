@@ -31,7 +31,8 @@ public class LiveBoardDataService {
      * 실시간 중계 데이터 캐싱
      */
     public void cacheLiveBoardData(LiveBoardData data) {
-        if (data == null || data.getMatchId() == null) return;
+        if (data == null || data.getMatchId() == null)
+            return;
 
         String key = DATA_CACHE_PREFIX + data.getMatchId();
         redisTemplate.opsForValue().set(key, data, CACHE_TTL);

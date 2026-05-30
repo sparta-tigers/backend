@@ -7,7 +7,6 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import com.sparta.spartatigers.global.aop.TokenClaim;
 import com.sparta.spartatigers.domain.foundation.user.auth.service.TokenService;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
@@ -38,7 +37,7 @@ public class AuthArgumentResolver implements HandlerMethodArgumentResolver {
         if (bearerToken == null || bearerToken.isBlank()) {
             throw new InvalidRequestException(ExceptionCode.UNAUTHORIZED);
         }
-        
+
         // [FIX] regionMatches(true, ...) → startsWith("Bearer ")로 변경
         // RFC 6750 §2.1: Bearer 스킴은 정확히 "Bearer"(대소문자 구분)이어야 함
         // StompInterceptor(L48)도 startsWith("Bearer ")로 검증 — 양쪽 RFC 준수 방식으로 통일

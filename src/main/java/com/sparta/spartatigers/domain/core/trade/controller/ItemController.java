@@ -62,8 +62,7 @@ public class ItemController {
     public ResponseEntity<Void> createItem(
             @Auth TokenClaim tokenClaim,
             @RequestPart(value = "itemRequest") String itemRequestJson,
-            @RequestPart(value = "images", required = false) List<MultipartFile> images
-    ) {
+            @RequestPart(value = "images", required = false) List<MultipartFile> images) {
         try {
             // [FIX] @JsonIgnoreProperties(ignoreUnknown = false)로 오타 필드를 명시적으로 거부
             // + 파싱 후 Validator로 Bean Validation(@NotNull, @NotBlank 등) 명시적 수행
@@ -73,8 +72,8 @@ public class ItemController {
             Set<ConstraintViolation<ItemCreateRequest>> violations = validator.validate(request);
             if (!violations.isEmpty()) {
                 String errorMessages = violations.stream()
-                    .map(v -> v.getPropertyPath() + ": " + v.getMessage())
-                    .collect(Collectors.joining(", "));
+                        .map(v -> v.getPropertyPath() + ": " + v.getMessage())
+                        .collect(Collectors.joining(", "));
                 log.warn("[createItem] 입력 검증 실패: {}", errorMessages);
                 throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
             }
@@ -115,11 +114,10 @@ public class ItemController {
 
     @GetMapping
     public ApiResponse<Page<ReadItemResponseDto>> findAllItems(@Auth TokenClaim tokenClaim,
-        @PageableDefault(sort = "createdAt", direction = Direction.DESC)
-        Pageable pageable,
-        @RequestParam(required = false) Double latitude,
-        @RequestParam(required = false) Double longitude,
-        @RequestParam(required = false) Double radius) {
+            @PageableDefault(sort = "createdAt", direction = Direction.DESC) Pageable pageable,
+            @RequestParam(required = false) Double latitude,
+            @RequestParam(required = false) Double longitude,
+            @RequestParam(required = false) Double radius) {
 
         // [FIX] 문제 2: NaN 검증 우회 방지 + radius 단독 전달 거부
         // IEEE 754 규칙: NaN < -90, NaN > 90 모두 false → 기존 범위 검증을 그대로 통과
@@ -148,22 +146,23 @@ public class ItemController {
             throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
         }
 
-        Page<ReadItemResponseDto> response = itemService.findAllItems(tokenClaim, pageable, latitude, longitude, radius);
+        Page<ReadItemResponseDto> response = itemService.findAllItems(tokenClaim, pageable, latitude, longitude,
+                radius);
 
         return ApiResponse.success(response);
     }
 
     @GetMapping("/my")
     public ApiResponse<Page<ReadItemResponseDto>> findMyItems(
-        @Auth TokenClaim tokenClaim,
-        @PageableDefault(sort = "createdAt", direction = Direction.DESC) Pageable pageable) {
+            @Auth TokenClaim tokenClaim,
+            @PageableDefault(sort = "createdAt", direction = Direction.DESC) Pageable pageable) {
         Page<ReadItemResponseDto> response = itemService.findMyItems(tokenClaim, pageable);
         return ApiResponse.success(response);
     }
 
     @GetMapping("/{itemId}")
-    public ApiResponse<ReadItemDetailResponseDto> findItemById(@PathVariable Long itemId, @Valid @ModelAttribute
-        FindItemByIdRequestDto request) {
+    public ApiResponse<ReadItemDetailResponseDto> findItemById(@PathVariable Long itemId,
+            @Valid @ModelAttribute FindItemByIdRequestDto request) {
 
         ReadItemDetailResponseDto response = itemService.findItemById(itemId, request);
 
@@ -180,7 +179,7 @@ public class ItemController {
 
     @PatchMapping("/{itemId}")
     public ApiResponse<ItemResponseDto> updateItem(@Auth TokenClaim tokenClaim,
-        @PathVariable Long itemId, @RequestBody UpdateItemRequestDto request) {
+            @PathVariable Long itemId, @RequestBody UpdateItemRequestDto request) {
 
         ItemResponseDto response = itemService.updateItem(tokenClaim, itemId, request);
 
@@ -189,9 +188,9 @@ public class ItemController {
 
     @PatchMapping("/{itemId}/status")
     public ApiResponse<Void> updateItemStatus(
-        @Auth TokenClaim tokenClaim,
-        @PathVariable Long itemId,
-        @Valid @RequestBody UpdateItemStatusRequestDto request) {
+            @Auth TokenClaim tokenClaim,
+            @PathVariable Long itemId,
+            @Valid @RequestBody UpdateItemStatusRequestDto request) {
         itemService.updateItemStatus(tokenClaim, itemId, request);
         return ApiResponse.success(null);
     }

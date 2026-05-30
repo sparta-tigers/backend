@@ -30,8 +30,8 @@ public class S3Config {
 
 		// 2. AmazonS3 클라이언트 빌드 후 스프링 Bean으로 등록
 		return AmazonS3ClientBuilder.standard()
-			.withRegion(region)
-			.withCredentials(new AWSStaticCredentialsProvider(credentials))
-			.build();
+				.withRegion(region)
+				.withCredentials(new AWSStaticCredentialsProvider(credentials))
+				.build();
 	}
 }

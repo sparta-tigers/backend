@@ -27,18 +27,23 @@ public class User extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column private String email;
+    @Column
+    private String email;
 
-    @Column private String password;
+    @Column
+    private String password;
 
-    @Column private String nickname;
+    @Column
+    private String nickname;
 
-    @Column private String profileImageUrl;
+    @Column
+    private String profileImageUrl;
 
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
-    @Column private String fcmToken;
+    @Column
+    private String fcmToken;
 
     public void changePassword(final String password) {
         this.password = password;

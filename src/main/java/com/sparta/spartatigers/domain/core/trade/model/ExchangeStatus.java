@@ -12,11 +12,11 @@ public enum ExchangeStatus {
 
         @JsonCreator
         public static ExchangeStatus parsing(String inputValue) {
-            return Stream.of(ExchangeStatus.values())
-                    .filter(
-                            exchangeStatus ->
-                                    exchangeStatus.toString().equals(inputValue.toUpperCase()))
-                    .findFirst()
-                    .orElse(null);
+                return Stream.of(ExchangeStatus.values())
+                                .filter(
+                                                exchangeStatus -> exchangeStatus.toString()
+                                                                .equals(inputValue.toUpperCase()))
+                                .findFirst()
+                                .orElse(null);
         }
-    }
+}

@@ -20,7 +20,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     default User findByIdOrElseThrow(Long userId) {
         return findById(userId)
-            .orElseThrow(()-> new InvalidRequestException(ExceptionCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new InvalidRequestException(ExceptionCode.USER_NOT_FOUND));
     }
 
 }

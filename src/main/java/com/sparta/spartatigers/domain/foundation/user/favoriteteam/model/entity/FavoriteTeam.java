@@ -19,9 +19,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity(name = "favorite_team")
-@Table(
-        name = "favorite_team",
-        uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id"})})
+@Table(name = "favorite_team", uniqueConstraints = { @UniqueConstraint(columnNames = { "user_id" }) })
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor

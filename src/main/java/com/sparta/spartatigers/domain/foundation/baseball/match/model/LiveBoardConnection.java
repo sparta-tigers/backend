@@ -17,11 +17,11 @@ public class LiveBoardConnection {
 	private LocalDateTime connectedAt;
 
 	public static LiveBoardConnection of(
-		String sessionId,
-		Long userId,
-		String nickname,
-		String roomId,
-		LocalDateTime connectedAt) {
+			String sessionId,
+			Long userId,
+			String nickname,
+			String roomId,
+			LocalDateTime connectedAt) {
 		return new LiveBoardConnection(sessionId, userId, nickname, roomId, connectedAt);
 	}
 }

@@ -29,7 +29,8 @@ public class StartingLineupService {
 
     @Transactional
     public void saveLineupFromCache(LineupCacheDto cacheDto) {
-        if (cacheDto == null || cacheDto.getMatchId() == null) return;
+        if (cacheDto == null || cacheDto.getMatchId() == null)
+            return;
 
         Match match = matchRepository.findById(cacheDto.getMatchId())
                 .orElseThrow(() -> new InvalidRequestException(ExceptionCode.MATCH_NOT_FOUND));
@@ -45,9 +46,10 @@ public class StartingLineupService {
         }
     }
 
-    private void saveTeamLineup(Match match, Long teamId, List<com.sparta.spartatigers.domain.foundation.baseball.lineup.model.LineupBatter> batters) {
+    private void saveTeamLineup(Match match, Long teamId,
+            List<com.sparta.spartatigers.domain.foundation.baseball.lineup.model.LineupBatter> batters) {
         StartingLineupPK pk = new StartingLineupPK(match.getId(), teamId);
-        
+
         // 이미 존재하면 건너뜀
         if (startingLineupRepository.existsById(pk)) {
             return;
@@ -59,26 +61,27 @@ public class StartingLineupService {
         } else if (match.getAwayTeam().getId().equals(teamId)) {
             targetTeam = match.getAwayTeam();
         } else {
-            log.warn("[LINEUP] Team ID {} is not associated with Match ID {} (neither Home nor Away)", teamId, match.getId());
+            log.warn("[LINEUP] Team ID {} is not associated with Match ID {} (neither Home nor Away)", teamId,
+                    match.getId());
             return;
         }
 
         StartingLineup lineup = StartingLineup.create(match, targetTeam);
-        
+
         List<LineupPlayer> players = batters.stream()
                 .map(b -> {
                     try {
                         int order = Integer.parseInt(b.getBattingOrder());
                         return LineupPlayer.of(order, b.getPosition(), b.getName());
                     } catch (NumberFormatException e) {
-                        log.warn("[LINEUP] Invalid batting order '{}' for player '{}' in Match {}", 
+                        log.warn("[LINEUP] Invalid batting order '{}' for player '{}' in Match {}",
                                 b.getBattingOrder(), b.getName(), match.getId());
                         return null;
                     }
                 })
                 .filter(java.util.Objects::nonNull)
                 .collect(Collectors.toList());
-        
+
         lineup.addPlayers(players);
         startingLineupRepository.save(lineup);
         log.info("Saved starting lineup to DB for matchId: {}, teamId: {}", match.getId(), teamId);

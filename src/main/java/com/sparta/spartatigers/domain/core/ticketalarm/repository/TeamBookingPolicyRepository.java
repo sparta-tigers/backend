@@ -13,13 +13,11 @@ public interface TeamBookingPolicyRepository extends JpaRepository<TeamBookingPo
 
 	TeamBookingPolicy findByTeamIdAndMembership(Long teamId, String membership);
 
-	@Query(
-		"""
-		SELECT p
-		FROM TeamBookingPolicy p
-		WHERE p.team.id = :teamId
-			AND p.membership = '일반'
-		"""
-	)
-	TeamBookingPolicy findDefaultPolicyByTeamId (Long teamId);
+	@Query("""
+			SELECT p
+			FROM TeamBookingPolicy p
+			WHERE p.team.id = :teamId
+				AND p.membership = '일반'
+			""")
+	TeamBookingPolicy findDefaultPolicyByTeamId(Long teamId);
 }

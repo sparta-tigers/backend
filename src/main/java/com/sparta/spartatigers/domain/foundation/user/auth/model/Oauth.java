@@ -19,7 +19,6 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
-
 @Entity(name = "oauths")
 @SuperBuilder
 @Getter

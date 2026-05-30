@@ -35,13 +35,13 @@ public class LiveBoardRoomRepository {
 
 	public LiveBoardRoom findRoomById(String roomId) {
 		Object object = opsHash.get(LIVEBOARD_ROOMS, roomId);
-        return objectMapper.convertValue(object, LiveBoardRoom.class);
+		return objectMapper.convertValue(object, LiveBoardRoom.class);
 	}
 
 	public List<LiveBoardRoom> findAllByDate(LocalDate date) {
 		return findAllRoom().stream()
-			.filter(room -> room.getMatchTime().toLocalDate().equals(date))
-			.toList();
+				.filter(room -> room.getMatchTime().toLocalDate().equals(date))
+				.toList();
 	}
 
 	// 매치아이디로 라이브보드룸찾기
@@ -67,4 +67,3 @@ public class LiveBoardRoomRepository {
 		return opsHash.hasKey(LIVEBOARD_ROOMS, roomId);
 	}
 }
-

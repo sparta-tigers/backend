@@ -9,6 +9,6 @@ public record ItemResponseDto(Long id, ItemCategory category, String title, Item
     public static ItemResponseDto from(Item item) {
 
         return new ItemResponseDto(
-            item.getId(), item.getCategory(), item.getTitle(), item.getStatus());
+                item.getId(), item.getCategory(), item.getTitle(), item.getStatus());
     }
 }

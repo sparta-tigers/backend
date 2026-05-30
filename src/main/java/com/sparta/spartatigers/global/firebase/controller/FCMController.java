@@ -20,8 +20,7 @@ public class FCMController {
     private final UserService userService;
 
     @PostMapping("/fcm-token")
-    public ApiResponse<Void> saveFcmToken(@Auth TokenClaim tokenClaim, @Valid @RequestBody
-    FcmTokenRequest request) {
+    public ApiResponse<Void> saveFcmToken(@Auth TokenClaim tokenClaim, @Valid @RequestBody FcmTokenRequest request) {
         userService.updateFcmToken(tokenClaim, request);
         return ApiResponse.success(null);
     }

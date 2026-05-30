@@ -25,34 +25,30 @@ public class FavTeamController {
 
 	@PostMapping("/fav")
 	public ApiResponse<FavTeamResponseDto> addFavTeam(
-		@RequestBody FavTeamRequestDto request,
-		@Auth TokenClaim tokenClaim
-	) {
+			@RequestBody FavTeamRequestDto request,
+			@Auth TokenClaim tokenClaim) {
 		Long userId = tokenClaim.getUserId();
 		return ApiResponse.created(favTeamService.add(request, userId));
 	}
 
 	@GetMapping("/fav")
 	public ApiResponse<FavTeamResponseDto> getFavTeam(
-		@Auth TokenClaim tokenClaim
-	) {
+			@Auth TokenClaim tokenClaim) {
 		Long userId = tokenClaim.getUserId();
 		return ApiResponse.success(favTeamService.get(userId));
 	}
 
 	@PatchMapping("/fav")
 	public ApiResponse<FavTeamResponseDto> updateFavTeam(
-		@RequestBody FavTeamRequestDto request,
-		@Auth TokenClaim tokenClaim
-	) {
+			@RequestBody FavTeamRequestDto request,
+			@Auth TokenClaim tokenClaim) {
 		Long userId = tokenClaim.getUserId();
 		return ApiResponse.success(favTeamService.update(request, userId));
 	}
 
 	@DeleteMapping("/fav")
-	public ApiResponse<?> deleteFavTeam (
-		@Auth TokenClaim tokenClaim
-	) {
+	public ApiResponse<?> deleteFavTeam(
+			@Auth TokenClaim tokenClaim) {
 		Long userId = tokenClaim.getUserId();
 		return ApiResponse.success(favTeamService.delete(userId));
 	}

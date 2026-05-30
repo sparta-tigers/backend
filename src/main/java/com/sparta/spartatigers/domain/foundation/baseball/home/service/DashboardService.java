@@ -53,7 +53,7 @@ public class DashboardService {
 
         // 2. 응원 팀 및 관련 정보 조회
         FavoriteTeam favTeam = favTeamRepository.findByUserId(userId).orElse(null);
-        
+
         Long remainingMatches = 0L;
         String favoriteTeamCode = null;
         List<LineupBatter> todayLineup = Collections.emptyList();
@@ -66,8 +66,7 @@ public class DashboardService {
                     favTeam.getTeam().getId(),
                     LeagueType.REGULAR,
                     now,
-                    MatchResult.NOT_PLAYED
-            );
+                    MatchResult.NOT_PLAYED);
 
             // 3. 오늘의 라인업 조회 (Phase 13)
             todayLineup = fetchTodayLineup(favTeam.getTeam().getId(), now);
@@ -95,7 +94,7 @@ public class DashboardService {
                 .map(match -> {
                     String cacheKey = LINEUP_CACHE_PREFIX + match.getId();
                     Object cachedData = redisTemplate.opsForValue().get(cacheKey);
-                    
+
                     if (cachedData == null) {
                         return Collections.<LineupBatter>emptyList();
                     }
@@ -103,12 +102,12 @@ public class DashboardService {
                     try {
                         // 🚨 앙드레 카파시: ObjectMapper를 이용한 명시적 타입 변환 (안전한 역직렬화)
                         LineupCacheDto lineupCache = objectMapper.convertValue(cachedData, LineupCacheDto.class);
-                        
+
                         // 응원 팀이 홈인지 어웨이인지에 따라 필터링
-                        List<LineupBatter> lineup = match.getHomeTeam().getId().equals(teamId) 
-                                ? lineupCache.getHomeBatters() 
+                        List<LineupBatter> lineup = match.getHomeTeam().getId().equals(teamId)
+                                ? lineupCache.getHomeBatters()
                                 : lineupCache.getAwayBatters();
-                                
+
                         return (lineup != null) ? lineup : Collections.<LineupBatter>emptyList();
                     } catch (Exception e) {
                         log.error("Failed to parse lineup cache for matchId: {}", match.getId(), e);

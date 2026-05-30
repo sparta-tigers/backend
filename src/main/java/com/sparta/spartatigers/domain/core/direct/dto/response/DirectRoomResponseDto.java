@@ -31,7 +31,8 @@ public class DirectRoomResponseDto {
     private boolean opponentOnline;
 
     public static DirectRoomResponseDto from(
-            DirectRoom room, TradeItemInfo itemInfo, Long exchangeRequestId, Long unreadCount, Long currentUserId, boolean opponentOnline) {
+            DirectRoom room, TradeItemInfo itemInfo, Long exchangeRequestId, Long unreadCount, Long currentUserId,
+            boolean opponentOnline) {
 
         boolean isSender = room.getSender().getId().equals(currentUserId);
         User opponent = isSender ? room.getReceiver() : room.getSender();

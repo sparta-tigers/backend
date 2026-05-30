@@ -61,9 +61,9 @@ public class DirectRoomService {
 
                 // sender/receiver는 교환 요청 그대로
                 User sender = userRepository.findById(usersInfo.senderId())
-                        .orElseThrow(() -> new InvalidRequestException(ExceptionCode.USER_NOT_FOUND));
+                                .orElseThrow(() -> new InvalidRequestException(ExceptionCode.USER_NOT_FOUND));
                 User receiver = userRepository.findById(usersInfo.receiverId())
-                        .orElseThrow(() -> new InvalidRequestException(ExceptionCode.USER_NOT_FOUND));
+                                .orElseThrow(() -> new InvalidRequestException(ExceptionCode.USER_NOT_FOUND));
 
                 DirectRoom room = directRoomRepository
                                 .findByExchangeRequestId(exchangeRequestId)
@@ -116,8 +116,10 @@ public class DirectRoomService {
                                         log.debug("[getRoomsForUser] 채팅방 ID: {}, 상대방 ID: {}, 상대방 온라인 여부: {}",
                                                         room.getId(), opponentId,
                                                         isOnline);
-                                        TradeItemInfo itemInfo = tradeQueryDao.getTradeItemInfo(room.getExchangeRequestId());
-                                        return DirectRoomResponseDto.from(room, itemInfo, room.getExchangeRequestId(), unreadCount, currentUserId, isOnline);
+                                        TradeItemInfo itemInfo = tradeQueryDao
+                                                        .getTradeItemInfo(room.getExchangeRequestId());
+                                        return DirectRoomResponseDto.from(room, itemInfo, room.getExchangeRequestId(),
+                                                        unreadCount, currentUserId, isOnline);
                                 });
         }
 
@@ -142,7 +144,7 @@ public class DirectRoomService {
                 // 개선: exchangeRequest.getReceiver() == 아이템 소유자임이 항상 보장됨
                 Long opponentId;
                 String opponentNickname;
-                
+
                 // 프론트의 사용자 정보는 repository로 가져올 수도 있지만 단순 ID만 반환하거나 방의 상대방을 찾는다
                 if (currentUserId.equals(detailInfo.senderId())) {
                         opponentId = room.getReceiver().getId();
@@ -153,10 +155,10 @@ public class DirectRoomService {
                 }
 
                 return DirectRoomItemResponseDto.from(
-                        detailInfo.itemId(), detailInfo.title(), detailInfo.description(),
-                        detailInfo.category(), detailInfo.status(),
-                        detailInfo.ownerId(), detailInfo.ownerNickname(),
-                        detailInfo.exchangeStatus(), opponentId, opponentNickname);
+                                detailInfo.itemId(), detailInfo.title(), detailInfo.description(),
+                                detailInfo.category(), detailInfo.status(),
+                                detailInfo.ownerId(), detailInfo.ownerNickname(),
+                                detailInfo.exchangeStatus(), opponentId, opponentNickname);
         }
 
         // 유저가 직접 채팅방을 삭제할 수도 있음

@@ -14,10 +14,10 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
 	Optional<Team> findByCode(TeamCode code);
 
 	default Team findByIdOrElseThrow(Long teamId) {
-		return findById(teamId).orElseThrow(()->new InvalidRequestException(ExceptionCode.TEAM_NOT_FOUND));
+		return findById(teamId).orElseThrow(() -> new InvalidRequestException(ExceptionCode.TEAM_NOT_FOUND));
 	}
 
 	default Team findByCodeOrElseThrow(TeamCode code) {
-		return findByCode(code).orElseThrow(()->new InvalidRequestException(ExceptionCode.TEAM_NOT_FOUND));
+		return findByCode(code).orElseThrow(() -> new InvalidRequestException(ExceptionCode.TEAM_NOT_FOUND));
 	}
 }

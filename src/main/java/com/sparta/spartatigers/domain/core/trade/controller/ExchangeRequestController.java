@@ -36,7 +36,7 @@ public class ExchangeRequestController {
 
     @PostMapping
     public ApiResponse<ExchangeRoomResponseDto> createExchangeRequest(@Valid @RequestBody ExchangeRequestDto request,
-        @Auth TokenClaim tokenClaim) {
+            @Auth TokenClaim tokenClaim) {
 
         Long exchangeRequestId = exchangeRequestService.createExchangeRequest(request, tokenClaim);
         return ApiResponse.success(ExchangeRoomResponseDto.created(exchangeRequestId));
@@ -44,37 +44,38 @@ public class ExchangeRequestController {
 
     @GetMapping("/receive")
     public ApiResponse<Page<ReceiveRequestResponseDto>> findAllReceiveRequest(
-        @Auth TokenClaim tokenClaim,
-        @PageableDefault(sort = "createdAt", direction = Direction.DESC) Pageable pageable) {
+            @Auth TokenClaim tokenClaim,
+            @PageableDefault(sort = "createdAt", direction = Direction.DESC) Pageable pageable) {
 
         Page<ReceiveRequestResponseDto> response = exchangeRequestService.findAllReceiveRequest(
-            tokenClaim, pageable);
+                tokenClaim, pageable);
 
         return ApiResponse.success(response);
     }
 
     @GetMapping("/send")
     public ApiResponse<Page<SendRequestResponseDto>> findAllSendRequest(
-        @Auth TokenClaim tokenClaim,
-        @PageableDefault(sort = "createdAt", direction = Direction.DESC) Pageable pageable) {
+            @Auth TokenClaim tokenClaim,
+            @PageableDefault(sort = "createdAt", direction = Direction.DESC) Pageable pageable) {
 
         Page<SendRequestResponseDto> response = exchangeRequestService.findAllSendRequest(
-            tokenClaim, pageable);
+                tokenClaim, pageable);
 
         return ApiResponse.success(response);
     }
 
     @PatchMapping("/{exchangeRequestId}")
     public ApiResponse<ExchangeRoomResponseDto> updateRequestStatus(@PathVariable Long exchangeRequestId,
-        @Valid @RequestBody UpdateExchangeRequestDto request, @Auth TokenClaim tokenClaim) {
+            @Valid @RequestBody UpdateExchangeRequestDto request, @Auth TokenClaim tokenClaim) {
 
-        ExchangeRoomResponseDto response = exchangeRequestService.updateRequestStatus(exchangeRequestId, request, tokenClaim);
+        ExchangeRoomResponseDto response = exchangeRequestService.updateRequestStatus(exchangeRequestId, request,
+                tokenClaim);
         return ApiResponse.success(response);
     }
 
     @PatchMapping("/{exchangeRequestId}/complete")
     public ApiResponse<?> completeExchange(@PathVariable Long exchangeRequestId,
-        @Auth TokenClaim tokenClaim) {
+            @Auth TokenClaim tokenClaim) {
 
         exchangeRequestService.completeExchange(exchangeRequestId, tokenClaim);
 
@@ -83,13 +84,13 @@ public class ExchangeRequestController {
 
     @GetMapping("/my")
     public ApiResponse<Page<ReceiveRequestResponseDto>> findMyExchangeRequests(
-        @RequestParam String role,
-        @RequestParam(required = false) ExchangeStatus status,
-        @Auth TokenClaim tokenClaim,
-        @PageableDefault(sort = "createdAt", direction = Direction.DESC) Pageable pageable) {
+            @RequestParam String role,
+            @RequestParam(required = false) ExchangeStatus status,
+            @Auth TokenClaim tokenClaim,
+            @PageableDefault(sort = "createdAt", direction = Direction.DESC) Pageable pageable) {
 
         Page<ReceiveRequestResponseDto> response = exchangeRequestService.findMyExchangeRequests(
-            role, status, pageable, tokenClaim);
+                role, status, pageable, tokenClaim);
 
         return ApiResponse.success(response);
     }

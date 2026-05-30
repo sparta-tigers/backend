@@ -45,9 +45,8 @@ public class MatchAttendanceController {
 
 	@PostMapping("/ticket")
 	public ApiResponse<TicketOcrResponseDto> uploadTicketAndOcr(
-		@Auth TokenClaim tokenClaim,
-		@RequestPart(value = "images", required = true) MultipartFile ticket
-	) {
+			@Auth TokenClaim tokenClaim,
+			@RequestPart(value = "images", required = true) MultipartFile ticket) {
 		log.info("티켓 좌석 추출 시작 ==");
 		if (ticket == null || ticket.isEmpty()) {
 			throw new InvalidRequestException(ExceptionCode.INVALID_TICKET_IMAGE);
@@ -70,22 +69,22 @@ public class MatchAttendanceController {
 
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ApiResponse<MatchAttendanceResponseDto> createAttendance(
-		@Auth TokenClaim tokenClaim,
-		@RequestPart(value = "request", required = true) @Valid MatchAttendanceRequestDto request,
-		@RequestPart(value = "images", required = false) List<MultipartFile> images
-	) {
+			@Auth TokenClaim tokenClaim,
+			@RequestPart(value = "request", required = true) @Valid MatchAttendanceRequestDto request,
+			@RequestPart(value = "images", required = false) List<MultipartFile> images) {
 		Long userId = tokenClaim.getUserId();
 
 		List<String> uploadedImageUrls = new ArrayList<>();
-		if(images != null && !images.isEmpty()) {
+		if (images != null && !images.isEmpty()) {
 			uploadedImageUrls = imageStorageService.uploadImages(images);
 		}
 
-		try{
-			MatchAttendanceResponseDto response = matchAttendanceService.createAttendance(userId, request, uploadedImageUrls);
+		try {
+			MatchAttendanceResponseDto response = matchAttendanceService.createAttendance(userId, request,
+					uploadedImageUrls);
 			return ApiResponse.created(response);
 		} catch (Exception e) {
-			if(!uploadedImageUrls.isEmpty()) {
+			if (!uploadedImageUrls.isEmpty()) {
 				log.error("직관기록 이미지 저장 실패, 업로드 된 파일 롤백 : {}", uploadedImageUrls);
 				imageStorageService.deleteImages(uploadedImageUrls);
 			}
@@ -95,52 +94,49 @@ public class MatchAttendanceController {
 
 	@GetMapping("/{attendanceId}")
 	public ApiResponse<MatchAttendanceResponseDto> getAttendance(
-		@Auth TokenClaim tokenClaim,
-		@PathVariable Long attendanceId
-	) {
+			@Auth TokenClaim tokenClaim,
+			@PathVariable Long attendanceId) {
 		Long userId = tokenClaim.getUserId();
 		return ApiResponse.success(matchAttendanceService.getAttendance(userId, attendanceId));
 	}
 
 	@GetMapping("/my")
 	public ApiResponse<Page<MatchAttendanceResponseDto>> getMyAttendances(
-		@Auth TokenClaim tokenClaim,
-		@RequestParam(defaultValue = "1") int page,
-		@RequestParam(defaultValue = "10") int size
-	) {
+			@Auth TokenClaim tokenClaim,
+			@RequestParam(defaultValue = "1") int page,
+			@RequestParam(defaultValue = "10") int size) {
 		Long userId = tokenClaim.getUserId();
 		return ApiResponse.success(matchAttendanceService.getAllAttendance(userId, page, size));
 	}
 
 	@GetMapping("/my/match/{matchId}")
 	public ApiResponse<MatchAttendanceResponseDto> getMyAttendanceByMatchId(
-		@Auth TokenClaim tokenClaim,
-		@PathVariable Long matchId
-	) {
+			@Auth TokenClaim tokenClaim,
+			@PathVariable Long matchId) {
 		Long userId = tokenClaim.getUserId();
 		MatchAttendanceResponseDto response = matchAttendanceService.getAttendanceByMatchId(userId, matchId);
 		return ApiResponse.success(response);
 	}
 
 	@PatchMapping(value = "/{attendanceId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ApiResponse<MatchAttendanceResponseDto> updateAttendance (
-		@Auth TokenClaim tokenClaim,
-		@PathVariable Long attendanceId,
-		@RequestPart (value = "request") @Valid MatchAttendanceUpdateRequestDto request,
-		@RequestPart(value = "images", required = false) List<MultipartFile> newImages
-	) {
+	public ApiResponse<MatchAttendanceResponseDto> updateAttendance(
+			@Auth TokenClaim tokenClaim,
+			@PathVariable Long attendanceId,
+			@RequestPart(value = "request") @Valid MatchAttendanceUpdateRequestDto request,
+			@RequestPart(value = "images", required = false) List<MultipartFile> newImages) {
 		Long userId = tokenClaim.getUserId();
 
 		List<String> uploadedImageUrls = new ArrayList<>();
-		if(newImages != null && !newImages.isEmpty()) {
+		if (newImages != null && !newImages.isEmpty()) {
 			uploadedImageUrls = imageStorageService.uploadImages(newImages);
 		}
 
-		try{
-			MatchAttendanceResponseDto response = matchAttendanceService.updateAttendance(userId, attendanceId, request, uploadedImageUrls);
+		try {
+			MatchAttendanceResponseDto response = matchAttendanceService.updateAttendance(userId, attendanceId, request,
+					uploadedImageUrls);
 			return ApiResponse.success(response);
 		} catch (Exception e) {
-			if(!uploadedImageUrls.isEmpty()) {
+			if (!uploadedImageUrls.isEmpty()) {
 				log.error("직관기록 이미지 수정 실패, 업로드 된 파일 롤백 : {}", uploadedImageUrls);
 				imageStorageService.deleteImages(uploadedImageUrls);
 			}
@@ -150,19 +146,17 @@ public class MatchAttendanceController {
 
 	@DeleteMapping("/{attendanceId}")
 	public ApiResponse<?> deleteAttendance(
-		@Auth TokenClaim tokenClaim,
-		@PathVariable Long attendanceId
-	) {
+			@Auth TokenClaim tokenClaim,
+			@PathVariable Long attendanceId) {
 		Long userId = tokenClaim.getUserId();
-		matchAttendanceService.deleteAttendance(userId,attendanceId);
+		matchAttendanceService.deleteAttendance(userId, attendanceId);
 		return ApiResponse.success("");
 	}
 
 	@GetMapping("/count")
 	public ApiResponse<Long> getAttendanceCount(
-		@Auth TokenClaim tokenClaim,
-		@RequestParam(required = false) Integer year
-	) {
+			@Auth TokenClaim tokenClaim,
+			@RequestParam(required = false) Integer year) {
 		Long userId = tokenClaim.getUserId();
 		return ApiResponse.success(matchAttendanceService.getAttendanceCount(userId, year));
 	}

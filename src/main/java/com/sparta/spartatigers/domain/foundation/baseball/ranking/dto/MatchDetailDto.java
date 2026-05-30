@@ -25,15 +25,15 @@ public class MatchDetailDto {
 
 	public static MatchDetailDto from(Match match, String stageName) {
 		return MatchDetailDto.builder()
-			.matchId(match.getId())
-			.postseasonStage(stageName)
-			.matchTime(match.getMatchTime())
-			.homeTeamName(match.getHomeTeam().getName())
-			.awayTeamName(match.getAwayTeam().getName())
-			.homeTeamScore(match.getHomeScore()) // 엔티티 필드명에 맞춰 수정
-			.awayTeamScore(match.getAwayScore())
-			.stadiumName(match.getStadium().getName())
-			.matchResult(match.getMatchResult().name())
-			.build();
+				.matchId(match.getId())
+				.postseasonStage(stageName)
+				.matchTime(match.getMatchTime())
+				.homeTeamName(match.getHomeTeam().getName())
+				.awayTeamName(match.getAwayTeam().getName())
+				.homeTeamScore(match.getHomeScore()) // 엔티티 필드명에 맞춰 수정
+				.awayTeamScore(match.getAwayScore())
+				.stadiumName(match.getStadium().getName())
+				.matchResult(match.getMatchResult().name())
+				.build();
 	}
 }

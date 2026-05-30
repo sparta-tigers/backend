@@ -19,13 +19,9 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(
-	uniqueConstraints = {
-		@UniqueConstraint(
-			name = "match_team_batting_order",
-			columnNames = {"match_id", "team_id", "batting_order"})
-	}
-)
+@Table(uniqueConstraints = {
+		@UniqueConstraint(name = "match_team_batting_order", columnNames = { "match_id", "team_id", "batting_order" })
+})
 public class LineupPlayer {
 
 	@Id
@@ -34,8 +30,8 @@ public class LineupPlayer {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumns({
-		@JoinColumn(name = "match_id", referencedColumnName = "match_id"),
-		@JoinColumn(name = "team_id", referencedColumnName = "team_id")
+			@JoinColumn(name = "match_id", referencedColumnName = "match_id"),
+			@JoinColumn(name = "team_id", referencedColumnName = "team_id")
 	})
 	private StartingLineup startingLineup;
 

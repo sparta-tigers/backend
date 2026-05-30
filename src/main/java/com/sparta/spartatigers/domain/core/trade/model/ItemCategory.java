@@ -7,14 +7,14 @@ import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 
 public enum ItemCategory {
-        GOODS,
-        TICKET;
+    GOODS,
+    TICKET;
 
-        @JsonCreator
-        public static ItemCategory parsing(String inputValue) {
-            return Stream.of(ItemCategory.values())
-                    .filter(category -> category.toString().equals(inputValue.toUpperCase()))
-                    .findFirst()
-                    .orElseThrow(() -> new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
-        }
+    @JsonCreator
+    public static ItemCategory parsing(String inputValue) {
+        return Stream.of(ItemCategory.values())
+                .filter(category -> category.toString().equals(inputValue.toUpperCase()))
+                .findFirst()
+                .orElseThrow(() -> new InvalidRequestException(ExceptionCode.VALIDATION_ERROR));
     }
+}

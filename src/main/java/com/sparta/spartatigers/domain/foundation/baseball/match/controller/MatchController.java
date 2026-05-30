@@ -51,7 +51,8 @@ public class MatchController {
             @Auth TokenClaim tokenClaim) {
         log.info("Fetching monthly schedule: year={}, month={}, leagueType={}", year, month, leagueType);
         Long userId = tokenClaim.getUserId();
-        List<MatchScheduleResponseDto> schedule = matchScheduleService.getMonthlySchedule(userId, year, month, leagueType);
+        List<MatchScheduleResponseDto> schedule = matchScheduleService.getMonthlySchedule(userId, year, month,
+                leagueType);
         return ApiResponse.success(schedule);
     }
 }

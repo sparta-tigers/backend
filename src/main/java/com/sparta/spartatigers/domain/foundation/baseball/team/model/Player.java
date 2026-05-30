@@ -32,5 +32,6 @@ public class Player extends BaseEntity {
     @JoinColumn(name = "team_id")
     private Team team;
 
-    @Column private String position;
+    @Column
+    private String position;
 }

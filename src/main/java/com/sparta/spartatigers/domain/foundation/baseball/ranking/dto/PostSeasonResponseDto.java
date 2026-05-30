@@ -14,11 +14,11 @@ public class PostSeasonResponseDto {
 	private String champion; // 한국시리즈 우승팀
 	private Map<PostseasonStage, List<MatchDetailDto>> postSeasonMatches;
 
-	public static PostSeasonResponseDto from(int seasonYear, String champion, Map<PostseasonStage, List<MatchDetailDto>> classifiedMatches) {
+	public static PostSeasonResponseDto from(int seasonYear, String champion,
+			Map<PostseasonStage, List<MatchDetailDto>> classifiedMatches) {
 		return new PostSeasonResponseDto(
-			seasonYear,
-			champion,
-			classifiedMatches
-		);
+				seasonYear,
+				champion,
+				classifiedMatches);
 	}
 }

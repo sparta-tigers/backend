@@ -33,8 +33,7 @@ public class ChatService {
 	private final RedisChatPublisher redisChatPublisher;
 	private final RedisChatSubscriber redisChatSubscriber;
 	private final RedisMessageListenerContainer redisMessageListener;
-	private final Map<String, ChannelTopic> topics =
-		new ConcurrentHashMap<>(); // 채팅방별 topic
+	private final Map<String, ChannelTopic> topics = new ConcurrentHashMap<>(); // 채팅방별 topic
 	private final UserRepository userRepository;
 	private final LiveBoardConnectionRepository liveBoardConnectionRepository;
 	private final FavTeamRepository favTeamRepository;
@@ -49,18 +48,17 @@ public class ChatService {
 		String nickname = userRepository.findNicknameById(senderId).orElse("회원");
 
 		String symbolUrl = favTeamRepository.findByUserId(senderId)
-			.map(favoriteTeam -> favoriteTeam.getTeam().getSymbolUrl())
-			.orElse(null);
+				.map(favoriteTeam -> favoriteTeam.getTeam().getSymbolUrl())
+				.orElse(null);
 
 		ChatMessage sendMessage = ChatMessage.ofLiveBoardRoom(
-			message.getRoomId(),
-			senderId,
-			nickname,
-			message.getContent(),
-			symbolUrl,
-			LocalDateTime.now(clock),
-			message.getTempId()
-		);
+				message.getRoomId(),
+				senderId,
+				nickname,
+				message.getContent(),
+				symbolUrl,
+				LocalDateTime.now(clock),
+				message.getTempId());
 
 		ChannelTopic topic = getOrInitTopic(message.getRoomId());
 		redisChatPublisher.publish(topic, sendMessage);
@@ -79,30 +77,29 @@ public class ChatService {
 		String roomId = message.getPayload().getRoomId();
 
 		LiveBoardConnection connection = LiveBoardConnection.of(
-			globalSessionId, senderId, nickname, roomId, LocalDateTime.now(clock)
-		);
-		liveBoardConnectionRepository.saveConnection(roomId,globalSessionId, connection);
+				globalSessionId, senderId, nickname, roomId, LocalDateTime.now(clock));
+		liveBoardConnectionRepository.saveConnection(roomId, globalSessionId, connection);
 	}
 
 	public void exitRoom(Message<ChatMessage> message) {
 		String roomId = message.getPayload().getRoomId();
 		String globalSessionId = getGlobalSessionId(message);
 
-		liveBoardConnectionRepository.deleteConnection(roomId,globalSessionId);
+		liveBoardConnectionRepository.deleteConnection(roomId, globalSessionId);
 	}
 
 	private ChannelTopic getOrInitTopic(String roomId) {
 		return topics.computeIfAbsent(
-			roomId,
-			key -> {
-				ChannelTopic topic = new ChannelTopic(key);
-				redisMessageListener.addMessageListener(redisChatSubscriber, topic);
-				return topic;
-			});
+				roomId,
+				key -> {
+					ChannelTopic topic = new ChannelTopic(key);
+					redisMessageListener.addMessageListener(redisChatSubscriber, topic);
+					return topic;
+				});
 	}
 
-	private Long getSenderId(Principal principal){
-		if(principal instanceof StompPrincipal stompPrincipal) {
+	private Long getSenderId(Principal principal) {
+		if (principal instanceof StompPrincipal stompPrincipal) {
 			return Long.parseLong(stompPrincipal.getName());
 		}
 		// TODO : 나중에 소셜 로그인 추가되면 추가하기
@@ -124,6 +121,5 @@ public class ChatService {
 			}
 		}
 	}
-
 
 }

@@ -62,7 +62,8 @@ public class MatchScheduleService {
         LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
 
         // 3. 경기 데이터 조회 (팀 조건 및 리그 타입 포함)
-        List<Match> matches = matchRepository.findAllByMatchTimeBetweenAndTeam(startOfMonth, endOfMonth, myTeam.getId(), leagueType);
+        List<Match> matches = matchRepository.findAllByMatchTimeBetweenAndTeam(startOfMonth, endOfMonth, myTeam.getId(),
+                leagueType);
 
         // 4. DTO 변환
         return matches.stream()

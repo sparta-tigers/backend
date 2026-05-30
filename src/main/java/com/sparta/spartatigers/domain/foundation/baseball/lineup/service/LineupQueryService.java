@@ -49,7 +49,8 @@ public class LineupQueryService {
         }
 
         // Redis 캐시가 없거나 오류 발생 시 DB Fallback
-        List<com.sparta.spartatigers.domain.foundation.baseball.lineup.model.StartingLineup> lineups = startingLineupRepository.findByMatchId(matchId);
+        List<com.sparta.spartatigers.domain.foundation.baseball.lineup.model.StartingLineup> lineups = startingLineupRepository
+                .findByMatchId(matchId);
         if (!lineups.isEmpty()) {
             return LineupResponseDto.fromEntities(matchId, lineups);
         }

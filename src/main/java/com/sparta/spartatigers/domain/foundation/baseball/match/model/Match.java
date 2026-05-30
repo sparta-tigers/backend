@@ -42,7 +42,8 @@ public class Match extends BaseEntity {
     @Column(nullable = false)
     private int seasonYear;
 
-    @Column private LocalDateTime matchTime;
+    @Column
+    private LocalDateTime matchTime;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "home_team_id", nullable = false)
@@ -60,12 +61,14 @@ public class Match extends BaseEntity {
     @Enumerated(value = EnumType.STRING)
     private MatchResult matchResult;
 
-    @Column private Integer homeScore;
+    @Column
+    private Integer homeScore;
 
     @Column
     private Integer awayScore;
 
-    @Column private String remark; // 비고
+    @Column
+    private String remark; // 비고
 
     public void updateScore(int homeScore, int awayScore) {
         if (homeScore < 0 || awayScore < 0) {
@@ -98,7 +101,8 @@ public class Match extends BaseEntity {
     private void validateMatchTimeState(MatchResult targetResult) {
         if (targetResult != null && this.matchTime != null && LocalDateTime.now().isBefore(this.matchTime)) {
             if (targetResult != MatchResult.CANCEL && targetResult != MatchResult.NOT_PLAYED) {
-                throw new IllegalStateException("경기 예정 시간 이전에는 CANCEL 또는 NOT_PLAYED 상태만 가질 수 있습니다. (요청 상태: " + targetResult + ")");
+                throw new IllegalStateException(
+                        "경기 예정 시간 이전에는 CANCEL 또는 NOT_PLAYED 상태만 가질 수 있습니다. (요청 상태: " + targetResult + ")");
             }
         }
     }

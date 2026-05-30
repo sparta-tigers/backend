@@ -13,21 +13,19 @@ import com.sparta.spartatigers.global.exception.internal.InvalidRequestException
 public interface FavTeamRepository extends JpaRepository<FavoriteTeam, Long> {
 	boolean existsByUser(User user);
 
-	@Query(
-			"""
-		SELECT f
-		FROM favorite_team f
-		JOIN FETCH f.user
-		JOIN FETCH f.team
-		WHERE f.user.id = :userId
-		""")
+	@Query("""
+			SELECT f
+			FROM favorite_team f
+			JOIN FETCH f.user
+			JOIN FETCH f.team
+			WHERE f.user.id = :userId
+			""")
 	Optional<FavoriteTeam> findByUserId(Long userId);
 
 	default FavoriteTeam findByUserIdOrElseThrow(Long userId) {
 		return findByUserId(userId)
-			.orElseThrow(
-				()-> new InvalidRequestException(ExceptionCode.FAVORITE_TEAM_NOT_FOUND)
-			);
+				.orElseThrow(
+						() -> new InvalidRequestException(ExceptionCode.FAVORITE_TEAM_NOT_FOUND));
 	}
 
 }

@@ -1,4 +1,5 @@
 package com.sparta.spartatigers.domain.support.chat.service;
+
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,7 +77,7 @@ public class LocationService {
             locationPublisher.publishLocation(RedisUpdateDto.of(userId, request));
         } catch (Exception e) {
             log.error(
-                "[updateLocation] Redis 또는 publishLocation 처리 중 예외 발생 - userId: {}", userId, e);
+                    "[updateLocation] Redis 또는 publishLocation 처리 중 예외 발생 - userId: {}", userId, e);
         }
     }
 
@@ -90,17 +91,17 @@ public class LocationService {
             }
             Distance distance = new Distance(radius, Metrics.KILOMETERS);
             Circle circle = new Circle(userPoint, distance);
-            GeoResults<RedisGeoCommands.GeoLocation<Object>> results =
-                redisTemplate.opsForGeo().radius(USER_LOCATION_KEY, circle);
+            GeoResults<RedisGeoCommands.GeoLocation<Object>> results = redisTemplate.opsForGeo()
+                    .radius(USER_LOCATION_KEY, circle);
 
             if (results == null) {
                 return new ArrayList<>();
             }
             return results.getContent().stream()
-                .map(result -> Long.valueOf(result.getContent().getName().toString()))
-                .filter(id -> !id.equals(userId))
-                .filter(id -> Boolean.TRUE.equals(redisTemplate.hasKey(LOCATION_TTL_KEY + id)))
-                .collect(Collectors.toList());
+                    .map(result -> Long.valueOf(result.getContent().getName().toString()))
+                    .filter(id -> !id.equals(userId))
+                    .filter(id -> Boolean.TRUE.equals(redisTemplate.hasKey(LOCATION_TTL_KEY + id)))
+                    .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("[findUsersNearBy] 사용자 위치 조회 중 예외 발생 - userId: {}", userId, e);
             return new ArrayList<>();
@@ -115,10 +116,10 @@ public class LocationService {
             Map<String, Object> messagePayload = Map.of("type", messageType, "data", data);
 
             nearByUserIds.forEach(
-                targetUserId -> {
-                    String destination = "/server/items/user/" + targetUserId;
-                    messagingTemplate.convertAndSend(destination, messagePayload);
-                });
+                    targetUserId -> {
+                        String destination = "/server/items/user/" + targetUserId;
+                        messagingTemplate.convertAndSend(destination, messagePayload);
+                    });
             log.debug("[notifyUsersNearBy] 알림 전송 완료");
         } catch (Exception e) {
             log.error("[notifyUsersNearBy] 알람 전송 중 예외 발생 - userId: {}", userId, e);
@@ -136,8 +137,8 @@ public class LocationService {
             Point point = new Point(longitude, latitude);
             Distance distance = new Distance(NEAR_STADIUM_KM, Metrics.KILOMETERS);
             Circle circle = new Circle(point, distance);
-            GeoResults<RedisGeoCommands.GeoLocation<Object>> results =
-                redisTemplate.opsForGeo().radius(STADIUM_LOCATION_KEY, circle);
+            GeoResults<RedisGeoCommands.GeoLocation<Object>> results = redisTemplate.opsForGeo()
+                    .radius(STADIUM_LOCATION_KEY, circle);
 
             return results != null && !results.getContent().isEmpty();
         } catch (Exception e) {
@@ -148,7 +149,7 @@ public class LocationService {
 
     public Integer calculateDistance(Double latitude, Double longitude, Double itemLat, Double itemLon) {
         if (latitude == null || longitude == null ||
-            itemLat == null || itemLon == null) {
+                itemLat == null || itemLon == null) {
             return null;
         }
 
@@ -156,15 +157,14 @@ public class LocationService {
     }
 
     private int calculateDistanceMeter(double userLat, double userLon, double itemLat,
-        double itemLon) {
+            double itemLon) {
 
         double userRad = Math.toRadians(userLat);
         double itemRad = Math.toRadians(itemLat);
         double deltaLat = Math.toRadians(itemLat - userLat);
         double deltaLon = Math.toRadians(itemLon - userLon);
 
-        double a =
-            Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) + Math.cos(userRad) * Math.cos(itemRad)
+        double a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) + Math.cos(userRad) * Math.cos(itemRad)
                 * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
 
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));

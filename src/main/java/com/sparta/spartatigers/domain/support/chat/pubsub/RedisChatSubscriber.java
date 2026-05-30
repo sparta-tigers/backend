@@ -22,14 +22,14 @@ public class RedisChatSubscriber implements MessageListener {
 	@Override
 	public void onMessage(Message message, byte[] pattern) {
 
-		try{
+		try {
 			String json = new String(message.getBody(), StandardCharsets.UTF_8);
 			ChatMessage chatMessage = objectMapper.readValue(json, ChatMessage.class);
 
 			// 전송 경로 분기
 			String path = switch (chatMessage.getDomain()) {
-				case EXCHANGE -> "/server/directRoom/"+chatMessage.getRoomId();
-				case LIVEBOARD -> "/server/liveboard/room/"+chatMessage.getRoomId();
+				case EXCHANGE -> "/server/directRoom/" + chatMessage.getRoomId();
+				case LIVEBOARD -> "/server/liveboard/room/" + chatMessage.getRoomId();
 				default -> null;
 			};
 
@@ -37,7 +37,7 @@ public class RedisChatSubscriber implements MessageListener {
 			messagingTemplate.convertAndSend(path, chatMessage);
 
 		} catch (Exception e) {
-			throw new RuntimeException("RedisChatSubscriber 오류 발생",e);
+			throw new RuntimeException("RedisChatSubscriber 오류 발생", e);
 		}
 	}
 }

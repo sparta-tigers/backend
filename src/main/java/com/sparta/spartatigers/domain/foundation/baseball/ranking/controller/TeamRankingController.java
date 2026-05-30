@@ -18,7 +18,8 @@ import com.sparta.spartatigers.global.response.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
 
-/** [ 팀 순위 및 포스트시즌 정보 API 컨트롤러]
+/**
+ * [ 팀 순위 및 포스트시즌 정보 API 컨트롤러]
  *
  * 일자별 / 년도별 정규리그 순위와 포스트 시즌 경기 결과를 제공합니다.
  */
@@ -40,10 +41,8 @@ public class TeamRankingController {
 	 */
 	@GetMapping("/daily")
 	public ApiResponse<List<TeamRankingResponseDto>> getRankingByDate(
-		@RequestParam (required = false)
-		@DateTimeFormat(pattern = "yyyyMMdd") LocalDate anyday,
-		@RequestParam LeagueType leagueType
-	) {
+			@RequestParam(required = false) @DateTimeFormat(pattern = "yyyyMMdd") LocalDate anyday,
+			@RequestParam LeagueType leagueType) {
 		if (anyday == null) {
 			anyday = LocalDate.now(clock);
 		}
@@ -55,16 +54,15 @@ public class TeamRankingController {
 	 * 특정 연도의 정규리그 또는 시범경기 최종 순위를 조회합니다.
 	 * 포스트 시즌은 순위 집계 대상이 아니므로 조회할 수 없습니다.
 	 *
-	 * @param year 조회할 시즌 연도 (Default = 현재 연도)
+	 * @param year       조회할 시즌 연도 (Default = 현재 연도)
 	 * @param leagueType 리그 타입 (PRESEASON 시범경기, REGULAR 정규 리그)
 	 * @return 해당 시즌의 최종 팀 랭킹 리스트
 	 */
 	@GetMapping("/yearly")
 	public ApiResponse<List<TeamRankingResponseDto>> getRankingByYear(
-		@RequestParam (required = false) Integer year,
-		@RequestParam LeagueType leagueType
-	) {
-		if(year == null) {
+			@RequestParam(required = false) Integer year,
+			@RequestParam LeagueType leagueType) {
+		if (year == null) {
 			year = LocalDate.now(clock).getYear();
 		}
 		return ApiResponse.success(rankingService.getRankingByYear(year, leagueType));
@@ -73,14 +71,14 @@ public class TeamRankingController {
 	/**
 	 * [ 포스트 시즌 결과 조회 ]
 	 * 특정 연도의 포스트 시즌 대진표와 경기결과(와일드카드~한국시리즈)를 조회합니다.
+	 * 
 	 * @param year 조회할 시즌 연도 (Default : 현재 연도)
 	 * @return 단계별 경기 목록 및 우승팀 정보
 	 */
 	@GetMapping("/postseason")
 	public ApiResponse<PostSeasonResponseDto> getPostSeasonMatchesByYear(
-		@RequestParam (required = false) Integer year
-	) {
-		if(year == null) {
+			@RequestParam(required = false) Integer year) {
+		if (year == null) {
 			year = LocalDate.now(clock).getYear();
 		}
 		return ApiResponse.success(rankingService.getPostSeasonResults(year));

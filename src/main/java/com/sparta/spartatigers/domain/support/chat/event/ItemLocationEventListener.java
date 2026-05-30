@@ -25,8 +25,8 @@ public class ItemLocationEventListener {
             locationService.notifyUsersNearBy(event.getUserId(), event.getAction(), event.getData());
             log.info("[ItemLocationUpdated] 알림 전송 완료 - userId: {}, action: {}", event.getUserId(), event.getAction());
         } catch (Exception e) {
-            log.error("[ItemLocationUpdated] 알림 전송 실패 - userId: {}, action: {}, error: {}", 
-                     event.getUserId(), event.getAction(), e.getMessage(), e);
+            log.error("[ItemLocationUpdated] 알림 전송 실패 - userId: {}, action: {}, error: {}",
+                    event.getUserId(), event.getAction(), e.getMessage(), e);
         }
     }
 }

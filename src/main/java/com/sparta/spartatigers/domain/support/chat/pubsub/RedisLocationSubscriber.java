@@ -31,12 +31,11 @@ public class RedisLocationSubscriber implements MessageListener {
 
             List<Long> nearByUserIds = locationService.findUsersNearBy(userId, NEARBY_RADIUS_KM);
             nearByUserIds.forEach(
-                targetUserId -> {
-                    String destination = "/server/items/user/" + targetUserId;
-                    messagingTemplate.convertAndSend(destination,
-                        Map.of("type", "USER_LOCATION_UPDATE", "data", location));
-                }
-            );
+                    targetUserId -> {
+                        String destination = "/server/items/user/" + targetUserId;
+                        messagingTemplate.convertAndSend(destination,
+                                Map.of("type", "USER_LOCATION_UPDATE", "data", location));
+                    });
             String myDestination = "/server/items/user/" + userId;
             messagingTemplate.convertAndSend(myDestination, Map.of("type", "REFRESH_ITEMS"));
         } catch (JsonProcessingException e) {

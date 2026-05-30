@@ -42,5 +42,4 @@ public class AttendanceImage extends BaseEntity {
 		return new AttendanceImage(attendance, imageUrl, imageType);
 	}
 
-
 }

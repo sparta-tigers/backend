@@ -10,6 +10,8 @@ import com.sparta.spartatigers.domain.foundation.baseball.ranking.dto.TeamRankin
 public interface TeamRankingRepositoryCustom {
 
 	List<TeamRankingStat> applyTeamRecords(LocalDateTime anyday, LeagueType leagueType);
-	List<TeamRankingStat> applyTeamRecordsByYear (int year, LeagueType leagueType);
+
+	List<TeamRankingStat> applyTeamRecordsByYear(int year, LeagueType leagueType);
+
 	List<Match> findAllPostSeasonMatches(int year);
 }

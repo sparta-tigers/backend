@@ -23,12 +23,12 @@ public class WebSocketEventListener {
 
 	// 다이렉트룸 구독 감지
 	@EventListener
-	public void handleSessionSubscriveEvent (SessionSubscribeEvent event) {
+	public void handleSessionSubscriveEvent(SessionSubscribeEvent event) {
 		StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
 		String destination = accessor.getDestination();
 		Long userId = getUserIdFromAccessor(accessor);
 
-		if(destination != null && destination.startsWith("/server/directRoom/") && userId != null) {
+		if (destination != null && destination.startsWith("/server/directRoom/") && userId != null) {
 			Long roomId = Long.parseLong(destination.substring("/server/directRoom/".length()));
 			sessionRegistry.registerUserInRoom(roomId, userId);
 			log.info("[1:1 채팅] 입장 이벤트 감지 - user {} entered room {}", userId, roomId);
@@ -37,12 +37,12 @@ public class WebSocketEventListener {
 
 	// 다이렉트룸 구독 종료 감지
 	@EventListener
-	public void handleUnsubsribe (SessionUnsubscribeEvent event) {
+	public void handleUnsubsribe(SessionUnsubscribeEvent event) {
 		StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
 		String destination = accessor.getDestination();
 		Long userId = getUserIdFromAccessor(accessor);
 
-		if(destination != null && destination.startsWith("/server/directRoom/") && userId != null) {
+		if (destination != null && destination.startsWith("/server/directRoom/") && userId != null) {
 			Long roomId = Long.parseLong(destination.substring("/server/directRoom/".length()));
 			sessionRegistry.unregisterUserInRoom(roomId, userId);
 			log.info("[1:1 채팅] 퇴장 이벤트 감지 - user {} left room {}", userId, roomId);
@@ -54,7 +54,7 @@ public class WebSocketEventListener {
 	public void handleDisconnect(SessionDisconnectEvent event) {
 		String sessionId = event.getSessionId();
 		Long userId = sessionRegistry.getUserIdBySessionId(sessionId);
-		if(userId != null) {
+		if (userId != null) {
 			liveBoardService.handleDisconnect(sessionId);
 			sessionRegistry.unregisterSession(userId, sessionId);
 		}
@@ -62,7 +62,7 @@ public class WebSocketEventListener {
 
 	private Long getUserIdFromAccessor(StompHeaderAccessor accessor) {
 		Object userIdAttributes = accessor.getSessionAttributes().get("userId");
-		if(userIdAttributes != null) {
+		if (userIdAttributes != null) {
 			return Long.parseLong(userIdAttributes.toString());
 		}
 		String sessionId = accessor.getSessionId();

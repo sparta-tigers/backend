@@ -20,13 +20,11 @@ public class FavTeamResponseDto {
 
 	public static FavTeamResponseDto of(FavoriteTeam favoriteTeam) {
 		return new FavTeamResponseDto(
-			favoriteTeam.getUser().getId(),
-			favoriteTeam.getTeam().getId(),
-			favoriteTeam.getTeam().getName(),
-			favoriteTeam.getTeam().getCode(),
-			favoriteTeam.getTeam().getSymbolUrl()
-		);
+				favoriteTeam.getUser().getId(),
+				favoriteTeam.getTeam().getId(),
+				favoriteTeam.getTeam().getName(),
+				favoriteTeam.getTeam().getCode(),
+				favoriteTeam.getTeam().getSymbolUrl());
 	}
-
 
 }

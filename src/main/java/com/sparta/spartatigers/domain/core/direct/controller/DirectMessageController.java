@@ -22,23 +22,20 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/direct-rooms")
 public class DirectMessageController {
 
-    private final DirectMessageService directMessageService;
+        private final DirectMessageService directMessageService;
 
-    @GetMapping("/{roomId}/messages")
-    public ApiResponse<Page<DirectRoomMessageResponse>> getMessages(
-            @Auth TokenClaim tokenClaim,
-            @PathVariable Long roomId,
-            @PageableDefault(
-                            size = 30,
-                            sort = {"sentAt", "id"},
-                            direction = Sort.Direction.DESC)
-                    Pageable pageable) {
+        @GetMapping("/{roomId}/messages")
+        public ApiResponse<Page<DirectRoomMessageResponse>> getMessages(
+                        @Auth TokenClaim tokenClaim,
+                        @PathVariable Long roomId,
+                        @PageableDefault(size = 30, sort = { "sentAt",
+                                        "id" }, direction = Sort.Direction.DESC) Pageable pageable) {
 
-        Long currentUserId = tokenClaim.getUserId();
+                Long currentUserId = tokenClaim.getUserId();
 
-        Page<DirectRoomMessageResponse> messages =
-                directMessageService.getMessages(roomId, currentUserId, pageable);
+                Page<DirectRoomMessageResponse> messages = directMessageService.getMessages(roomId, currentUserId,
+                                pageable);
 
-        return ApiResponse.success(messages);
-    }
+                return ApiResponse.success(messages);
+        }
 }

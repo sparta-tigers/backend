@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/api/images")
 @Slf4j
 public class ImageController {
-    
+
     // [FIX] 문제 4: 생성자에서만 할당되므로 final로 불변성 보장
     // LocalImageStorageServiceImpl도 동일한 ${image.storage.path} 프로퍼티를 정규화하므로
     // 향후 경로 정책 변경 시 한쪽만 바뀌는 위험이 있음 — UploadPathProvider 공유 빈으로의 추출도 고려 가능
@@ -39,7 +39,7 @@ public class ImageController {
             // 업로드 디렉토리 경로 가져오기
             String uploadDir = getUploadDirectory();
             Path filePath = Paths.get(uploadDir, fileName).normalize();
-            
+
             // 경로 순회 공격 방지 확인
             Path uploadDirPath = Paths.get(uploadDir).normalize();
             if (!filePath.startsWith(uploadDirPath)) {

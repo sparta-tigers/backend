@@ -20,7 +20,7 @@ public class RedisChatPublisher {
 			String json = objectMapper.writeValueAsString(message);
 			redisTemplate.convertAndSend(topic.getTopic(), json);
 		} catch (Exception e) {
-			throw new RuntimeException("redis 직렬화 실패",e);
+			throw new RuntimeException("redis 직렬화 실패", e);
 		}
 
 	}

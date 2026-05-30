@@ -36,21 +36,20 @@ public class TicketAlarmResponseDto {
 		TeamBookingPolicy policy = alarm.getTeamBookingPolicy();
 
 		return new TicketAlarmResponseDto(
-			alarm.getId(),
-			alarm.getMinusBefore(),
-			alarm.getAlarmTime(),
+				alarm.getId(),
+				alarm.getMinusBefore(),
+				alarm.getAlarmTime(),
 
-			match.getId(),
-			match.getHomeTeam().getName(),
-			match.getAwayTeam().getName(),
-			match.getMatchTime(),
-			match.getStadium().getName(),
+				match.getId(),
+				match.getHomeTeam().getName(),
+				match.getAwayTeam().getName(),
+				match.getMatchTime(),
+				match.getStadium().getName(),
 
-			policy.getId(),
-			policy.getMembership(),
-			policy.getTicketUrl(),
-			alarm.getOpenBookingTime()
-		);
+				policy.getId(),
+				policy.getMembership(),
+				policy.getTicketUrl(),
+				alarm.getOpenBookingTime());
 	}
 
 }

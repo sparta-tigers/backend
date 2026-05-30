@@ -45,43 +45,42 @@ public class JwtTokenService implements TokenService {
         Date nowDate = new Date(now);
 
         final String accessToken = Jwts.builder()
-            .subject(tokenClaim.getSubject())
-            .claim("userId", tokenClaim.getUserId())
-            .claim("email", tokenClaim.getEmail())
-            .claim("nickname", tokenClaim.getNickname())
-            .claim("profileImageUrl", tokenClaim.getProfileImageUrl())
-            .claim("role", tokenClaim.getRole())
-            .issuedAt(nowDate)
-            .expiration(accessTokenExpireAt)
-            .signWith(accessTokenSecretKey)
-            .compact();
+                .subject(tokenClaim.getSubject())
+                .claim("userId", tokenClaim.getUserId())
+                .claim("email", tokenClaim.getEmail())
+                .claim("nickname", tokenClaim.getNickname())
+                .claim("profileImageUrl", tokenClaim.getProfileImageUrl())
+                .claim("role", tokenClaim.getRole())
+                .issuedAt(nowDate)
+                .expiration(accessTokenExpireAt)
+                .signWith(accessTokenSecretKey)
+                .compact();
 
         final String refreshToken = Jwts.builder()
-            .subject(tokenClaim.getSubject())
-            .issuedAt(nowDate)
-            .expiration(refreshTokenExpireAt)
-            .signWith(refreshTokenSecret)
-            .compact();
+                .subject(tokenClaim.getSubject())
+                .issuedAt(nowDate)
+                .expiration(refreshTokenExpireAt)
+                .signWith(refreshTokenSecret)
+                .compact();
 
         long ttlSeconds = TimeUnit.MILLISECONDS.toSeconds(jwtConfig.getRefreshToken().expire());
         log.info("refresh expire raw={}, ttlSeconds={}",
-            jwtConfig.getRefreshToken().expire(), ttlSeconds);
+                jwtConfig.getRefreshToken().expire(), ttlSeconds);
         refreshTokenRepository.save(
-            RefreshToken.builder()
-                .token(refreshToken)
-                .subject(tokenClaim.getSubject())
-                .ttlSeconds(ttlSeconds)
-                .build()
-        );
+                RefreshToken.builder()
+                        .token(refreshToken)
+                        .subject(tokenClaim.getSubject())
+                        .ttlSeconds(ttlSeconds)
+                        .build());
 
         return Token.builder()
-            .accessToken(accessToken)
-            .accessTokenExpiredAt(accessTokenExpireAt)
-            .accessTokenIssuedAt(nowDate)
-            .refreshToken(refreshToken)
-            .refreshTokenExpiredAt(refreshTokenExpireAt)
-            .refreshTokenIssuedAt(nowDate)
-            .build();
+                .accessToken(accessToken)
+                .accessTokenExpiredAt(accessTokenExpireAt)
+                .accessTokenIssuedAt(nowDate)
+                .refreshToken(refreshToken)
+                .refreshTokenExpiredAt(refreshTokenExpireAt)
+                .refreshTokenIssuedAt(nowDate)
+                .build();
     }
 
     @Override
@@ -98,15 +97,17 @@ public class JwtTokenService implements TokenService {
             final String userRole = claimsJws.getPayload().get("role", String.class);
 
             return TokenClaim.builder()
-                .subject(email)
-                .userId(userId.longValue())
-                .email(email)
-                .nickname(nickname)
-                .profileImageUrl(profileImageUrl)
-                .role(UserRole.from(userRole))
-                .build();
-        // [FIX] 문제 1-1: catch(Exception) → JWT 관련 예외만 좌게 잡아 NPE 등 런타임 버그가 UNAUTHORIZED로 둔갑하는 문제 수정
-        // JwtException: ExpiredJwtException, MalformedJwtException, SignatureException 등을 모두 포함하는 부모 타입
+                    .subject(email)
+                    .userId(userId.longValue())
+                    .email(email)
+                    .nickname(nickname)
+                    .profileImageUrl(profileImageUrl)
+                    .role(UserRole.from(userRole))
+                    .build();
+            // [FIX] 문제 1-1: catch(Exception) → JWT 관련 예외만 좌게 잡아 NPE 등 런타임 버그가 UNAUTHORIZED로
+            // 둔갑하는 문제 수정
+            // JwtException: ExpiredJwtException, MalformedJwtException, SignatureException
+            // 등을 모두 포함하는 부모 타입
         } catch (JwtException | IllegalArgumentException e) {
             // [FIX] 문제 1-2: e.getMessage()만 로깅하면 스택트레이스 손실 — SLF4J 관례대로 마지막 인자에 e 전달
             log.warn("JWT 토큰 파싱 실패 [{}]: {}", e.getClass().getSimpleName(), e.getMessage(), e);
@@ -124,8 +125,8 @@ public class JwtTokenService implements TokenService {
             final String subject = claimsJws.getPayload().getSubject();
 
             return TokenClaim.builder()
-                .subject(subject)
-                .build();
+                    .subject(subject)
+                    .build();
         } catch (JwtException | IllegalArgumentException e) {
             log.warn("Refresh 토큰 파싱 실패 [{}]: {}", e.getClass().getSimpleName(), e.getMessage(), e);
             throw new InvalidRequestException(ExceptionCode.INVALID_REFRESH_TOKEN);

@@ -31,8 +31,7 @@ public class RedisMessage {
                 message.getMessage(),
                 message.getSentAt().toString(),
                 message.getSender().getNickname(),
-                message.isRead()
-        );
+                message.isRead());
     }
 
     public static RedisMessage readStatus(Long messageId, Long roomId, boolean isRead) {

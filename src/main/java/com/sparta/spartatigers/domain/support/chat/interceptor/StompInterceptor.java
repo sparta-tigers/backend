@@ -31,8 +31,7 @@ public class StompInterceptor implements ChannelInterceptor {
 
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
-		StompHeaderAccessor accessor =
-			MessageHeaderAccessor.getAccessor(
+		StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(
 				message, StompHeaderAccessor.class); // stomp 메세지의 헤더를 분석 ( 커멘드, 세션아이디 등등..)
 		StompCommand command = accessor.getCommand();
 
@@ -46,7 +45,8 @@ public class StompInterceptor implements ChannelInterceptor {
 
 			// [FIX] 토큰 없음 또는 형식 오류 → 명시적 예외로 CONNECT 거절 (인증 우회 방지)
 			if (rawToken == null || !rawToken.startsWith("Bearer ")) {
-				log.warn("[StompInterceptor] 토큰 없음 또는 형식 오류 - sessionId: {}, Authorization 헤더: {}", accessor.getSessionId(), rawToken);
+				log.warn("[StompInterceptor] 토큰 없음 또는 형식 오류 - sessionId: {}, Authorization 헤더: {}",
+						accessor.getSessionId(), rawToken);
 				throw new IllegalArgumentException("WebSocket CONNECT 시 Authorization Bearer 토큰이 필요합니다.");
 			}
 
@@ -58,13 +58,14 @@ public class StompInterceptor implements ChannelInterceptor {
 			try {
 				claims = jwtTokenService.parseAccessToken(token);
 			} catch (Exception e) {
-				log.warn("[StompInterceptor] JWT 검증 실패 - sessionId: {}, 원인: {}", accessor.getSessionId(), e.getMessage());
+				log.warn("[StompInterceptor] JWT 검증 실패 - sessionId: {}, 원인: {}", accessor.getSessionId(),
+						e.getMessage());
 				throw new IllegalArgumentException("WebSocket CONNECT 토큰 검증에 실패했습니다.");
 			}
 
 			String email = claims.getSubject();
 			User user = userRepository.findByEmail(email)
-			    .orElseThrow(() -> new IllegalArgumentException("WebSocket CONNECT: 유저를 찾을 수 없습니다."));
+					.orElseThrow(() -> new IllegalArgumentException("WebSocket CONNECT: 유저를 찾을 수 없습니다."));
 			String userId = String.valueOf(user.getId());
 			String nickname = user.getNickname();
 
@@ -87,10 +88,14 @@ public class StompInterceptor implements ChannelInterceptor {
 		if (domainRaw == null || domainRaw.isBlank()) {
 			throw new IllegalArgumentException("ChatDomain 헤더가 필수입니다. 클라이언트 STOMP connectHeaders에 ChatDomain을 명시하세요.");
 		}
-		if ("liveboard".equalsIgnoreCase(domainRaw)) return ChatDomainType.LIVEBOARD;
-		if ("directroom".equalsIgnoreCase(domainRaw)) return ChatDomainType.EXCHANGE;
-		if ("location".equalsIgnoreCase(domainRaw)) return ChatDomainType.LOCATION;
-		throw new IllegalArgumentException("지원하지 않는 ChatDomain: '" + domainRaw + "'. 허용값: liveboard, directroom, location");
+		if ("liveboard".equalsIgnoreCase(domainRaw))
+			return ChatDomainType.LIVEBOARD;
+		if ("directroom".equalsIgnoreCase(domainRaw))
+			return ChatDomainType.EXCHANGE;
+		if ("location".equalsIgnoreCase(domainRaw))
+			return ChatDomainType.LOCATION;
+		throw new IllegalArgumentException(
+				"지원하지 않는 ChatDomain: '" + domainRaw + "'. 허용값: liveboard, directroom, location");
 	}
 
 }

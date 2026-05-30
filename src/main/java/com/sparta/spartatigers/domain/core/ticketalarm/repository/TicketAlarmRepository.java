@@ -13,33 +13,31 @@ import com.sparta.spartatigers.domain.core.ticketalarm.model.TicketAlarm;
 
 public interface TicketAlarmRepository extends JpaRepository<TicketAlarm, Long> {
 
-	@Query(
-		"""
-		SELECT t
-		FROM TicketAlarm t
-		JOIN FETCH t.match tm
-		JOIN FETCH t.teamBookingPolicy tbp
-		JOIN FETCH tm.homeTeam ht
-		JOIN FETCH tm.awayTeam at
-		JOIN FETCH tm.stadium st
-		JOIN FETCH t.user u
-		WHERE t.user.id = :userId
-		ORDER BY t.alarmTime ASC
-		"""
-	)
+	@Query("""
+			SELECT t
+			FROM TicketAlarm t
+			JOIN FETCH t.match tm
+			JOIN FETCH t.teamBookingPolicy tbp
+			JOIN FETCH tm.homeTeam ht
+			JOIN FETCH tm.awayTeam at
+			JOIN FETCH tm.stadium st
+			JOIN FETCH t.user u
+			WHERE t.user.id = :userId
+			ORDER BY t.alarmTime ASC
+			""")
 	List<TicketAlarm> findAllByUserId(Long userId);
 
 	@EntityGraph(attributePaths = {
-		"match",
-		"match.homeTeam",
-		"match.awayTeam",
-		"match.stadium",
-		"teamBookingPolicy"
+			"match",
+			"match.homeTeam",
+			"match.awayTeam",
+			"match.stadium",
+			"teamBookingPolicy"
 	})
 	Page<TicketAlarm> findByUserId(Long userId, Pageable pageable);
 
 	Optional<TicketAlarm> findById(Long alarmId);
-	
+
 	long countByUserId(Long userId);
 
 }

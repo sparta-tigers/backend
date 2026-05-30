@@ -69,13 +69,14 @@ public class RedisUserSessionRegistry {
             return result;
 
         // [FIX] N+1 I/O 방지를 위해 Redis Pipeline 사용
-        List<Object> exists = redisTemplate.executePipelined((org.springframework.data.redis.connection.RedisConnection connection) -> {
-            org.springframework.data.redis.connection.StringRedisConnection stringConn = (org.springframework.data.redis.connection.StringRedisConnection) connection;
-            for (Long userId : userIds) {
-                stringConn.exists(USER_SESSION_KEY_PREFIX + userId);
-            }
-            return null;
-        });
+        List<Object> exists = redisTemplate
+                .executePipelined((org.springframework.data.redis.connection.RedisConnection connection) -> {
+                    org.springframework.data.redis.connection.StringRedisConnection stringConn = (org.springframework.data.redis.connection.StringRedisConnection) connection;
+                    for (Long userId : userIds) {
+                        stringConn.exists(USER_SESSION_KEY_PREFIX + userId);
+                    }
+                    return null;
+                });
 
         for (int i = 0; i < userIds.size(); i++) {
             // executePipelined 결과는 요청 순서와 동일함

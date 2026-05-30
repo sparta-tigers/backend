@@ -26,9 +26,9 @@ public class FavTeamService {
 	private final TeamRepository teamRepository;
 
 	@Transactional
-	public FavTeamResponseDto add (FavTeamRequestDto request, Long userId) {
+	public FavTeamResponseDto add(FavTeamRequestDto request, Long userId) {
 		User user = userRepository.findByIdOrElseThrow(userId);
-		
+
 		Team team;
 		if (request.getTeamId() != null) {
 			team = teamRepository.findByIdOrElseThrow(request.getTeamId());
@@ -41,10 +41,10 @@ public class FavTeamService {
 		} else {
 			throw new InvalidRequestException(ExceptionCode.INVALID_TYPE_EXCEPTION);
 		}
-		
+
 		FavoriteTeam favoriteTeam = FavoriteTeam.from(user, team);
 
-		try{
+		try {
 			favTeamRepository.saveAndFlush(favoriteTeam);
 		} catch (DataIntegrityViolationException e) {
 			throw new InvalidRequestException(ExceptionCode.ALREADY_EXISTS_FAVORITE_TEAM);
@@ -56,14 +56,14 @@ public class FavTeamService {
 	@Transactional(readOnly = true)
 	public FavTeamResponseDto get(Long userId) {
 		return favTeamRepository.findByUserId(userId)
-			.map(FavTeamResponseDto::of)
-			.orElse(null);
+				.map(FavTeamResponseDto::of)
+				.orElse(null);
 	}
 
 	@Transactional
 	public FavTeamResponseDto update(FavTeamRequestDto request, Long userId) {
 		FavoriteTeam favoriteTeam = favTeamRepository.findByUserIdOrElseThrow(userId);
-		
+
 		Team newTeam;
 		if (request.getTeamId() != null) {
 			newTeam = teamRepository.findByIdOrElseThrow(request.getTeamId());
@@ -76,7 +76,7 @@ public class FavTeamService {
 		} else {
 			throw new InvalidRequestException(ExceptionCode.INVALID_TYPE_EXCEPTION);
 		}
-		
+
 		favoriteTeam.update(newTeam);
 		return FavTeamResponseDto.of(favoriteTeam);
 	}
@@ -89,6 +89,5 @@ public class FavTeamService {
 
 		return null;
 	}
-
 
 }

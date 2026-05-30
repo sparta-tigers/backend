@@ -36,7 +36,7 @@ public class UserService {
     @Transactional
     public void updateFcmToken(TokenClaim tokenClaim, FcmTokenRequest request) {
         User user = userRepository.findById(tokenClaim.getUserId())
-            .orElseThrow(() -> new InvalidRequestException(ExceptionCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new InvalidRequestException(ExceptionCode.USER_NOT_FOUND));
 
         user.updateFcmToken(request.fcmToken());
     }

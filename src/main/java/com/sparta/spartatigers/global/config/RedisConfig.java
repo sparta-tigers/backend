@@ -79,22 +79,23 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory connectionFactory, RedisDirectMessageSubscriber subscriber, LiveBoardMatchSubscriber liveBoardMatchSubscriber, RedisLocationSubscriber locationSubscriber) {
+    public RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory connectionFactory,
+            RedisDirectMessageSubscriber subscriber, LiveBoardMatchSubscriber liveBoardMatchSubscriber,
+            RedisLocationSubscriber locationSubscriber) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
 
         // 모든 directRoom:{id} 형식의 채널 구독
         container.addMessageListener(
-            subscriber, new PatternTopic("directRoom:*"));
+                subscriber, new PatternTopic("directRoom:*"));
 
         container.addMessageListener(
                 liveBoardMatchSubscriber, new PatternTopic("live_board:match:*"));
 
         container.addMessageListener(
-            locationSubscriber, new PatternTopic("location-channel"));
+                locationSubscriber, new PatternTopic("location-channel"));
 
         return container;
     }
-
 
 }

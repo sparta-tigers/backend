@@ -78,7 +78,8 @@ public class DirectRoomController {
             @Auth TokenClaim tokenClaim,
             @PageableDefault(size = 100, sort = "sentAt", direction = Sort.Direction.ASC) Pageable pageable) {
         Long currentUserId = tokenClaim.getUserId();
-        List<DirectRoomMessageResponse> messages = directRoomService.getMessagesAfter(directRoomId, timestamp, currentUserId, pageable);
+        List<DirectRoomMessageResponse> messages = directRoomService.getMessagesAfter(directRoomId, timestamp,
+                currentUserId, pageable);
         return ApiResponse.success(messages);
     }
 }

@@ -1,7 +1,5 @@
 package com.sparta.spartatigers.domain.core.direct.dto.response;
 
-
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,15 +25,15 @@ public class DirectRoomItemResponseDto {
             Long ownerId, String ownerNickname,
             String exchangeStatus, Long opponentId, String opponentNickname) {
         return new DirectRoomItemResponseDto(
-            itemId,
-            title,
-            description,
-            category,
-            status,
-            ownerId,
-            ownerNickname,
-            exchangeStatus,
-            opponentId,
-            opponentNickname);
+                itemId,
+                title,
+                description,
+                category,
+                status,
+                ownerId,
+                ownerNickname,
+                exchangeStatus,
+                opponentId,
+                opponentNickname);
     }
 }

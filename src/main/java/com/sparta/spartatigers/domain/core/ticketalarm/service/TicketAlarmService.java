@@ -55,16 +55,16 @@ public class TicketAlarmService {
 			bookingPolicy = bookingPolicyRepository.findDefaultPolicyByTeamId(request.getTeamId());
 		} else {
 			bookingPolicy = bookingPolicyRepository.findByTeamIdAndMembership(request.getTeamId(),
-				membership);
+					membership);
 		}
 
-		if(bookingPolicy == null) {
+		if (bookingPolicy == null) {
 			throw new InvalidRequestException(ExceptionCode.POLICY_NOT_FOUND);
 		}
 
 		// 2. 예매 오픈시간 찾기
 		Match targetMatch = matchRepository.findByMatchId(request.getMatchId())
-			.orElseThrow(()-> new InvalidRequestException(ExceptionCode.MATCH_NOT_FOUND));
+				.orElseThrow(() -> new InvalidRequestException(ExceptionCode.MATCH_NOT_FOUND));
 		LocalDateTime openBookingTime = calculateOpenBookingTime(bookingPolicy, targetMatch);
 
 		// 3. 푸시 알림 시간 설정
@@ -74,13 +74,12 @@ public class TicketAlarmService {
 		// 4. 엔티티 생성 & 저장
 		User findUser = userRepository.findByIdOrElseThrow(userId);
 		TicketAlarm alarm = TicketAlarm.of(
-			findUser,
-			targetMatch,
-			bookingPolicy,
-			request.getPreAlarmTime(),
-			alarmTime,
-			openBookingTime
-		);
+				findUser,
+				targetMatch,
+				bookingPolicy,
+				request.getPreAlarmTime(),
+				alarmTime,
+				openBookingTime);
 		ticketAlarmRepository.save(alarm);
 
 		return TicketAlarmResponseDto.from(alarm);
@@ -88,10 +87,9 @@ public class TicketAlarmService {
 
 	public Page<TicketAlarmResponseDto> getAllAlarms(Long userId, int page, int size) {
 		Pageable pageable = PageRequest.of(
-			page-1, size, Sort.by(Sort.Direction.ASC, "alarmTime")
-		);
+				page - 1, size, Sort.by(Sort.Direction.ASC, "alarmTime"));
 		return ticketAlarmRepository.findByUserId(userId, pageable)
-			.map(TicketAlarmResponseDto::from);
+				.map(TicketAlarmResponseDto::from);
 	}
 
 	public long getAlarmCount(Long userId) {
@@ -102,9 +100,9 @@ public class TicketAlarmService {
 	public TicketAlarmResponseDto updateAlarm(Long userId, Long alarmId, UpdateTicketAlarmRequestDto request) {
 		// 유저의 알람이 맞는지 (해당 알람을 만든 사람이 맞는지)
 		TicketAlarm alarm = ticketAlarmRepository.findById(alarmId)
-			.orElseThrow(()-> new InvalidRequestException(ExceptionCode.ALARM_NOT_FOUND));
+				.orElseThrow(() -> new InvalidRequestException(ExceptionCode.ALARM_NOT_FOUND));
 
-		if(!alarm.getUser().getId().equals(userId)) {
+		if (!alarm.getUser().getId().equals(userId)) {
 			throw new InvalidRequestException(ExceptionCode.AUTHORIZATION_ERROR);
 		}
 
@@ -113,8 +111,9 @@ public class TicketAlarmService {
 		TeamBookingPolicy newPolicy = currentPolicy;
 		String membership = normalizeMembership(request.getMembership());
 
-		if(membership != null && !membership.equals(currentPolicy.getMembership())) {
-			newPolicy = bookingPolicyRepository.findByTeamIdAndMembership(alarm.getMatch().getHomeTeam().getId(), membership);
+		if (membership != null && !membership.equals(currentPolicy.getMembership())) {
+			newPolicy = bookingPolicyRepository.findByTeamIdAndMembership(alarm.getMatch().getHomeTeam().getId(),
+					membership);
 
 			if (newPolicy == null) {
 				throw new InvalidRequestException(ExceptionCode.POLICY_NOT_FOUND);
@@ -123,8 +122,8 @@ public class TicketAlarmService {
 
 		// 예매 오픈 시간 다시 계산
 		LocalDateTime openBookingTime = calculateOpenBookingTime(newPolicy, alarm.getMatch());
-		Integer newPreAlarmTime =
-			request.getPreAlarmTime() != null ? request.getPreAlarmTime() : alarm.getMinusBefore();
+		Integer newPreAlarmTime = request.getPreAlarmTime() != null ? request.getPreAlarmTime()
+				: alarm.getMinusBefore();
 		validatePreAlarmTime(newPreAlarmTime);
 		LocalDateTime newAlarmTime = openBookingTime.minusMinutes(newPreAlarmTime);
 		validateAlarmTime(newAlarmTime);
@@ -136,11 +135,11 @@ public class TicketAlarmService {
 	}
 
 	@Transactional
-	public void deleteAlarm (Long userId, Long alarmId) {
+	public void deleteAlarm(Long userId, Long alarmId) {
 		TicketAlarm alarm = ticketAlarmRepository.findById(alarmId)
-			.orElseThrow(()->new InvalidRequestException(ExceptionCode.ALARM_NOT_FOUND));
+				.orElseThrow(() -> new InvalidRequestException(ExceptionCode.ALARM_NOT_FOUND));
 
-		if(!alarm.getUser().getId().equals(userId)) {
+		if (!alarm.getUser().getId().equals(userId)) {
 			throw new InvalidRequestException(ExceptionCode.AUTHORIZATION_ERROR);
 		}
 
@@ -149,7 +148,7 @@ public class TicketAlarmService {
 
 	// ----------------- Util 메서드
 	// 예매 오픈 시간 구하기
-	private LocalDateTime calculateOpenBookingTime (TeamBookingPolicy bookingPolicy, Match targetMatch)  {
+	private LocalDateTime calculateOpenBookingTime(TeamBookingPolicy bookingPolicy, Match targetMatch) {
 
 		LocalDateTime baseTime;
 
@@ -160,7 +159,7 @@ public class TicketAlarmService {
 			baseTime = targetMatch.getMatchTime();
 
 		} else if (bookingPolicy.getApplyScope().equals(ApplyScope.HOME_SERIES)
-			&& bookingPolicy.getBaseType().equals(BaseType.HOME_SERIES_FIRST_MATCH)) {
+				&& bookingPolicy.getBaseType().equals(BaseType.HOME_SERIES_FIRST_MATCH)) {
 
 			// 삼성, 롯데 (홈시리즈 3연전 기준)
 			Long awayTeamId = targetMatch.getAwayTeam().getId();
@@ -169,11 +168,11 @@ public class TicketAlarmService {
 
 			int seriesCount = bookingPolicy.getSeriesCount();
 
-			LocalDateTime from = matchDate.minusDays(seriesCount-1).atStartOfDay();
-			LocalDateTime to = matchDate.plusDays(seriesCount-1).atTime(23,59,59);
+			LocalDateTime from = matchDate.minusDays(seriesCount - 1).atStartOfDay();
+			LocalDateTime to = matchDate.plusDays(seriesCount - 1).atTime(23, 59, 59);
 
 			Match firstHomeSeriesMatch = matchRepository.findFirstHomeSeriesMatch(awayTeamId, homeTeamId, from, to)
-				.orElseThrow(()-> new InvalidRequestException(ExceptionCode.BOOKING_SCHEDULE_NOT_FOUND));
+					.orElseThrow(() -> new InvalidRequestException(ExceptionCode.BOOKING_SCHEDULE_NOT_FOUND));
 
 			baseTime = firstHomeSeriesMatch.getMatchTime();
 
@@ -184,21 +183,21 @@ public class TicketAlarmService {
 		// 2. 기준 경기 시간에서 예매 오픈 날짜, 시간 찾기
 		LocalDate openDate = baseTime.toLocalDate().minusDays(bookingPolicy.getOpenDaysBefore());
 		LocalDateTime openDateTime = LocalDateTime.of(openDate, LocalTime.of(bookingPolicy.getOpenHourOfDay(),
-			bookingPolicy.getOpenMinOfDay(), 0, 0));
+				bookingPolicy.getOpenMinOfDay(), 0, 0));
 
 		return openDateTime;
 	}
 
 	// 알람은 세시간 전까지만!
 	private void validatePreAlarmTime(Integer minutes) {
-		if (minutes == null || minutes <=0 || minutes >180) {
+		if (minutes == null || minutes <= 0 || minutes > 180) {
 			throw new InvalidRequestException(ExceptionCode.INVALID_PRE_ALARM_TIME);
 		}
 	}
 
 	// 알람시간이 이미 지났는지 검증
-	private void validateAlarmTime (LocalDateTime alarmTime) {
-		if(alarmTime.isBefore(LocalDateTime.now(clock))) {
+	private void validateAlarmTime(LocalDateTime alarmTime) {
+		if (alarmTime.isBefore(LocalDateTime.now(clock))) {
 			throw new InvalidRequestException(ExceptionCode.ALARM_TIME_ALREADY_PASSED);
 		}
 	}

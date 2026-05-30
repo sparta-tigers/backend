@@ -25,8 +25,7 @@ public class OcrTestController {
 
 	@PostMapping("/test")
 	public String testOcr(
-		@RequestParam MultipartFile file
-	) throws IOException {
+			@RequestParam MultipartFile file) throws IOException {
 		log.info("1. 파일 업로드 : {}", file.getOriginalFilename());
 
 		String fullText = ocrService.extractTextFromImage(file);

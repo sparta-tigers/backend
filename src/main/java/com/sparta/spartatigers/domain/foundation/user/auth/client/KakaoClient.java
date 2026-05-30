@@ -36,12 +36,12 @@ public class KakaoClient {
             }
 
             KakaoTokenResponse res = kakaoRestClient.post()
-                .uri(properties.tokenUri())
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .accept(MediaType.APPLICATION_JSON)
-                .body(form)
-                .retrieve()
-                .body(KakaoTokenResponse.class);
+                    .uri(properties.tokenUri())
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .body(form)
+                    .retrieve()
+                    .body(KakaoTokenResponse.class);
 
             if (res == null || res.accessToken() == null || res.accessToken().isBlank()) {
                 throw new InvalidRequestException(ExceptionCode.OAUTH_TOKEN_EXCHANGE_FAILED);
@@ -59,20 +59,19 @@ public class KakaoClient {
     public KakaoUserInfo getUserInfo(String accessToken) {
 
         KakaoUserMeResponse response = kakaoRestClient.get()
-            .uri(properties.userInfoUri())
-            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
-            .retrieve()
-            .body(KakaoUserMeResponse.class);
+                .uri(properties.userInfoUri())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .retrieve()
+                .body(KakaoUserMeResponse.class);
 
         if (response == null || response.id() == null) {
             throw new InvalidRequestException(ExceptionCode.OAUTH_USERINFO_FAILED);
         }
 
         return new KakaoUserInfo(
-            String.valueOf(response.id()),
-            response.kakaoAccount() != null ? response.kakaoAccount().email() : null,
-            response.properties() != null ? response.properties().nickname() : null,
-            response.properties() != null ? response.properties().profileImage() : null
-        );
+                String.valueOf(response.id()),
+                response.kakaoAccount() != null ? response.kakaoAccount().email() : null,
+                response.properties() != null ? response.properties().nickname() : null,
+                response.properties() != null ? response.properties().profileImage() : null);
     }
 }

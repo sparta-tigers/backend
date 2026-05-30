@@ -17,7 +17,9 @@ public class RedisDirectMessagePublisher {
     private final StringRedisTemplate redisStringTemplate;
     private final ObjectMapper objectMapper;
 
-    /** 주어진 senderId와 ChatMessageRequest의 내용으로 JSON 생성하고, 지정된 Redis 채널로 메시지를 발행합니다. */
+    /**
+     * 주어진 senderId와 ChatMessageRequest의 내용으로 JSON 생성하고, 지정된 Redis 채널로 메시지를 발행합니다.
+     */
     public void publish(String channel, Object messagePayload) {
         try {
             String json = objectMapper.writeValueAsString(messagePayload);

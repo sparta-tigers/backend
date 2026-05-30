@@ -1,8 +1,8 @@
 package com.sparta.spartatigers.domain.core.trade.model;
 
 public enum ItemStatus {
-        REGISTERED,
-        COMPLETED,
-        FAILED,
-        DELETED
-    }
+    REGISTERED,
+    COMPLETED,
+    FAILED,
+    DELETED
+}

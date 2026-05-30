@@ -31,7 +31,7 @@ public class LineupCacheDto {
      */
     @JsonIgnore
     public boolean isNotEmpty() {
-        return (awayBatters != null && !awayBatters.isEmpty()) || 
-               (homeBatters != null && !homeBatters.isEmpty());
+        return (awayBatters != null && !awayBatters.isEmpty()) ||
+                (homeBatters != null && !homeBatters.isEmpty());
     }
 }
