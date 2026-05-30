@@ -11,24 +11,19 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.sparta.spartatigers.domain.core.direct.model.DirectRoom;
-import com.sparta.spartatigers.domain.core.trade.model.ExchangeRequest;
 
 import jakarta.persistence.LockModeType;
+
 public interface DirectRoomRepository extends JpaRepository<DirectRoom, Long> {
 
     Optional<DirectRoom> findByExchangeRequestId(Long exchangeRequestId);
 
-    @Query(
-        value =
-            "select dr from direct_rooms dr "
-                + "join fetch dr.sender s "
-                + "join fetch dr.receiver r "
-                + "where dr.sender.id = :userId or dr.receiver.id = :userId",
-        countQuery =
-            "select count(dr) from direct_rooms dr "
-                + "where dr.sender.id = :userId or dr.receiver.id = :userId")
+    @Query(value = "select dr from direct_rooms dr "
+            + "join fetch dr.sender s "
+            + "join fetch dr.receiver r "
+            + "where dr.sender.id = :userId or dr.receiver.id = :userId", countQuery = "select count(dr) from direct_rooms dr "
+                    + "where dr.sender.id = :userId or dr.receiver.id = :userId")
     Page<DirectRoom> findBySenderIdOrReceiverIdWithUsersAndItem(Long userId, Pageable pageable);
-
 
     @Query("SELECT dr FROM direct_rooms dr WHERE dr.exchangeRequestId IN :exchangeRequestIds")
     List<DirectRoom> findByExchangeRequestIdIn(@Param("exchangeRequestIds") List<Long> exchangeRequestIds);
