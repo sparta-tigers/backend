@@ -21,9 +21,9 @@ if grep -rq "domain\.support\." $SRC_DIR/domain/foundation/ --include="*.java" 2
 fi
 
 # 3. Support → Core 역참조 검사 (DTO, Model, Event는 예외 허용하고 Service/Repository/Controller 통제)
-if grep -rq "domain\.core\..*\.\(repository\|service\|controller\)\." $SRC_DIR/domain/support/ --include="*.java" 2>/dev/null; then
+if grep -Erq "domain\.core\..*\.(repository|service|controller)\." $SRC_DIR/domain/support/ --include="*.java" 2>/dev/null; then
     echo "❌ Support에서 Core의 Service/Repository/Controller를 참조하는 위반이 발견되었습니다."
-    grep -rn "domain\.core\..*\.\(repository\|service\|controller\)\." $SRC_DIR/domain/support/ --include="*.java"
+    grep -Ern "domain\.core\..*\.(repository|service|controller)\." $SRC_DIR/domain/support/ --include="*.java"
     FAIL_COUNT=$((FAIL_COUNT + 1))
 fi
 
@@ -32,9 +32,9 @@ CORE_DOMAINS=("attendance" "trade" "direct" "ticketalarm")
 for domain in "${CORE_DOMAINS[@]}"; do
     for target in "${CORE_DOMAINS[@]}"; do
         if [ "$domain" != "$target" ]; then
-            if grep -rq "domain\.core\.$target\.\(repository\|service\|controller\)\." $SRC_DIR/domain/core/$domain/ --include="*.java" 2>/dev/null; then
+            if grep -Erq "domain\.core\.$target\.(repository|service|controller)\." $SRC_DIR/domain/core/$domain/ --include="*.java" 2>/dev/null; then
                 echo "❌ Core 내부 직접 참조 위반 (Service/Repository/Controller 교차 호출 금지): $domain -> $target"
-                grep -rn "domain\.core\.$target\.\(repository\|service\|controller\)\." $SRC_DIR/domain/core/$domain/ --include="*.java"
+                grep -Ern "domain\.core\.$target\.(repository|service|controller)\." $SRC_DIR/domain/core/$domain/ --include="*.java"
                 FAIL_COUNT=$((FAIL_COUNT + 1))
             fi
         fi
