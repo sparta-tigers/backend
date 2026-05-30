@@ -63,7 +63,8 @@ public class StompInterceptor implements ChannelInterceptor {
 			}
 
 			String email = claims.getSubject();
-			User user = userRepository.findByEmail(email).orElseThrow();
+			User user = userRepository.findByEmail(email)
+			    .orElseThrow(() -> new IllegalArgumentException("WebSocket CONNECT: 유저를 찾을 수 없습니다."));
 			String userId = String.valueOf(user.getId());
 			String nickname = user.getNickname();
 

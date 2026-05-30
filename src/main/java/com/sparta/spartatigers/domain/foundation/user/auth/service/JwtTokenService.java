@@ -117,14 +117,19 @@ public class JwtTokenService implements TokenService {
 
     @Override
     public TokenClaim parseRefreshToken(String refreshToken) {
-        SecretKey secretKey = Keys.hmacShaKeyFor(jwtConfig.getRefreshToken().secret().getBytes());
-        Jws<Claims> claimsJws = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(refreshToken);
+        try {
+            SecretKey secretKey = Keys.hmacShaKeyFor(jwtConfig.getRefreshToken().secret().getBytes());
+            Jws<Claims> claimsJws = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(refreshToken);
 
-        final String subject = claimsJws.getPayload().getSubject();
+            final String subject = claimsJws.getPayload().getSubject();
 
-        return TokenClaim.builder()
-            .subject(subject)
-            .build();
+            return TokenClaim.builder()
+                .subject(subject)
+                .build();
+        } catch (JwtException | IllegalArgumentException e) {
+            log.warn("Refresh 토큰 파싱 실패 [{}]: {}", e.getClass().getSimpleName(), e.getMessage(), e);
+            throw new InvalidRequestException(ExceptionCode.INVALID_REFRESH_TOKEN);
+        }
     }
 
 }

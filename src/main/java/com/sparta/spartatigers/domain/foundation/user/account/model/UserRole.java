@@ -8,6 +8,9 @@ public enum UserRole {
     ROLE_ADMIN;
 
     public static UserRole from(String value) {
+        if (value == null) {
+            throw new InvalidRequestException(ExceptionCode.VALIDATION_ERROR);
+        }
         for (UserRole role: values()) {
             if (role.toString().equals(value.toUpperCase())) {
                 return role;
