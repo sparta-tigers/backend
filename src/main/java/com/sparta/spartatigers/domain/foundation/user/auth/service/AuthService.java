@@ -37,7 +37,7 @@ public class AuthService {
         User user = userRepository
                 .findByEmail(email)
                 .orElseThrow(() ->
-                        new InvalidRequestException(ExceptionCode.EMAIL_ALREADY_USED));
+                        new InvalidRequestException(ExceptionCode.USER_NOT_FOUND));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new InvalidRequestException(ExceptionCode.INVALID_PASSWORD);
