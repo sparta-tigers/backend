@@ -28,7 +28,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.spartatigers.domain.foundation.common.event.ItemStatusChangedEvent;
-import org.springframework.context.ApplicationEventPublisher;
 import com.sparta.spartatigers.domain.core.trade.repository.ExchangeRequestRepository;
 import com.sparta.spartatigers.domain.core.trade.model.ExchangeRequest;
 import com.sparta.spartatigers.domain.core.trade.model.ExchangeStatus;
@@ -146,7 +145,8 @@ public class ItemService {
 
                     // [FIX] 상태 변경 전 ACCEPTED 였던 경우에만 시스템 메시지 발행
                     if (previousStatus == ExchangeStatus.ACCEPTED) {
-                        applicationEventPublisher.publishEvent(new ItemStatusChangedEvent(req.getId(), "STATUS_UPDATED"));
+                        applicationEventPublisher
+                                .publishEvent(new ItemStatusChangedEvent(req.getId(), "STATUS_UPDATED"));
                     }
                 }
 
@@ -289,6 +289,5 @@ public class ItemService {
             return Collections.emptyList();
         }
     }
-
 
 }
