@@ -2,7 +2,7 @@ package com.sparta.spartatigers.global.aop;
 
 import org.springframework.core.convert.converter.Converter;
 
-import com.sparta.spartatigers.domain.auth.model.OAuthProvider;
+import com.sparta.spartatigers.domain.foundation.user.auth.model.OAuthProvider;
 
 public class OauthProviderConverter implements Converter<String, OAuthProvider> {
 

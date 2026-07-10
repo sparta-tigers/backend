@@ -46,9 +46,9 @@ public class FirebaseConfig {
             GoogleCredentials credentials = GoogleCredentials.fromStream(serviceAccount);
 
             FirebaseOptions options = FirebaseOptions.builder()
-                .setCredentials(credentials)
-                .setProjectId(projectId)
-                .build();
+                    .setCredentials(credentials)
+                    .setProjectId(projectId)
+                    .build();
 
             log.info("FirebaseApp가 초기화되었습니다.");
             return FirebaseApp.initializeApp(options);

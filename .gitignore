@@ -178,3 +178,6 @@ docs/04_*.md
 docs/05_*.md
 docs/06_*.md
 docs/PR.md
+
+# 리팩토링 감사 보고서 (에이전트 생성물)
+docs/artifact/

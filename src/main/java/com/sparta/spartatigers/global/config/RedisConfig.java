@@ -17,9 +17,9 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.sparta.spartatigers.domain.liveboard.pubsub.LiveBoardMatchSubscriber;
-import com.sparta.spartatigers.domain.stompchat.pubsub.RedisDirectMessageSubscriber;
-import com.sparta.spartatigers.domain.stompchat.pubsub.RedisLocationSubscriber;
+import com.sparta.spartatigers.domain.support.chat.pubsub.LiveBoardMatchSubscriber;
+import com.sparta.spartatigers.domain.core.direct.pubsub.RedisDirectMessageSubscriber;
+import com.sparta.spartatigers.domain.support.chat.pubsub.RedisLocationSubscriber;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -79,22 +79,23 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory connectionFactory, RedisDirectMessageSubscriber subscriber, LiveBoardMatchSubscriber liveBoardMatchSubscriber, RedisLocationSubscriber locationSubscriber) {
+    public RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory connectionFactory,
+            RedisDirectMessageSubscriber subscriber, LiveBoardMatchSubscriber liveBoardMatchSubscriber,
+            RedisLocationSubscriber locationSubscriber) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
 
         // 모든 directRoom:{id} 형식의 채널 구독
         container.addMessageListener(
-            subscriber, new PatternTopic("directRoom:*"));
+                subscriber, new PatternTopic("directRoom:*"));
 
         container.addMessageListener(
                 liveBoardMatchSubscriber, new PatternTopic("live_board:match:*"));
 
         container.addMessageListener(
-            locationSubscriber, new PatternTopic("location-channel"));
+                locationSubscriber, new PatternTopic("location-channel"));
 
         return container;
     }
-
 
 }

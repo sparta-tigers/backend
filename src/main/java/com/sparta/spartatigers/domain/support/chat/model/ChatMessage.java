@@ -1,0 +1,29 @@
+package com.sparta.spartatigers.domain.support.chat.model;
+
+import java.time.LocalDateTime;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
+public class ChatMessage {
+
+	private String roomId;
+	private Long senderId;
+	private String senderNickname;
+	private String content;
+	private LocalDateTime sentAt;
+	private ChatDomainType domain;
+	private String favTeamSymbolUrl;
+	private String tempId;
+
+	public static ChatMessage ofLiveBoardRoom(
+			String roomId, Long senderId, String senderNickname, String content, String favTeamSymbolUrl,
+			LocalDateTime sentAt, String tempId) {
+		return new ChatMessage(roomId, senderId, senderNickname, content, sentAt, ChatDomainType.LIVEBOARD,
+				favTeamSymbolUrl, tempId);
+	}
+}

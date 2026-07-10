@@ -7,7 +7,7 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
-import com.sparta.spartatigers.domain.stompchat.interceptor.StompInterceptor;
+import com.sparta.spartatigers.domain.support.chat.interceptor.StompInterceptor;
 
 import lombok.RequiredArgsConstructor;
 
@@ -17,12 +17,13 @@ import lombok.RequiredArgsConstructor;
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
 	private final StompInterceptor stompInterceptor;
+
 	// stomp 연결을 위한 앤드포인트 등록
 	@Override
 	public void registerStompEndpoints(StompEndpointRegistry registry) {
 		registry.addEndpoint("/ws")
-			.setAllowedOriginPatterns("*")
-			.withSockJS();
+				.setAllowedOriginPatterns("*")
+				.withSockJS();
 	}
 
 	// 메세지 브로커 설정
@@ -36,7 +37,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 	@Override
 	public void configureClientInboundChannel(ChannelRegistration registration) {
 		registration.interceptors(
-			stompInterceptor
-		);
+				stompInterceptor);
 	}
 }
