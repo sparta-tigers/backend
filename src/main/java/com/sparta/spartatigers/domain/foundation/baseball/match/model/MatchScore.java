@@ -10,6 +10,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MatchScore {
+
     private int strike; // 스트라이크 카운트
     private int ball; // 볼 카운트
     private int out; // 아웃 카운트

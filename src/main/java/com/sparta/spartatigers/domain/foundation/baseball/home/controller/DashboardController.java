@@ -20,9 +20,16 @@ public class DashboardController {
     private final DashboardService dashboardService;
 
     @GetMapping("/summary")
-    public ApiResponse<HomeDashboardResponseDto> getDashboardSummary(@Auth TokenClaim tokenClaim) {
-        log.debug("Fetching dashboard summary for user: {}", tokenClaim.getUserId());
-        HomeDashboardResponseDto summary = dashboardService.getDashboardSummary(tokenClaim.getUserId());
+    public ApiResponse<HomeDashboardResponseDto> getDashboardSummary(
+        @Auth TokenClaim tokenClaim
+    ) {
+        log.debug(
+            "Fetching dashboard summary for user: {}",
+            tokenClaim.getUserId()
+        );
+        HomeDashboardResponseDto summary = dashboardService.getDashboardSummary(
+            tokenClaim.getUserId()
+        );
         return ApiResponse.success(summary);
     }
 }

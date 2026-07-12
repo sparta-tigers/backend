@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class FavTeamRequestDto {
 
-	private Long teamId;
-	private String teamCode;
+    private Long teamId;
+    private String teamCode;
 }

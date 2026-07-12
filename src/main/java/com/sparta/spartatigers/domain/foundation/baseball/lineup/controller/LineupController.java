@@ -1,17 +1,15 @@
 package com.sparta.spartatigers.domain.foundation.baseball.lineup.controller;
 
+import com.sparta.spartatigers.domain.foundation.baseball.lineup.dto.LineupResponseDto;
+import com.sparta.spartatigers.domain.foundation.baseball.lineup.service.LineupQueryService;
+import com.sparta.spartatigers.global.aop.Auth;
+import com.sparta.spartatigers.global.aop.TokenClaim;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.sparta.spartatigers.global.aop.TokenClaim;
-import com.sparta.spartatigers.domain.foundation.baseball.lineup.dto.LineupResponseDto;
-import com.sparta.spartatigers.global.aop.Auth;
-
-import lombok.RequiredArgsConstructor;
-import com.sparta.spartatigers.domain.foundation.baseball.lineup.service.LineupQueryService;
 
 /**
  * 라인업 조회 REST 컨트롤러
@@ -33,7 +31,10 @@ public class LineupController {
      * Redis 캐시에 데이터가 없으면 빈 배열로 200 응답.
      */
     @GetMapping("/{matchId}/lineup")
-    public ResponseEntity<LineupResponseDto> getMatchLineup(@PathVariable Long matchId, @Auth TokenClaim token) {
+    public ResponseEntity<LineupResponseDto> getMatchLineup(
+        @PathVariable Long matchId,
+        @Auth TokenClaim token
+    ) {
         LineupResponseDto response = lineupQueryService.getMatchLineup(matchId);
         return ResponseEntity.ok(response);
     }

@@ -2,7 +2,6 @@ package com.sparta.spartatigers.domain.foundation.user.account.model;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -17,6 +16,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoginUser implements Serializable {
+
     private Long userId;
     private String email;
     private String nickname;
@@ -27,13 +27,13 @@ public class LoginUser implements Serializable {
 
     public static LoginUser from(User user) {
         return builder()
-                .userId(user.getId())
-                .email(user.getEmail())
-                .nickname(user.getNickname())
-                .profileImageUrl(user.getProfileImageUrl())
-                .role(user.getRole())
-                .createdAt(user.getCreatedAt())
-                .updatedAt(user.getUpdatedAt())
-                .build();
+            .userId(user.getId())
+            .email(user.getEmail())
+            .nickname(user.getNickname())
+            .profileImageUrl(user.getProfileImageUrl())
+            .role(user.getRole())
+            .createdAt(user.getCreatedAt())
+            .updatedAt(user.getUpdatedAt())
+            .build();
     }
 }

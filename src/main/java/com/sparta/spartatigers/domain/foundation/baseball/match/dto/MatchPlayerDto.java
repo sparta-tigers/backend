@@ -10,6 +10,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MatchPlayerDto {
+
     private String role; // 선수 역할/포지션
     private String name; // 선수 이름
 }

@@ -6,6 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class ItemStatusChangedEvent {
+
     private final Long exchangeRequestId;
     private final String message;
 }

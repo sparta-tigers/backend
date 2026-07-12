@@ -3,7 +3,6 @@ package com.sparta.spartatigers.domain.foundation.user.favoriteteam.model.entity
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
 import com.sparta.spartatigers.domain.foundation.baseball.team.model.Team;
 import com.sparta.spartatigers.domain.foundation.user.account.model.User;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -19,7 +18,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity(name = "favorite_team")
-@Table(name = "favorite_team", uniqueConstraints = { @UniqueConstraint(columnNames = { "user_id" }) })
+@Table(
+    name = "favorite_team",
+    uniqueConstraints = { @UniqueConstraint(columnNames = { "user_id" }) }
+)
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -39,7 +41,11 @@ public class FavoriteTeam extends BaseEntity {
     private Team team;
 
     public static FavoriteTeam of(FavoriteTeam favoriteTeam) {
-        return new FavoriteTeam(favoriteTeam.getUser().getId(), favoriteTeam.getUser(), favoriteTeam.getTeam());
+        return new FavoriteTeam(
+            favoriteTeam.getUser().getId(),
+            favoriteTeam.getUser(),
+            favoriteTeam.getTeam()
+        );
     }
 
     public static FavoriteTeam from(User user, Team team) {
