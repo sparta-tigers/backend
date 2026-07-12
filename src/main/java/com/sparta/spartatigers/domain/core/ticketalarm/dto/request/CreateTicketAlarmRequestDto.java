@@ -12,17 +12,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CreateTicketAlarmRequestDto {
 
-	@NotNull
-	private Long matchId;
+    @NotNull
+    private Long matchId;
 
-	@NotNull
-	private Long teamId;
+    @NotNull
+    private Long teamId;
 
-	@NotNull
-	@Min(1)
-	@Max(180)
-	private Integer preAlarmTime;
+    @NotNull
+    @Min(1)
+    @Max(180)
+    private Integer preAlarmTime;
 
-	private String membership;
-
+    private String membership;
 }

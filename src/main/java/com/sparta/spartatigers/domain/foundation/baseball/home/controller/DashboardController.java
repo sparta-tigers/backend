@@ -1,17 +1,15 @@
 package com.sparta.spartatigers.domain.foundation.baseball.home.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.sparta.spartatigers.global.aop.TokenClaim;
 import com.sparta.spartatigers.domain.foundation.baseball.home.dto.HomeDashboardResponseDto;
 import com.sparta.spartatigers.domain.foundation.baseball.home.service.DashboardService;
 import com.sparta.spartatigers.global.aop.Auth;
+import com.sparta.spartatigers.global.aop.TokenClaim;
 import com.sparta.spartatigers.global.response.ApiResponse;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController

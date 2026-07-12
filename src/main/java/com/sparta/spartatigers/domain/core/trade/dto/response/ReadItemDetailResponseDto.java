@@ -1,36 +1,35 @@
 package com.sparta.spartatigers.domain.core.trade.dto.response;
 
-import java.time.LocalDateTime;
-
 import com.sparta.spartatigers.domain.core.trade.model.Item;
 import com.sparta.spartatigers.domain.core.trade.model.ItemCategory;
 import com.sparta.spartatigers.domain.core.trade.model.ItemStatus;
 import com.sparta.spartatigers.domain.foundation.user.account.dto.UserResponseDto;
+import java.time.LocalDateTime;
 
 public record ReadItemDetailResponseDto(
-        Long id,
-        UserResponseDto user,
-        ItemCategory category,
-        String image,
-        String seatInfo,
-        String title,
-        String description,
-        ItemStatus status,
-        LocalDateTime createdAt,
-        Integer distance) {
-
+    Long id,
+    UserResponseDto user,
+    ItemCategory category,
+    String image,
+    String seatInfo,
+    String title,
+    String description,
+    ItemStatus status,
+    LocalDateTime createdAt,
+    Integer distance
+) {
     public static ReadItemDetailResponseDto from(Item item, Integer distance) {
-
         return new ReadItemDetailResponseDto(
-                item.getId(),
-                UserResponseDto.from(item.getUser()),
-                item.getCategory(),
-                item.getImage(),
-                item.getSeatInfo(),
-                item.getTitle(),
-                item.getDescription(),
-                item.getStatus(),
-                item.getCreatedAt(),
-                distance);
+            item.getId(),
+            UserResponseDto.from(item.getUser()),
+            item.getCategory(),
+            item.getImage(),
+            item.getSeatInfo(),
+            item.getTitle(),
+            item.getDescription(),
+            item.getStatus(),
+            item.getCreatedAt(),
+            distance
+        );
     }
 }

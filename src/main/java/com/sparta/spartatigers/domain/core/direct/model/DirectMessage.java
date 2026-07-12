@@ -1,10 +1,7 @@
 package com.sparta.spartatigers.domain.core.direct.model;
 
-import java.time.LocalDateTime;
-
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
 import com.sparta.spartatigers.domain.foundation.user.account.model.User;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -13,6 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -45,7 +43,12 @@ public class DirectMessage extends BaseEntity {
     @Column(nullable = false)
     private boolean isRead;
 
-    public static DirectMessage of(DirectRoom directRoom, User sender, String message, LocalDateTime sentAt) {
+    public static DirectMessage of(
+        DirectRoom directRoom,
+        User sender,
+        String message,
+        LocalDateTime sentAt
+    ) {
         DirectMessage directMessage = new DirectMessage();
         directMessage.directRoom = directRoom;
         directMessage.sender = sender;
@@ -59,5 +62,4 @@ public class DirectMessage extends BaseEntity {
     public void markAsRead() {
         this.isRead = true;
     }
-
 }

@@ -1,20 +1,17 @@
 package com.sparta.spartatigers.domain.core.direct.event;
 
+import com.sparta.spartatigers.domain.core.direct.pubsub.RedisDirectMessagePublisher;
+import com.sparta.spartatigers.domain.core.direct.repository.DirectRoomRepository;
+import com.sparta.spartatigers.domain.foundation.common.event.ItemStatusChangedEvent;
 import java.util.Map;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
-
-import com.sparta.spartatigers.domain.core.direct.pubsub.RedisDirectMessagePublisher;
-import com.sparta.spartatigers.domain.core.direct.repository.DirectRoomRepository;
-import com.sparta.spartatigers.domain.foundation.common.event.ItemStatusChangedEvent;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
@@ -35,12 +32,15 @@ public class ItemStatusChangedEventListener {
         if (!"거래가 완료되었습니다.".equals(event.getMessage())) {
             return;
         }
-        directRoomRepository.findByExchangeRequestId(event.getExchangeRequestId())
-                .ifPresent(room -> {
-                    log.info("[ItemStatusChangedEventListener] 채팅방 종료 처리 - exchangeRequestId: {}",
-                            event.getExchangeRequestId());
-                    room.complete();
-                });
+        directRoomRepository
+            .findByExchangeRequestId(event.getExchangeRequestId())
+            .ifPresent(room -> {
+                log.info(
+                    "[ItemStatusChangedEventListener] 채팅방 종료 처리 - exchangeRequestId: {}",
+                    event.getExchangeRequestId()
+                );
+                room.complete();
+            });
     }
 
     /**
@@ -52,15 +52,25 @@ public class ItemStatusChangedEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleRoomNotification(ItemStatusChangedEvent event) {
-        directRoomRepository.findByExchangeRequestId(event.getExchangeRequestId())
-                .ifPresent(room -> {
-                    log.info("[ItemStatusChangedEventListener] Redis 알림 발송 - exchangeRequestId: {}",
-                            event.getExchangeRequestId());
-                    Map<String, Object> payload = Map.of(
-                            "type", "SYSTEM",
-                            "action", "STATUS_UPDATED",
-                            "roomId", room.getId());
-                    redisDirectMessagePublisher.publish("/server/directRoom/" + room.getId(), payload);
-                });
+        directRoomRepository
+            .findByExchangeRequestId(event.getExchangeRequestId())
+            .ifPresent(room -> {
+                log.info(
+                    "[ItemStatusChangedEventListener] Redis 알림 발송 - exchangeRequestId: {}",
+                    event.getExchangeRequestId()
+                );
+                Map<String, Object> payload = Map.of(
+                    "type",
+                    "SYSTEM",
+                    "action",
+                    "STATUS_UPDATED",
+                    "roomId",
+                    room.getId()
+                );
+                redisDirectMessagePublisher.publish(
+                    "/server/directRoom/" + room.getId(),
+                    payload
+                );
+            });
     }
 }

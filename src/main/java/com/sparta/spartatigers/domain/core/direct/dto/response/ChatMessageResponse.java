@@ -1,7 +1,6 @@
 package com.sparta.spartatigers.domain.core.direct.dto.response;
 
 import java.time.LocalDateTime;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -18,11 +17,12 @@ public class ChatMessageResponse {
 
     public static ChatMessageResponse from(RedisMessage message) {
         return new ChatMessageResponse(
-                message.getRoomId(),
-                message.getSenderId(),
-                message.getMessageId(),
-                message.getSenderNickname(),
-                message.getMessage(),
-                LocalDateTime.parse(message.getSentAt()));
+            message.getRoomId(),
+            message.getSenderId(),
+            message.getMessageId(),
+            message.getSenderNickname(),
+            message.getMessage(),
+            LocalDateTime.parse(message.getSentAt())
+        );
     }
 }

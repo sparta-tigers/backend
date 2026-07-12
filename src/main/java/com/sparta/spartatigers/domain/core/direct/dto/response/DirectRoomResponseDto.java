@@ -1,11 +1,9 @@
 package com.sparta.spartatigers.domain.core.direct.dto.response;
 
-import java.time.LocalDateTime;
-
 import com.sparta.spartatigers.domain.core.direct.model.DirectRoom;
 import com.sparta.spartatigers.domain.core.direct.repository.TradeQueryDao.TradeItemInfo;
 import com.sparta.spartatigers.domain.foundation.user.account.model.User;
-
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,26 +29,31 @@ public class DirectRoomResponseDto {
     private boolean opponentOnline;
 
     public static DirectRoomResponseDto from(
-            DirectRoom room, TradeItemInfo itemInfo, Long exchangeRequestId, Long unreadCount, Long currentUserId,
-            boolean opponentOnline) {
-
+        DirectRoom room,
+        TradeItemInfo itemInfo,
+        Long exchangeRequestId,
+        Long unreadCount,
+        Long currentUserId,
+        boolean opponentOnline
+    ) {
         boolean isSender = room.getSender().getId().equals(currentUserId);
         User opponent = isSender ? room.getReceiver() : room.getSender();
 
         return new DirectRoomResponseDto(
-                room.getId(),
-                unreadCount,
-                exchangeRequestId,
-                room.getSender().getId(),
-                room.getReceiver().getId(),
-                room.getCompletedAt(),
-                room.getCreatedAt(),
-                room.isCompleted(),
-                itemInfo.title(),
-                itemInfo.category(),
-                itemInfo.image(),
-                opponent.getNickname(),
-                opponent.getProfileImageUrl(),
-                opponentOnline);
+            room.getId(),
+            unreadCount,
+            exchangeRequestId,
+            room.getSender().getId(),
+            room.getReceiver().getId(),
+            room.getCompletedAt(),
+            room.getCreatedAt(),
+            room.isCompleted(),
+            itemInfo.title(),
+            itemInfo.category(),
+            itemInfo.image(),
+            opponent.getNickname(),
+            opponent.getProfileImageUrl(),
+            opponentOnline
+        );
     }
 }

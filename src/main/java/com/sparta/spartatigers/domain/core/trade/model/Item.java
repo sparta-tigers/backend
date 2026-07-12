@@ -1,13 +1,10 @@
 package com.sparta.spartatigers.domain.core.trade.model;
 
-import java.time.LocalDate;
-
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
 import com.sparta.spartatigers.domain.core.trade.dto.request.UpdateItemRequestDto;
 import com.sparta.spartatigers.domain.foundation.user.account.model.User;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -21,6 +18,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,10 +27,18 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(indexes = {
-        @Index(name = "idx_item_user_status_created", columnList = "user_id, status, created_at DESC"),
-        @Index(name = "idx_item_status_created_date", columnList = "status, created_date")
-})
+@Table(
+    indexes = {
+        @Index(
+            name = "idx_item_user_status_created",
+            columnList = "user_id, status, created_at DESC"
+        ),
+        @Index(
+            name = "idx_item_status_created_date",
+            columnList = "status, created_date"
+        ),
+    }
+)
 public class Item extends BaseEntity {
 
     @Id
@@ -81,19 +87,19 @@ public class Item extends BaseEntity {
     private Long version;
 
     public Item(
-            ItemCategory category,
-            String image,
-            String seatInfo,
-            String title,
-            String description,
-            Double latitude,
-            Double longitude,
-            String address,
-            String desiredItem,
-            ItemStatus status,
-            User user,
-            LocalDate createdDate) {
-
+        ItemCategory category,
+        String image,
+        String seatInfo,
+        String title,
+        String description,
+        Double latitude,
+        Double longitude,
+        String address,
+        String desiredItem,
+        ItemStatus status,
+        User user,
+        LocalDate createdDate
+    ) {
         this.category = category;
         this.image = image;
         this.seatInfo = seatInfo;
@@ -109,21 +115,20 @@ public class Item extends BaseEntity {
     }
 
     public void validateUserIsOwner(User user) {
-
         if (!this.user.getId().equals(user.getId())) {
             throw new InvalidRequestException(ExceptionCode.ITEM_NOT_FOUND);
         }
     }
 
     public void validateSenderIsNotOwner(User sender) {
-
         if (this.user.getId().equals(sender.getId())) {
-            throw new InvalidRequestException(ExceptionCode.CANNOT_REQUEST_OWN_ITEM);
+            throw new InvalidRequestException(
+                ExceptionCode.CANNOT_REQUEST_OWN_ITEM
+            );
         }
     }
 
     public void validateReceiverIsOwner(User receiver) {
-
         if (!this.user.getId().equals(receiver.getId())) {
             throw new InvalidRequestException(ExceptionCode.RECEIVER_NOT_OWNER);
         }
@@ -134,7 +139,6 @@ public class Item extends BaseEntity {
     }
 
     public void updateItem(UpdateItemRequestDto request) {
-
         if (request.category() != null) {
             this.category = request.category();
         }
@@ -157,7 +161,10 @@ public class Item extends BaseEntity {
     }
 
     public void reopen(LocalDate createdDate) {
-        java.util.Objects.requireNonNull(createdDate, "createdDate must not be null");
+        java.util.Objects.requireNonNull(
+            createdDate,
+            "createdDate must not be null"
+        );
         this.status = ItemStatus.REGISTERED;
         if (this.createdDate == null) {
             this.createdDate = createdDate;

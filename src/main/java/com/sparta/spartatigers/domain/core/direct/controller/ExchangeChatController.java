@@ -1,15 +1,12 @@
 package com.sparta.spartatigers.domain.core.direct.controller;
 
-import java.security.Principal;
-
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.stereotype.Controller;
-
 import com.sparta.spartatigers.domain.core.direct.dto.request.ChatMessageRequest;
 import com.sparta.spartatigers.domain.core.direct.service.ExchangeChatService;
 import com.sparta.spartatigers.domain.support.chat.interceptor.StompPrincipal;
-
+import java.security.Principal;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.stereotype.Controller;
 
 @Controller
 @RequiredArgsConstructor
@@ -18,10 +15,9 @@ public class ExchangeChatController {
     private final ExchangeChatService chatMessageService;
 
     /**
-     * 클라이언트가 "/directRoom/send" 경로로 메시지를 보내면 호출 인증 정보를 기반으로 보낸 사용자의 ID를 추출 해당 메시지를
-     * Redis 채널에 발행
+     * 클라이언트가 "/directRoom/send" 경로로 메시지를 보내면 호출 인증 정보를 기반으로 보낸 사용자의 ID를 추출 해당 메시지를 Redis 채널에 발행
      *
-     * @param request   클라이언트가 전송한 채팅 메시지 요청 정보
+     * @param request 클라이언트가 전송한 채팅 메시지 요청 정보
      * @param principal 현재 인증된 사용자 정보를 담고 있는 객체
      * @throws IllegalStateException 지원되지 않는 Principal 타입일 경우 발생
      */
@@ -32,7 +28,9 @@ public class ExchangeChatController {
         if (principal instanceof StompPrincipal stompprincipal) {
             senderId = Long.parseLong(stompprincipal.getName());
         } else {
-            throw new IllegalStateException("지원하지 않는 principal 타입: " + principal.getClass());
+            throw new IllegalStateException(
+                "지원하지 않는 principal 타입: " + principal.getClass()
+            );
         }
 
         chatMessageService.sendMessage(senderId, request);
@@ -47,5 +45,4 @@ public class ExchangeChatController {
     //
     // directMessageService.markMessageAsRead(roomId, messageId, userId);
     // }
-
 }

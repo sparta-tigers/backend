@@ -4,7 +4,6 @@ import com.sparta.spartatigers.domain.common.entity.BaseEntity;
 import com.sparta.spartatigers.domain.foundation.user.account.model.User;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
 import com.sparta.spartatigers.global.exception.internal.ServerException;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -47,7 +46,13 @@ public class ExchangeRequest extends BaseEntity {
 
     private String have;
 
-    public ExchangeRequest(Item item, User sender, User receiver, ExchangeStatus exchangeStatus, String have) {
+    public ExchangeRequest(
+        Item item,
+        User sender,
+        User receiver,
+        ExchangeStatus exchangeStatus,
+        String have
+    ) {
         this.item = item;
         this.sender = sender;
         this.receiver = receiver;
@@ -55,13 +60,22 @@ public class ExchangeRequest extends BaseEntity {
         this.have = have;
     }
 
-    public static ExchangeRequest of(Item item, User sender, User receiver, String have) {
-
-        return new ExchangeRequest(item, sender, receiver, ExchangeStatus.PENDING, have);
+    public static ExchangeRequest of(
+        Item item,
+        User sender,
+        User receiver,
+        String have
+    ) {
+        return new ExchangeRequest(
+            item,
+            sender,
+            receiver,
+            ExchangeStatus.PENDING,
+            have
+        );
     }
 
     public void validateReceiverIsOwner(User receiver) {
-
         if (!this.receiver.getId().equals(receiver.getId())) {
             throw new ServerException(ExceptionCode.RECEIVER_FORBIDDEN);
         }

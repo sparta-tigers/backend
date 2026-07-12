@@ -1,15 +1,10 @@
 package com.sparta.spartatigers.domain.core.attendance.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
 import com.sparta.spartatigers.domain.foundation.baseball.match.model.Match;
 import com.sparta.spartatigers.domain.foundation.user.account.model.User;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -17,6 +12,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -42,24 +40,42 @@ public class MatchAttendance extends BaseEntity {
 
     private String contents;
 
-    @OneToMany(mappedBy = "attendance", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(
+        mappedBy = "attendance",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true
+    )
     private List<AttendanceImage> images = new ArrayList<>();
 
     private String seat;
 
-    private MatchAttendance(User user, Match match, String contents, String seat) {
+    private MatchAttendance(
+        User user,
+        Match match,
+        String contents,
+        String seat
+    ) {
         this.user = user;
         this.match = match;
         this.contents = contents;
         this.seat = seat;
     }
 
-    public static MatchAttendance create(User user, Match match, String contents, String seat) {
+    public static MatchAttendance create(
+        User user,
+        Match match,
+        String contents,
+        String seat
+    ) {
         return new MatchAttendance(user, match, contents, seat);
     }
 
     public void addImage(String imageUrl, AttendanceImageType imageType) {
-        AttendanceImage image = AttendanceImage.create(this, imageUrl, imageType);
+        AttendanceImage image = AttendanceImage.create(
+            this,
+            imageUrl,
+            imageType
+        );
         this.images.add(image);
     }
 
@@ -71,5 +87,4 @@ public class MatchAttendance extends BaseEntity {
     public void clearImages() {
         this.images.clear();
     }
-
 }

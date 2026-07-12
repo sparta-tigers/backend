@@ -1,9 +1,7 @@
 package com.sparta.spartatigers.domain.core.direct.dto.response;
 
-import java.time.LocalDateTime;
-
 import com.sparta.spartatigers.domain.core.direct.model.DirectRoom;
-
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,12 +21,13 @@ public class DirectRoomCreateResponseDto {
 
     public static DirectRoomCreateResponseDto from(DirectRoom room) {
         return new DirectRoomCreateResponseDto(
-                room.getId(),
-                room.getExchangeRequestId(),
-                room.getSender().getId(),
-                room.getReceiver().getId(),
-                room.isCompleted(),
-                room.getCompletedAt(),
-                room.getCreatedAt());
+            room.getId(),
+            room.getExchangeRequestId(),
+            room.getSender().getId(),
+            room.getReceiver().getId(),
+            room.isCompleted(),
+            room.getCompletedAt(),
+            room.getCreatedAt()
+        );
     }
 }

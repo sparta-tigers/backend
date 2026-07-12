@@ -1,10 +1,8 @@
 package com.sparta.spartatigers.domain.core.direct.dto.response;
 
-import java.time.LocalDateTime;
-
 import com.sparta.spartatigers.domain.core.direct.model.DirectMessage;
 import com.sparta.spartatigers.domain.core.direct.repository.DirectMessageRepository;
-
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -20,19 +18,23 @@ public class DirectRoomMessageResponse {
 
     public static DirectRoomMessageResponse from(DirectMessage message) {
         return new DirectRoomMessageResponse(
-                message.getId(),
-                message.getSender().getId(),
-                message.getSender().getNickname(),
-                message.getMessage(),
-                message.getSentAt());
+            message.getId(),
+            message.getSender().getId(),
+            message.getSender().getNickname(),
+            message.getMessage(),
+            message.getSentAt()
+        );
     }
 
-    public static DirectRoomMessageResponse from(DirectMessageRepository.MessageProjection projection) {
+    public static DirectRoomMessageResponse from(
+        DirectMessageRepository.MessageProjection projection
+    ) {
         return new DirectRoomMessageResponse(
-                projection.getMessageId(),
-                projection.getSenderId(),
-                projection.getSenderNickname(),
-                projection.getMessage(),
-                projection.getSentAt());
+            projection.getMessageId(),
+            projection.getSenderId(),
+            projection.getSenderNickname(),
+            projection.getMessage(),
+            projection.getSentAt()
+        );
     }
 }

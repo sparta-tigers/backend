@@ -1,12 +1,11 @@
 package com.sparta.spartatigers.domain.core.trade.dto.response;
 
-import java.time.LocalDateTime;
-
 import com.sparta.spartatigers.domain.core.trade.model.ExchangeRequest;
 import com.sparta.spartatigers.domain.core.trade.model.ExchangeStatus;
 import com.sparta.spartatigers.domain.core.trade.model.ItemCategory;
 import com.sparta.spartatigers.domain.core.trade.model.ItemStatus;
 import com.sparta.spartatigers.domain.foundation.user.account.dto.UserResponseDto;
+import java.time.LocalDateTime;
 
 /**
  * 교환 요청 목록 응답 DTO
@@ -22,27 +21,30 @@ import com.sparta.spartatigers.domain.foundation.user.account.dto.UserResponseDt
  * 기존에는 exchangeStatus가 없어서 프론트엔드에서 요청 수락/거절 여부를 알 수 없었습니다.
  */
 public record ReceiveRequestResponseDto(
-        Long exchangeRequestId,
-        Long itemId,
-        UserResponseDto sender,
-        ItemCategory category,
-        String title,
-        ItemStatus status,
-        ExchangeStatus exchangeStatus,
-        LocalDateTime createdAt,
-        Long directRoomId) {
-
-    public static ReceiveRequestResponseDto from(ExchangeRequest exchangeRequest, Long directRoomId) {
-
+    Long exchangeRequestId,
+    Long itemId,
+    UserResponseDto sender,
+    ItemCategory category,
+    String title,
+    ItemStatus status,
+    ExchangeStatus exchangeStatus,
+    LocalDateTime createdAt,
+    Long directRoomId
+) {
+    public static ReceiveRequestResponseDto from(
+        ExchangeRequest exchangeRequest,
+        Long directRoomId
+    ) {
         return new ReceiveRequestResponseDto(
-                exchangeRequest.getId(),
-                exchangeRequest.getItem().getId(),
-                UserResponseDto.from(exchangeRequest.getSender()),
-                exchangeRequest.getItem().getCategory(),
-                exchangeRequest.getItem().getTitle(),
-                exchangeRequest.getItem().getStatus(),
-                exchangeRequest.getStatus(),
-                exchangeRequest.getCreatedAt(),
-                directRoomId);
+            exchangeRequest.getId(),
+            exchangeRequest.getItem().getId(),
+            UserResponseDto.from(exchangeRequest.getSender()),
+            exchangeRequest.getItem().getCategory(),
+            exchangeRequest.getItem().getTitle(),
+            exchangeRequest.getItem().getStatus(),
+            exchangeRequest.getStatus(),
+            exchangeRequest.getCreatedAt(),
+            directRoomId
+        );
     }
 }
