@@ -3,7 +3,6 @@ package com.sparta.spartatigers.global.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -25,7 +24,10 @@ public class ErrorResponse {
         return new ErrorResponse(code, null);
     }
 
-    public static ErrorResponse of(final ExceptionCode code, final Object data) {
+    public static ErrorResponse of(
+        final ExceptionCode code,
+        final Object data
+    ) {
         return new ErrorResponse(code, data);
     }
 

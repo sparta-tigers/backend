@@ -1,10 +1,8 @@
 package com.sparta.spartatigers.global.exception.external;
 
-import java.io.Serial;
-
-import org.springframework.http.HttpStatus;
-
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+import java.io.Serial;
+import org.springframework.http.HttpStatus;
 
 public abstract class ExternalServiceException extends RuntimeException {
 

@@ -31,11 +31,12 @@ public class DiscordNotificationSender implements NotificationSender {
         DiscordWebhookPayload discordPayload = createDiscordMessage(payload);
 
         try {
-            restClient.post()
-                    .uri(discordWebhookUrl)
-                    .body(discordPayload)
-                    .retrieve()
-                    .toBodilessEntity();
+            restClient
+                .post()
+                .uri(discordWebhookUrl)
+                .body(discordPayload)
+                .retrieve()
+                .toBodilessEntity();
         } catch (Exception e) {
             log.error("디스코드 알림 전송에 실패했습니다.", e);
         }
@@ -43,16 +44,27 @@ public class DiscordNotificationSender implements NotificationSender {
 
     private DiscordWebhookPayload createDiscordMessage(MessagePayload payload) {
         Embed embed = Embed.builder()
-                .title(payload.getSubject())
-                .description(payload.getMessage())
-                .color(getColorForLevel(payload.getLevel()))
-                .url(payload.getBacklink())
-                .fields(
-                        (payload.getMetadata() != null) ? payload.getMetadata().entrySet().stream()
-                                .map(entry -> new DiscordWebhookPayload.Embed.Field(entry.getKey(), entry.getValue(),
-                                        true))
-                                .collect(Collectors.toList()) : null)
-                .build();
+            .title(payload.getSubject())
+            .description(payload.getMessage())
+            .color(getColorForLevel(payload.getLevel()))
+            .url(payload.getBacklink())
+            .fields(
+                (payload.getMetadata() != null)
+                    ? payload
+                          .getMetadata()
+                          .entrySet()
+                          .stream()
+                          .map(entry ->
+                              new DiscordWebhookPayload.Embed.Field(
+                                  entry.getKey(),
+                                  entry.getValue(),
+                                  true
+                              )
+                          )
+                          .collect(Collectors.toList())
+                    : null
+            )
+            .build();
 
         return new DiscordWebhookPayload(List.of(embed));
     }

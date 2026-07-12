@@ -1,10 +1,21 @@
 package com.sparta.spartatigers.global.exception.common;
 
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+import com.sparta.spartatigers.global.exception.external.ExternalServiceException;
+import com.sparta.spartatigers.global.exception.internal.BaseException;
+import com.sparta.spartatigers.global.notification.NotificationSender;
+import com.sparta.spartatigers.global.notification.dto.AlertLevel;
+import com.sparta.spartatigers.global.notification.dto.MessagePayload;
+import com.sparta.spartatigers.global.response.ApiResponse;
+import com.sparta.spartatigers.global.response.ErrorResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -16,21 +27,6 @@ import org.springframework.web.context.request.async.AsyncRequestTimeoutExceptio
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-import jakarta.validation.ConstraintViolationException;
-
-import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
-import com.sparta.spartatigers.global.exception.external.ExternalServiceException;
-import com.sparta.spartatigers.global.exception.internal.BaseException;
-import com.sparta.spartatigers.global.notification.NotificationSender;
-import com.sparta.spartatigers.global.notification.dto.AlertLevel;
-import com.sparta.spartatigers.global.notification.dto.MessagePayload;
-import com.sparta.spartatigers.global.response.ApiResponse;
-import com.sparta.spartatigers.global.response.ErrorResponse;
-
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
 @RestControllerAdvice
 @RequiredArgsConstructor
@@ -39,8 +35,17 @@ public class GlobalExceptionHandler {
     private final NotificationSender notificationSender;
 
     // 민감 정보 필드명 관리하는 Set
-    private static final Set<String> SENSITIVE_FIELDS = Set.of("password", "pwd", "pass", "token", "authorization",
-            "auth", "secret", "apiKey", "api_key");
+    private static final Set<String> SENSITIVE_FIELDS = Set.of(
+        "password",
+        "pwd",
+        "pass",
+        "token",
+        "authorization",
+        "auth",
+        "secret",
+        "apiKey",
+        "api_key"
+    );
 
     /**
      * 값 마스킹 헬퍼 메서드
@@ -61,53 +66,82 @@ public class GlobalExceptionHandler {
     // validation 예외 핸들러
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<?>> handleValidationException(
-            MethodArgumentNotValidException ex) {
+        MethodArgumentNotValidException ex
+    ) {
         log.warn("Validation 예외 발생: {}", ex.getMessage());
 
-        List<ErrorResponse.FieldErrorDetail> fieldErrorDetails = ex.getBindingResult().getFieldErrors().stream()
-                .map(
-                        error -> ErrorResponse.FieldErrorDetail.of(
-                                error.getField(),
-                                maskIfSensitive(error.getField(), error.getRejectedValue()),
-                                error.getDefaultMessage()))
-                .toList();
+        List<ErrorResponse.FieldErrorDetail> fieldErrorDetails = ex
+            .getBindingResult()
+            .getFieldErrors()
+            .stream()
+            .map(error ->
+                ErrorResponse.FieldErrorDetail.of(
+                    error.getField(),
+                    maskIfSensitive(error.getField(), error.getRejectedValue()),
+                    error.getDefaultMessage()
+                )
+            )
+            .toList();
 
-        ApiResponse<?> response = ApiResponse.error(ExceptionCode.VALIDATION_ERROR, fieldErrorDetails);
-        return ResponseEntity.status(ExceptionCode.VALIDATION_ERROR.getHttpStatus()).body(response);
+        ApiResponse<?> response = ApiResponse.error(
+            ExceptionCode.VALIDATION_ERROR,
+            fieldErrorDetails
+        );
+        return ResponseEntity.status(
+            ExceptionCode.VALIDATION_ERROR.getHttpStatus()
+        ).body(response);
     }
 
     /**
      * ConstraintViolationException 핸들러
-     * 
+     *
      * Why: MVC @Validated 컨트롤러뿐만 아니라 JPA 엔티티 Bean Validation 실패 시에도 발생할 수 있음.
      * 엔티티 레벨 예외가 포착될 경우 내부 필드 정보 노출 위험이 있으므로 주의가 필요함.
      */
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ApiResponse<?>> handleConstraintViolationException(ConstraintViolationException ex) {
-        log.warn("ConstraintViolation 예외 발생 (검증 출처 확인 필요): {}", ex.getMessage());
+    public ResponseEntity<ApiResponse<?>> handleConstraintViolationException(
+        ConstraintViolationException ex
+    ) {
+        log.warn(
+            "ConstraintViolation 예외 발생 (검증 출처 확인 필요): {}",
+            ex.getMessage()
+        );
 
-        List<ErrorResponse.FieldErrorDetail> fieldErrorDetails = ex.getConstraintViolations().stream()
-                .map(violation -> {
-                    String propertyPath = violation.getPropertyPath().toString();
-                    String fieldName = propertyPath.substring(propertyPath.lastIndexOf('.') + 1);
-                    return ErrorResponse.FieldErrorDetail.of(
-                            fieldName,
-                            maskIfSensitive(fieldName, violation.getInvalidValue()),
-                            violation.getMessage());
-                })
-                .toList();
+        List<ErrorResponse.FieldErrorDetail> fieldErrorDetails = ex
+            .getConstraintViolations()
+            .stream()
+            .map(violation -> {
+                String propertyPath = violation.getPropertyPath().toString();
+                String fieldName = propertyPath.substring(
+                    propertyPath.lastIndexOf('.') + 1
+                );
+                return ErrorResponse.FieldErrorDetail.of(
+                    fieldName,
+                    maskIfSensitive(fieldName, violation.getInvalidValue()),
+                    violation.getMessage()
+                );
+            })
+            .toList();
 
-        ApiResponse<?> response = ApiResponse.error(ExceptionCode.VALIDATION_ERROR, fieldErrorDetails);
-        return ResponseEntity.status(ExceptionCode.VALIDATION_ERROR.getHttpStatus()).body(response);
+        ApiResponse<?> response = ApiResponse.error(
+            ExceptionCode.VALIDATION_ERROR,
+            fieldErrorDetails
+        );
+        return ResponseEntity.status(
+            ExceptionCode.VALIDATION_ERROR.getHttpStatus()
+        ).body(response);
     }
 
     // Valid에서 못거르는 타입 불일치 메소외드 예외
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ApiResponse<?>> handleInvalidFormat(HttpMessageNotReadableException ex) {
+    public ResponseEntity<ApiResponse<?>> handleInvalidFormat(
+        HttpMessageNotReadableException ex
+    ) {
         log.warn("요청 데이터 형식 오류: {}", ex.getMessage());
 
-        return ResponseEntity.badRequest()
-                .body(ApiResponse.error(ExceptionCode.INVALID_TYPE_EXCEPTION));
+        return ResponseEntity.badRequest().body(
+            ApiResponse.error(ExceptionCode.INVALID_TYPE_EXCEPTION)
+        );
     }
 
     /**
@@ -116,10 +150,17 @@ public class GlobalExceptionHandler {
      * Why: Spring 기본 동작은 500을 뱉지만, 잘못된 포맷은 클라이언트 측 오류이므로 400으로 분류.
      */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ApiResponse<?>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
-        log.warn("경로/쿼리 파라미터 타입 불일치: name={}, value={}", ex.getName(), ex.getValue());
-        return ResponseEntity.status(ExceptionCode.INVALID_TYPE_EXCEPTION.getHttpStatus())
-                .body(ApiResponse.error(ExceptionCode.INVALID_TYPE_EXCEPTION));
+    public ResponseEntity<ApiResponse<?>> handleTypeMismatch(
+        MethodArgumentTypeMismatchException ex
+    ) {
+        log.warn(
+            "경로/쿼리 파라미터 타입 불일치: name={}, value={}",
+            ex.getName(),
+            ex.getValue()
+        );
+        return ResponseEntity.status(
+            ExceptionCode.INVALID_TYPE_EXCEPTION.getHttpStatus()
+        ).body(ApiResponse.error(ExceptionCode.INVALID_TYPE_EXCEPTION));
     }
 
     /**
@@ -129,10 +170,13 @@ public class GlobalExceptionHandler {
      * 클라이언트가 "서버 장애"로 오인하는 문제가 있었음. 404로 명확히 구분.
      */
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<ApiResponse<?>> handleNoResourceFound(NoResourceFoundException ex) {
+    public ResponseEntity<ApiResponse<?>> handleNoResourceFound(
+        NoResourceFoundException ex
+    ) {
         log.debug("매핑되지 않은 경로 요청: {}", ex.getResourcePath());
-        return ResponseEntity.status(ExceptionCode.RESOURCE_NOT_FOUND.getHttpStatus())
-                .body(ApiResponse.error(ExceptionCode.RESOURCE_NOT_FOUND));
+        return ResponseEntity.status(
+            ExceptionCode.RESOURCE_NOT_FOUND.getHttpStatus()
+        ).body(ApiResponse.error(ExceptionCode.RESOURCE_NOT_FOUND));
     }
 
     // [FIX] 문제 2: check-then-act 경합으로 DataIntegrityViolationException 발생 시
@@ -140,21 +184,29 @@ public class GlobalExceptionHandler {
     // 분기.
     // 그 외(NOT NULL, 길이 초과 등)는 500 처리
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ApiResponse<?>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
-        String rootMessage = ex.getMostSpecificCause() != null
+    public ResponseEntity<ApiResponse<?>> handleDataIntegrityViolation(
+        DataIntegrityViolationException ex
+    ) {
+        String rootMessage =
+            ex.getMostSpecificCause() != null
                 ? String.valueOf(ex.getMostSpecificCause().getMessage())
                 : "";
         log.warn("DB 무결성 제약 위반: {}", rootMessage);
 
         // UK_ACTIVE_ITEM_PER_USER 위반에 한해 ITEM_ALREADY_EXISTS로 매핑
-        if (rootMessage != null && rootMessage.toUpperCase().contains("UK_ACTIVE_ITEM_PER_USER")) {
-            return ResponseEntity.status(ExceptionCode.ITEM_ALREADY_EXISTS.getHttpStatus())
-                    .body(ApiResponse.error(ExceptionCode.ITEM_ALREADY_EXISTS));
+        if (
+            rootMessage != null &&
+            rootMessage.toUpperCase().contains("UK_ACTIVE_ITEM_PER_USER")
+        ) {
+            return ResponseEntity.status(
+                ExceptionCode.ITEM_ALREADY_EXISTS.getHttpStatus()
+            ).body(ApiResponse.error(ExceptionCode.ITEM_ALREADY_EXISTS));
         }
 
         // 그 외 무결성 위반은 일반 처리
-        return ResponseEntity.status(ExceptionCode.INTERNAL_SERVER_ERROR.getHttpStatus())
-                .body(ApiResponse.error(ExceptionCode.INTERNAL_SERVER_ERROR));
+        return ResponseEntity.status(
+            ExceptionCode.INTERNAL_SERVER_ERROR.getHttpStatus()
+        ).body(ApiResponse.error(ExceptionCode.INTERNAL_SERVER_ERROR));
     }
 
     /**
@@ -162,21 +214,28 @@ public class GlobalExceptionHandler {
      */
     // 외부 예외 핸들러
     @ExceptionHandler(ExternalServiceException.class)
-    public ResponseEntity<ApiResponse<?>> handleExternalServiceException(ExternalServiceException ex) {
+    public ResponseEntity<ApiResponse<?>> handleExternalServiceException(
+        ExternalServiceException ex
+    ) {
         // String errorSource = ex.getSource(); // 임시 비활성화
         // String title = String.format("외부 서비스(%s) 오류 발생", errorSource); // 임시 비활성화
 
         // sendNotificationToDiscord(AlertLevel.CRITICAL, title, ex); // 임시 비활성화
 
-        return ResponseEntity.status(ex.getStatus())
-                .body(ApiResponse.error(ex.getExceptionCode()));
+        return ResponseEntity.status(ex.getStatus()).body(
+            ApiResponse.error(ex.getExceptionCode())
+        );
     }
 
     // 내부 예외 핸들러
     @ExceptionHandler(BaseException.class)
-    public ResponseEntity<ApiResponse<?>> handleBaseException(BaseException ex) {
+    public ResponseEntity<ApiResponse<?>> handleBaseException(
+        BaseException ex
+    ) {
         log.warn("내부 비즈니스 로직 예외 발생: {}", ex.getMessage());
-        return ResponseEntity.status(ex.getStatus()).body(ApiResponse.error(ex.getExceptionCode()));
+        return ResponseEntity.status(ex.getStatus()).body(
+            ApiResponse.error(ex.getExceptionCode())
+        );
     }
 
     /**
@@ -187,9 +246,15 @@ public class GlobalExceptionHandler {
      * 예외가 발생해도 재연결을 시도하기에 동작에는 지장없음 해당 예외는 예외 로그가 계성속 생기기에 생성
      */
     @ExceptionHandler(HttpMessageNotWritableException.class)
-    public void handleSseWritableException(HttpServletRequest request, Exception e) {
+    public void handleSseWritableException(
+        HttpServletRequest request,
+        Exception e
+    ) {
         if (request.getRequestURI().contains("/sse/subscribe")) {
-            log.debug("SSE 응답 처리 중 예외 발생 (무시 가능): {}", e.getMessage());
+            log.debug(
+                "SSE 응답 처리 중 예외 발생 (무시 가능): {}",
+                e.getMessage()
+            );
         } else {
             log.warn("HttpMessageNotWritableException 발생: ", e);
         }
@@ -210,12 +275,17 @@ public class GlobalExceptionHandler {
 
         // sendNotificationToDiscord(AlertLevel.ERROR, title, ex); // 임시 비활성화
 
-        return ResponseEntity.status(ExceptionCode.INTERNAL_SERVER_ERROR.getHttpStatus())
-                .body(ApiResponse.error(ExceptionCode.INTERNAL_SERVER_ERROR));
+        return ResponseEntity.status(
+            ExceptionCode.INTERNAL_SERVER_ERROR.getHttpStatus()
+        ).body(ApiResponse.error(ExceptionCode.INTERNAL_SERVER_ERROR));
     }
 
     @SuppressWarnings("unused")
-    private void sendNotificationToDiscord(AlertLevel level, String title, Exception ex) {
+    private void sendNotificationToDiscord(
+        AlertLevel level,
+        String title,
+        Exception ex
+    ) {
         log.error("{} [Alert]: {}", title, ex.getMessage(), ex);
 
         // BaseException 또는 ExternalServiceException에서 ExceptionCode를 가져오기 위한 처리
@@ -227,15 +297,24 @@ public class GlobalExceptionHandler {
         }
 
         MessagePayload payload = MessagePayload.builder()
-                .level(level)
-                .subject(title)
-                .message(ex.getMessage())
-                .metadata(Map.of(
-                        "Exception Type", ex.getClass().getSimpleName(),
-                        "Caused By", ex.getCause() != null ? ex.getCause().getMessage() : "원인 정보 없음",
-                        "Error Code", (code != null) ? code.getCode().name() : "에러 코드 없음",
-                        "Timestamp", LocalDateTime.now().toString()))
-                .build();
+            .level(level)
+            .subject(title)
+            .message(ex.getMessage())
+            .metadata(
+                Map.of(
+                    "Exception Type",
+                    ex.getClass().getSimpleName(),
+                    "Caused By",
+                    ex.getCause() != null
+                        ? ex.getCause().getMessage()
+                        : "원인 정보 없음",
+                    "Error Code",
+                    (code != null) ? code.getCode().name() : "에러 코드 없음",
+                    "Timestamp",
+                    LocalDateTime.now().toString()
+                )
+            )
+            .build();
 
         notificationSender.send(payload);
     }

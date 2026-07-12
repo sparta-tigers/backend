@@ -15,22 +15,27 @@ public class NotificationService {
     private final FCMService fcmService;
 
     public void send(NotificationMessage message) {
-
         if (message == null || !message.hasValidToken()) {
             return;
         }
 
-        fcmService.sendMessageToToken(message.token(), message.title(), message.body());
+        fcmService.sendMessageToToken(
+            message.token(),
+            message.title(),
+            message.body()
+        );
     }
 
     public void sendAfterCommit(NotificationMessage message) {
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    sendSafely(message);
+            TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        sendSafely(message);
+                    }
                 }
-            });
+            );
         } else {
             sendSafely(message);
         }

@@ -1,10 +1,8 @@
 package com.sparta.spartatigers.global.response;
 
-import java.time.LocalDateTime;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
-
+import java.time.LocalDateTime;
 import lombok.Getter;
 
 @Getter
@@ -31,10 +29,21 @@ public class ApiResponse<T> {
     }
 
     public static ApiResponse<Object> error(final ExceptionCode code) {
-        return new ApiResponse<>(ResultType.ERROR, null, ErrorResponse.of(code));
+        return new ApiResponse<>(
+            ResultType.ERROR,
+            null,
+            ErrorResponse.of(code)
+        );
     }
 
-    public static ApiResponse<Object> error(final ExceptionCode code, final Object data) {
-        return new ApiResponse<>(ResultType.ERROR, null, ErrorResponse.of(code, data));
+    public static ApiResponse<Object> error(
+        final ExceptionCode code,
+        final Object data
+    ) {
+        return new ApiResponse<>(
+            ResultType.ERROR,
+            null,
+            ErrorResponse.of(code, data)
+        );
     }
 }
