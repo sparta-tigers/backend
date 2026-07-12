@@ -15,6 +15,10 @@ public class RedisUpdateDto {
     private double longitude;
 
     public static RedisUpdateDto of(Long userId, LocationRequestDto location) {
-        return new RedisUpdateDto(userId, location.getLatitude(), location.getLongitude());
+        return new RedisUpdateDto(
+            userId,
+            location.getLatitude(),
+            location.getLongitude()
+        );
     }
 }

@@ -1,11 +1,18 @@
 package com.sparta.spartatigers.domain.support.chat.service;
 
+import com.sparta.spartatigers.domain.foundation.baseball.team.model.Stadium;
+import com.sparta.spartatigers.domain.foundation.baseball.team.repository.StadiumRepository;
+import com.sparta.spartatigers.domain.support.chat.dto.request.LocationRequestDto;
+import com.sparta.spartatigers.domain.support.chat.dto.response.RedisUpdateDto;
+import com.sparta.spartatigers.domain.support.chat.pubsub.RedisLocationPublisher;
+import jakarta.annotation.PostConstruct;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
@@ -15,16 +22,6 @@ import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-
-import com.sparta.spartatigers.domain.support.chat.dto.request.LocationRequestDto;
-import com.sparta.spartatigers.domain.support.chat.dto.response.RedisUpdateDto;
-import com.sparta.spartatigers.domain.support.chat.pubsub.RedisLocationPublisher;
-import com.sparta.spartatigers.domain.foundation.baseball.team.model.Stadium;
-import com.sparta.spartatigers.domain.foundation.baseball.team.repository.StadiumRepository;
-
-import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -45,18 +42,33 @@ public class LocationService {
     @PostConstruct
     public void loadStadiumLocation() {
         try {
-            if (Boolean.TRUE.equals(redisTemplate.hasKey(STADIUM_LOCATION_KEY))) {
-                log.info("[loadStadiumLocation] Redis에 이미 야구장 위치 정보가 존재합니다.");
+            if (
+                Boolean.TRUE.equals(redisTemplate.hasKey(STADIUM_LOCATION_KEY))
+            ) {
+                log.info(
+                    "[loadStadiumLocation] Redis에 이미 야구장 위치 정보가 존재합니다."
+                );
                 return;
             }
             List<Stadium> stadiums = stadiumRepository.findAll();
 
             for (Stadium stadium : stadiums) {
-                Point point = new Point(stadium.getLongitude(), stadium.getLatitude());
-                redisTemplate.opsForGeo().add(STADIUM_LOCATION_KEY, point, stadium.getId());
-                log.debug("[loadStadiumLocation] 야구장 등록 - ID: {}", stadium.getId());
+                Point point = new Point(
+                    stadium.getLongitude(),
+                    stadium.getLatitude()
+                );
+                redisTemplate
+                    .opsForGeo()
+                    .add(STADIUM_LOCATION_KEY, point, stadium.getId());
+                log.debug(
+                    "[loadStadiumLocation] 야구장 등록 - ID: {}",
+                    stadium.getId()
+                );
             }
-            log.info("[loadStadiumLocation] 야구장 위치 로딩 완료: {}개", stadiums.size());
+            log.info(
+                "[loadStadiumLocation] 야구장 위치 로딩 완료: {}개",
+                stadiums.size()
+            );
         } catch (Exception e) {
             log.error("[loadStadiumLocation] 야구장 위치 로딩 중 예외 발생", e);
         }
@@ -69,21 +81,37 @@ public class LocationService {
         }
 
         try {
-            Point point = new Point(request.getLongitude(), request.getLatitude());
+            Point point = new Point(
+                request.getLongitude(),
+                request.getLatitude()
+            );
             redisTemplate.opsForGeo().add(USER_LOCATION_KEY, point, userId);
-            redisTemplate.opsForValue().set(LOCATION_TTL_KEY + userId, "1", Duration.ofMinutes(2));
+            redisTemplate
+                .opsForValue()
+                .set(LOCATION_TTL_KEY + userId, "1", Duration.ofMinutes(2));
 
-            log.debug("[updateLocation] 사용자 위치 업데이트 완료 - userId: {}", userId);
-            locationPublisher.publishLocation(RedisUpdateDto.of(userId, request));
+            log.debug(
+                "[updateLocation] 사용자 위치 업데이트 완료 - userId: {}",
+                userId
+            );
+            locationPublisher.publishLocation(
+                RedisUpdateDto.of(userId, request)
+            );
         } catch (Exception e) {
             log.error(
-                    "[updateLocation] Redis 또는 publishLocation 처리 중 예외 발생 - userId: {}", userId, e);
+                "[updateLocation] Redis 또는 publishLocation 처리 중 예외 발생 - userId: {}",
+                userId,
+                e
+            );
         }
     }
 
     public List<Long> findUsersNearBy(Long userId, double radius) {
         try {
-            Point userPoint = redisTemplate.opsForGeo().position(USER_LOCATION_KEY, userId).get(0);
+            Point userPoint = redisTemplate
+                .opsForGeo()
+                .position(USER_LOCATION_KEY, userId)
+                .get(0);
 
             if (userPoint == null) {
                 log.warn("[findUsersNearBy] 사용자 위치를 찾을 수 없습니다.");
@@ -91,54 +119,93 @@ public class LocationService {
             }
             Distance distance = new Distance(radius, Metrics.KILOMETERS);
             Circle circle = new Circle(userPoint, distance);
-            GeoResults<RedisGeoCommands.GeoLocation<Object>> results = redisTemplate.opsForGeo()
-                    .radius(USER_LOCATION_KEY, circle);
+            GeoResults<RedisGeoCommands.GeoLocation<Object>> results =
+                redisTemplate.opsForGeo().radius(USER_LOCATION_KEY, circle);
 
             if (results == null) {
                 return new ArrayList<>();
             }
-            return results.getContent().stream()
-                    .map(result -> Long.valueOf(result.getContent().getName().toString()))
-                    .filter(id -> !id.equals(userId))
-                    .filter(id -> Boolean.TRUE.equals(redisTemplate.hasKey(LOCATION_TTL_KEY + id)))
-                    .collect(Collectors.toList());
+            return results
+                .getContent()
+                .stream()
+                .map(result ->
+                    Long.valueOf(result.getContent().getName().toString())
+                )
+                .filter(id -> !id.equals(userId))
+                .filter(id ->
+                    Boolean.TRUE.equals(
+                        redisTemplate.hasKey(LOCATION_TTL_KEY + id)
+                    )
+                )
+                .collect(Collectors.toList());
         } catch (Exception e) {
-            log.error("[findUsersNearBy] 사용자 위치 조회 중 예외 발생 - userId: {}", userId, e);
+            log.error(
+                "[findUsersNearBy] 사용자 위치 조회 중 예외 발생 - userId: {}",
+                userId,
+                e
+            );
             return new ArrayList<>();
         }
     }
 
-    public void notifyUsersNearBy(Long userId, String messageType, Object data) {
+    public void notifyUsersNearBy(
+        Long userId,
+        String messageType,
+        Object data
+    ) {
         try {
-            List<Long> nearByUserIds = findUsersNearBy(userId, SEARCH_RADIUS_KM);
+            List<Long> nearByUserIds = findUsersNearBy(
+                userId,
+                SEARCH_RADIUS_KM
+            );
             nearByUserIds.add(userId);
 
-            Map<String, Object> messagePayload = Map.of("type", messageType, "data", data);
+            Map<String, Object> messagePayload = Map.of(
+                "type",
+                messageType,
+                "data",
+                data
+            );
 
-            nearByUserIds.forEach(
-                    targetUserId -> {
-                        String destination = "/server/items/user/" + targetUserId;
-                        messagingTemplate.convertAndSend(destination, messagePayload);
-                    });
+            nearByUserIds.forEach(targetUserId -> {
+                String destination = "/server/items/user/" + targetUserId;
+                messagingTemplate.convertAndSend(destination, messagePayload);
+            });
             log.debug("[notifyUsersNearBy] 알림 전송 완료");
         } catch (Exception e) {
-            log.error("[notifyUsersNearBy] 알람 전송 중 예외 발생 - userId: {}", userId, e);
+            log.error(
+                "[notifyUsersNearBy] 알람 전송 중 예외 발생 - userId: {}",
+                userId,
+                e
+            );
         }
     }
 
     public boolean isNearStadium(double longitude, double latitude) {
         // 1. 사전 검증 (Fast-Fail)
-        if (latitude < -90.0 || latitude > 90.0 || longitude < -180.0 || longitude > 180.0) {
-            log.warn("[isNearStadium] 유효하지 않은 좌표값 입력: lat={}, lon={}", latitude, longitude);
+        if (
+            latitude < -90.0 ||
+            latitude > 90.0 ||
+            longitude < -180.0 ||
+            longitude > 180.0
+        ) {
+            log.warn(
+                "[isNearStadium] 유효하지 않은 좌표값 입력: lat={}, lon={}",
+                latitude,
+                longitude
+            );
             return false;
         }
 
         try {
             Point point = new Point(longitude, latitude);
-            Distance distance = new Distance(NEAR_STADIUM_KM, Metrics.KILOMETERS);
+            Distance distance = new Distance(
+                NEAR_STADIUM_KM,
+                Metrics.KILOMETERS
+            );
             Circle circle = new Circle(point, distance);
-            GeoResults<RedisGeoCommands.GeoLocation<Object>> results = redisTemplate.opsForGeo()
-                    .radius(STADIUM_LOCATION_KEY, circle);
+            GeoResults<RedisGeoCommands.GeoLocation<Object>> results =
+                redisTemplate.opsForGeo().radius(STADIUM_LOCATION_KEY, circle);
 
             return results != null && !results.getContent().isEmpty();
         } catch (Exception e) {
@@ -147,25 +214,41 @@ public class LocationService {
         }
     }
 
-    public Integer calculateDistance(Double latitude, Double longitude, Double itemLat, Double itemLon) {
-        if (latitude == null || longitude == null ||
-                itemLat == null || itemLon == null) {
+    public Integer calculateDistance(
+        Double latitude,
+        Double longitude,
+        Double itemLat,
+        Double itemLon
+    ) {
+        if (
+            latitude == null ||
+            longitude == null ||
+            itemLat == null ||
+            itemLon == null
+        ) {
             return null;
         }
 
         return calculateDistanceMeter(latitude, longitude, itemLat, itemLon);
     }
 
-    private int calculateDistanceMeter(double userLat, double userLon, double itemLat,
-            double itemLon) {
-
+    private int calculateDistanceMeter(
+        double userLat,
+        double userLon,
+        double itemLat,
+        double itemLon
+    ) {
         double userRad = Math.toRadians(userLat);
         double itemRad = Math.toRadians(itemLat);
         double deltaLat = Math.toRadians(itemLat - userLat);
         double deltaLon = Math.toRadians(itemLon - userLon);
 
-        double a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) + Math.cos(userRad) * Math.cos(itemRad)
-                * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+        double a =
+            Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+            Math.cos(userRad) *
+            Math.cos(itemRad) *
+            Math.sin(deltaLon / 2) *
+            Math.sin(deltaLon / 2);
 
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 

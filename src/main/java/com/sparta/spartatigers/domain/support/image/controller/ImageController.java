@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -17,8 +17,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import lombok.extern.slf4j.Slf4j;
-
 @RestController
 @RequestMapping("/api/images")
 @Slf4j
@@ -29,8 +27,13 @@ public class ImageController {
     // 향후 경로 정책 변경 시 한쪽만 바뀌는 위험이 있음 — UploadPathProvider 공유 빈으로의 추출도 고려 가능
     private final String uploadDirectory;
 
-    public ImageController(@Value("${image.storage.path:./uploads}") String uploadPath) {
-        this.uploadDirectory = java.nio.file.Paths.get(uploadPath).toAbsolutePath().normalize().toString();
+    public ImageController(
+        @Value("${image.storage.path:./uploads}") String uploadPath
+    ) {
+        this.uploadDirectory = java.nio.file.Paths.get(uploadPath)
+            .toAbsolutePath()
+            .normalize()
+            .toString();
     }
 
     @GetMapping("/{fileName}")
@@ -61,13 +64,17 @@ public class ImageController {
             }
 
             return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileName + "\"")
-                    .body(resource);
-
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(
+                    HttpHeaders.CONTENT_DISPOSITION,
+                    "inline; filename=\"" + fileName + "\""
+                )
+                .body(resource);
         } catch (IOException e) {
             log.error("파일 읽기 오류: {}", fileName, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(
+                HttpStatus.INTERNAL_SERVER_ERROR
+            ).build();
         }
     }
 
@@ -75,6 +82,8 @@ public class ImageController {
      * 업로드 디렉토리 경로를 가져옵니다. Spring 속성으로 주입된 값을 사용하며, 슬래시 정규화를 보장합니다.
      */
     private String getUploadDirectory() {
-        return uploadDirectory.endsWith("/") ? uploadDirectory : uploadDirectory + "/";
+        return uploadDirectory.endsWith("/")
+            ? uploadDirectory
+            : uploadDirectory + "/";
     }
 }

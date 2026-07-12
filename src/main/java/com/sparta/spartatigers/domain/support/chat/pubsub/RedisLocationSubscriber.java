@@ -2,8 +2,8 @@ package com.sparta.spartatigers.domain.support.chat.pubsub;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sparta.spartatigers.domain.support.chat.service.LocationService;
 import com.sparta.spartatigers.domain.support.chat.dto.response.RedisUpdateDto;
+import com.sparta.spartatigers.domain.support.chat.service.LocationService;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -26,21 +26,30 @@ public class RedisLocationSubscriber implements MessageListener {
     public void onMessage(Message message, byte[] pattern) {
         String json = new String(message.getBody(), StandardCharsets.UTF_8);
         try {
-            RedisUpdateDto location = objectMapper.readValue(json, RedisUpdateDto.class);
+            RedisUpdateDto location = objectMapper.readValue(
+                json,
+                RedisUpdateDto.class
+            );
             Long userId = location.getUserId();
 
-            List<Long> nearByUserIds = locationService.findUsersNearBy(userId, NEARBY_RADIUS_KM);
-            nearByUserIds.forEach(
-                    targetUserId -> {
-                        String destination = "/server/items/user/" + targetUserId;
-                        messagingTemplate.convertAndSend(destination,
-                                Map.of("type", "USER_LOCATION_UPDATE", "data", location));
-                    });
+            List<Long> nearByUserIds = locationService.findUsersNearBy(
+                userId,
+                NEARBY_RADIUS_KM
+            );
+            nearByUserIds.forEach(targetUserId -> {
+                String destination = "/server/items/user/" + targetUserId;
+                messagingTemplate.convertAndSend(
+                    destination,
+                    Map.of("type", "USER_LOCATION_UPDATE", "data", location)
+                );
+            });
             String myDestination = "/server/items/user/" + userId;
-            messagingTemplate.convertAndSend(myDestination, Map.of("type", "REFRESH_ITEMS"));
+            messagingTemplate.convertAndSend(
+                myDestination,
+                Map.of("type", "REFRESH_ITEMS")
+            );
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Redis 메시지 역직렬화 실패", e);
         }
-
     }
 }

@@ -1,15 +1,13 @@
 package com.sparta.spartatigers.domain.support.chat.registry;
 
 import java.time.Duration;
-import java.util.Set;
-import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map;
+import java.util.Set;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
-
-import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
@@ -40,7 +38,9 @@ public class RedisUserSessionRegistry {
         redisTemplate.expire(userKey, Duration.ofHours(6));
         // 단일 키 구조로 변경
         String sessionKey = "session-user:" + sessionId;
-        redisTemplate.opsForValue().set(sessionKey, userId.toString(), Duration.ofHours(6));
+        redisTemplate
+            .opsForValue()
+            .set(sessionKey, userId.toString(), Duration.ofHours(6));
     }
 
     public void unregisterSession(Long userId, String sessionId) {
@@ -65,18 +65,19 @@ public class RedisUserSessionRegistry {
 
     public Map<Long, Boolean> areUsersConnected(List<Long> userIds) {
         Map<Long, Boolean> result = new HashMap<>();
-        if (userIds == null || userIds.isEmpty())
-            return result;
+        if (userIds == null || userIds.isEmpty()) return result;
 
         // [FIX] N+1 I/O 방지를 위해 Redis Pipeline 사용
-        List<Object> exists = redisTemplate
-                .executePipelined((org.springframework.data.redis.connection.RedisConnection connection) -> {
-                    org.springframework.data.redis.connection.StringRedisConnection stringConn = (org.springframework.data.redis.connection.StringRedisConnection) connection;
-                    for (Long userId : userIds) {
-                        stringConn.exists(USER_SESSION_KEY_PREFIX + userId);
-                    }
-                    return null;
-                });
+        List<Object> exists = redisTemplate.executePipelined(
+            (org.springframework.data.redis.connection.RedisConnection connection) -> {
+                org.springframework.data.redis.connection.StringRedisConnection stringConn =
+                    (org.springframework.data.redis.connection.StringRedisConnection) connection;
+                for (Long userId : userIds) {
+                    stringConn.exists(USER_SESSION_KEY_PREFIX + userId);
+                }
+                return null;
+            }
+        );
 
         for (int i = 0; i < userIds.size(); i++) {
             // executePipelined 결과는 요청 순서와 동일함
@@ -114,6 +115,8 @@ public class RedisUserSessionRegistry {
     // 방에 유저 있는지 확인
     public boolean isUserInRoom(Long roomId, Long userId) {
         String key = ROOM_USERS_KEY_PREFIX + roomId;
-        return Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(key, String.valueOf(userId)));
+        return Boolean.TRUE.equals(
+            redisTemplate.opsForSet().isMember(key, String.valueOf(userId))
+        );
     }
 }

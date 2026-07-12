@@ -1,8 +1,8 @@
 package com.sparta.spartatigers.domain.support.chat.controller;
 
-import com.sparta.spartatigers.domain.support.chat.service.LocationService;
 import com.sparta.spartatigers.domain.support.chat.dto.request.LocationRequestDto;
 import com.sparta.spartatigers.domain.support.chat.interceptor.StompPrincipal;
+import com.sparta.spartatigers.domain.support.chat.service.LocationService;
 import java.security.Principal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -28,8 +28,12 @@ public class LocationController {
     //
     // locationService.updateLocation(request, userId);
     // }
+
     @MessageMapping("/location.update")
-    public void updateLocation(@Payload LocationRequestDto request, Principal principal) {
+    public void updateLocation(
+        @Payload LocationRequestDto request,
+        Principal principal
+    ) {
         Long userId = Long.parseLong(((StompPrincipal) principal).getName());
         locationService.updateLocation(request, userId);
     }
