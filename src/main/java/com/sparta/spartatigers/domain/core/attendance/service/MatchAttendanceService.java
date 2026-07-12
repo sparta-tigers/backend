@@ -81,7 +81,7 @@ public class MatchAttendanceService {
     @Transactional(readOnly = true)
     public MatchAttendanceResponseDto getAttendanceByMatchId(Long userId, Long matchId) {
         return matchAttendanceRepository.findByUser_IdAndMatch_Id(userId, matchId)
-                .map(MatchAttendanceResponseDto::from)
+                .map(item -> MatchAttendanceResponseDto.from(item))
                 .orElse(null);
     }
 
@@ -90,7 +90,7 @@ public class MatchAttendanceService {
         Pageable pageable = PageRequest.of(
                 page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<MatchAttendance> attendances = matchAttendanceRepository.findAllByUser_Id(userId, pageable);
-        return attendances.map(MatchAttendanceResponseDto::from);
+        return attendances.map(item -> MatchAttendanceResponseDto.from(item));
     }
 
     @Transactional
@@ -107,7 +107,7 @@ public class MatchAttendanceService {
 
         // 수정 후 없어진 이미지 삭제 로직 ========
         // 기존 이미지 url
-        List<String> oldImageUrls = attendance.getImages().stream().map(AttendanceImage::getImageUrl).toList();
+        List<String> oldImageUrls = attendance.getImages().stream().map(item -> item.getImageUrl()).toList();
 
         // 새로운 request에 없는 url 필터링
         List<String> urlsToDelete = oldImageUrls.stream()
@@ -150,7 +150,7 @@ public class MatchAttendanceService {
             throw new InvalidRequestException(ExceptionCode.MATCH_ATTENDANCE_FORBIDDEN);
         }
 
-        List<String> urlsToDelete = attendance.getImages().stream().map(AttendanceImage::getImageUrl).toList();
+        List<String> urlsToDelete = attendance.getImages().stream().map(item -> item.getImageUrl()).toList();
 
         matchAttendanceRepository.delete(attendance);
 

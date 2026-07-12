@@ -22,7 +22,7 @@ public record MatchAttendanceResponseDto(
         Integer awayScore,
         String stadiumName) {
     public static MatchAttendanceResponseDto from(MatchAttendance attendance) {
-        List<String> urls = attendance.getImages().stream().map(AttendanceImage::getImageUrl)
+        List<String> urls = attendance.getImages().stream().map(item -> item.getImageUrl())
                 .toList();
 
         return new MatchAttendanceResponseDto(

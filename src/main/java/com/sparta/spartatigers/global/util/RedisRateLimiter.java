@@ -36,7 +36,7 @@ public class RedisRateLimiter {
     public boolean isRateLimited(String key, int limit, Duration limitTime) {
         try {
             Long count = redisTemplate.execute(
-                    (RedisCallback<Long>) connection -> connection.eval(
+                    (RedisCallback<Long>) connection -> connection.scriptingCommands().eval(
                             RATE_LIMIT_LUA_SCRIPT.getBytes(),
                             ReturnType.INTEGER,
                             1,

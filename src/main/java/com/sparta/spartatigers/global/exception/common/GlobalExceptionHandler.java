@@ -214,6 +214,7 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ExceptionCode.INTERNAL_SERVER_ERROR));
     }
 
+    @SuppressWarnings("unused")
     private void sendNotificationToDiscord(AlertLevel level, String title, Exception ex) {
         log.error("{} [Alert]: {}", title, ex.getMessage(), ex);
 

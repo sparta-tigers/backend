@@ -1,5 +1,8 @@
 package com.sparta.spartatigers.domain.support.weather.model;
 
+import lombok.Getter;
+
+@Getter
 public class Weather {
 	private double temperature; // 기온(TMP)
 	private SkyStatus skyStatus;// 하늘상태(SKY)

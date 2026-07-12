@@ -1,5 +1,8 @@
 package com.sparta.spartatigers.domain.support.weather.model;
 
+import lombok.Getter;
+
+@Getter
 public enum SkyStatus {
 	SUNNY(1, "맑음"),
 	CLOUDY_PARTLY(3, "구름많음"),

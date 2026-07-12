@@ -1,5 +1,8 @@
 package com.sparta.spartatigers.domain.support.weather.model;
 
+import lombok.Getter;
+
+@Getter
 public enum RainType {
 	NONE(0, "없음"),
 	RAIN(1, "비"),

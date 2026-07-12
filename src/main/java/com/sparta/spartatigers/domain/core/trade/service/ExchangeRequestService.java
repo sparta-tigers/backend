@@ -208,7 +208,7 @@ public class ExchangeRequestService {
     private Map<Long, Long> getRoomIdMap(Page<ExchangeRequest> requests) {
         // [FIX] Java 16+ Stream.toList() 사용 (불변 리스트 반환 및 가독성 향상)
         List<Long> requestIds = requests.stream()
-                .map(ExchangeRequest::getId)
+                .map(item -> item.getId())
                 .toList();
 
         // [FIX] HashMap 초기 용량 힌트 제공으로 minor allocation 최적화

@@ -53,8 +53,8 @@ public class LiveboardRoomService {
 		}
 
 		// 3. 매치ID들을 모아서 room 레파지토리에 기존재하는지 찾기
-		Set<Long> matchIds = dayOfMatches.stream().map(Match::getId).collect(Collectors.toSet());
-		Set<Long> alreadyCreated = roomRepository.findAllByMatchIdIn(matchIds).stream().map(LiveBoardRoom::getMatchId)
+		Set<Long> matchIds = dayOfMatches.stream().map(match -> match.getId()).collect(Collectors.toSet());
+		Set<Long> alreadyCreated = roomRepository.findAllByMatchIdIn(matchIds).stream().map(item -> item.getMatchId())
 				.collect(Collectors.toSet());
 
 		// 4. 룸 생성 로직
@@ -93,7 +93,7 @@ public class LiveboardRoomService {
 		List<Match> dayOfMatches = matchRepository.findAllByMatchTimeBetween(start, end);
 
 		Map<Long, LiveBoardRoom> roomMap = roomRepository.findAllByDate(anyday).stream()
-				.collect(Collectors.toMap(LiveBoardRoom::getMatchId, Function.identity()));
+				.collect(Collectors.toMap(item -> item.getMatchId(), Function.identity()));
 
 		List<LiveBoardRoomResponseDto> roomDtosForDay = dayOfMatches.stream()
 				.map(match -> {
@@ -145,9 +145,9 @@ public class LiveboardRoomService {
 		int deletedCount = 0;
 
 		// 2. Room들의 MatchResult 확인을 위해 Match에 접근 필요, NOT PLAYED 확인후 삭제
-		Set<Long> matchIds = roomsToDelete.stream().map(LiveBoardRoom::getMatchId).collect(Collectors.toSet());
+		Set<Long> matchIds = roomsToDelete.stream().map(item -> item.getMatchId()).collect(Collectors.toSet());
 		List<Match> matches = matchRepository.findAllByIdIn(matchIds);
-		Map<Long, Match> matchMap = matches.stream().collect(Collectors.toMap(Match::getId, Function.identity()));
+		Map<Long, Match> matchMap = matches.stream().collect(Collectors.toMap(match -> match.getId(), Function.identity()));
 
 		for (LiveBoardRoom room : roomsToDelete) {
 			Match match = matchMap.get(room.getMatchId());

@@ -47,7 +47,7 @@ public class DirectMessageService {
 
         // 메세지 조회 전 안읽은 메세지 일괄 읽음 처리
         List<DirectMessage> unreadMessages = directRoomMessageRepository.findUnreadMsg(roomId, userId);
-        unreadMessages.forEach(DirectMessage::markAsRead);
+        unreadMessages.forEach(item -> item.markAsRead());
 
         // 메세지 조회
         Page<DirectRoomMessageResponse> messages = directRoomMessageRepository

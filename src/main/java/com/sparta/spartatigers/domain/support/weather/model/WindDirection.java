@@ -2,6 +2,9 @@ package com.sparta.spartatigers.domain.support.weather.model;
 
 import java.util.Arrays;
 
+import lombok.Getter;
+
+@Getter
 public enum WindDirection {
 	N(0, "북"), // 변환값 16인 경우도 N
 	NNE(1, "북북동"),

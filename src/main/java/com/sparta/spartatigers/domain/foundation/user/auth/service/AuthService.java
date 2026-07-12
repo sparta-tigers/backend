@@ -59,7 +59,7 @@ public class AuthService {
 
         User user = oauthRepository
                 .findByProviderAndProviderId(OAuthProvider.KAKAO, info.id())
-                .map(Oauth::getUser)
+                .map(oauth -> oauth.getUser())
                 .orElseGet(() -> findOrCreateKakaoUser(info));
 
         TokenClaim tokenClaim = TokenClaim.from(user);

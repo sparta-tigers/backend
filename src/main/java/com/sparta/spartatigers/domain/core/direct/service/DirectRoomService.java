@@ -86,7 +86,7 @@ public class DirectRoomService {
             return Page.empty(pageable);
         }
 
-        List<Long> roomIds = rooms.stream().map(DirectRoom::getId).toList();
+        List<Long> roomIds = rooms.stream().map(item -> item.getId()).toList();
         List<Long> opponentIds = rooms.stream()
                 .map(room -> room.getSender().getId().equals(currentUserId) ? room.getReceiver().getId()
                         : room.getSender().getId())
