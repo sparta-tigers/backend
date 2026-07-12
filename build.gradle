@@ -65,12 +65,8 @@ dependencies {
     // Firebase Admin SDK
     implementation "com.google.firebase:firebase-admin:${firebaseAdminSDKVersion}"
 
-    // S3
-    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
-    implementation 'javax.xml.bind:jaxb-api:2.3.1'
-    implementation 'com.sun.xml.bind:jaxb-impl:2.3.3'
-    implementation 'com.sun.xml.bind:jaxb-core:2.3.0.1'
-    implementation 'javax.activation:activation:1.1.1'
+    // S3 (AWS SDK v2 via awspring)
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.1.1'
 
     // flyway
     implementation 'org.flywaydb:flyway-core'
@@ -111,6 +107,9 @@ clean {
 
 tasks.named('test') {
     useJUnitPlatform()
+    environment "AWS_REGION", "ap-northeast-2"
+    environment "AWS_S3_ACCESS_KEY", "dummy"
+    environment "AWS_S3_SECRET_KEY", "dummy"
 }
 
 // Firebase 키 파일을 리소스로 포함하기 위한 설정
