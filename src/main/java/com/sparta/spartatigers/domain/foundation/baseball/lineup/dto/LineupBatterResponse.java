@@ -12,6 +12,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class LineupBatterResponse {
+
     private String battingOrder;
     private String name;
     private String position;
@@ -20,11 +21,11 @@ public class LineupBatterResponse {
 
     public static LineupBatterResponse from(LineupBatter batter) {
         return LineupBatterResponse.builder()
-                .battingOrder(batter.getBattingOrder())
-                .name(batter.getName())
-                .position(batter.getPosition())
-                .hits(batter.getHits())
-                .rbis(batter.getRbis())
-                .build();
+            .battingOrder(batter.getBattingOrder())
+            .name(batter.getName())
+            .position(batter.getPosition())
+            .hits(batter.getHits())
+            .rbis(batter.getRbis())
+            .build();
     }
 }

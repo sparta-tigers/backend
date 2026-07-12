@@ -1,8 +1,8 @@
 package com.sparta.spartatigers.domain.foundation.baseball.match.dto;
 
+import com.sparta.spartatigers.domain.foundation.baseball.match.model.HomeAway;
 import lombok.Builder;
 import lombok.Getter;
-import com.sparta.spartatigers.domain.foundation.baseball.match.model.HomeAway;
 
 /**
  * 경기 일정 응답을 위한 DTO.
@@ -11,6 +11,7 @@ import com.sparta.spartatigers.domain.foundation.baseball.match.model.HomeAway;
 @Getter
 @Builder
 public class MatchScheduleResponseDto {
+
     private Long matchId; // 경기 ID (🚨 추가)
     private Integer day; // 경기 일 (1-31)
     private String opponentCode; // 상대 팀 코드 (예: "OB", "HT", "LG")

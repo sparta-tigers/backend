@@ -1,9 +1,9 @@
 package com.sparta.spartatigers.domain.foundation.baseball.lineup.dto;
 
-import java.util.List;
-import com.sparta.spartatigers.domain.foundation.baseball.lineup.model.LineupBatter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.sparta.spartatigers.domain.foundation.baseball.lineup.model.LineupBatter;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -22,6 +22,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class LineupCacheDto {
+
     private Long matchId;
     private List<LineupBatter> awayBatters;
     private List<LineupBatter> homeBatters;
@@ -31,7 +32,9 @@ public class LineupCacheDto {
      */
     @JsonIgnore
     public boolean isNotEmpty() {
-        return (awayBatters != null && !awayBatters.isEmpty()) ||
-                (homeBatters != null && !homeBatters.isEmpty());
+        return (
+            (awayBatters != null && !awayBatters.isEmpty()) ||
+            (homeBatters != null && !homeBatters.isEmpty())
+        );
     }
 }

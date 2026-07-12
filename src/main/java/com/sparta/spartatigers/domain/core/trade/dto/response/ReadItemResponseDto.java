@@ -1,13 +1,12 @@
 package com.sparta.spartatigers.domain.core.trade.dto.response;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 import com.sparta.spartatigers.domain.core.trade.model.Item;
 import com.sparta.spartatigers.domain.core.trade.model.ItemCategory;
 import com.sparta.spartatigers.domain.core.trade.model.ItemStatus;
 import com.sparta.spartatigers.domain.core.trade.service.ItemService;
 import com.sparta.spartatigers.domain.foundation.user.account.dto.UserResponseDto;
+import java.time.LocalDateTime;
+import java.util.List;
 
 public record ReadItemResponseDto(
     Long id,
@@ -19,11 +18,13 @@ public record ReadItemResponseDto(
     Double latitude,
     Double longitude,
     String address,
-    LocalDateTime createdAt) {
-
+    LocalDateTime createdAt
+) {
     public static ReadItemResponseDto from(Item item, ItemService itemService) {
         // JSON 문자열을 List<String>으로 역직렬화
-        List<String> imageUrls = itemService.deserializeImageUrls(item.getImage());
+        List<String> imageUrls = itemService.deserializeImageUrls(
+            item.getImage()
+        );
 
         return new ReadItemResponseDto(
             item.getId(),
@@ -35,9 +36,10 @@ public record ReadItemResponseDto(
             item.getLatitude(),
             item.getLongitude(),
             item.getAddress(),
-            item.getCreatedAt());
+            item.getCreatedAt()
+        );
     }
-    
+
     /**
      * [이미지 미포함 응답 전용] — 이미지 URL 없이 아이템 정보만 반환합니다.
      *
@@ -58,6 +60,7 @@ public record ReadItemResponseDto(
             item.getLatitude(),
             item.getLongitude(),
             item.getAddress(),
-            item.getCreatedAt());
+            item.getCreatedAt()
+        );
     }
 }

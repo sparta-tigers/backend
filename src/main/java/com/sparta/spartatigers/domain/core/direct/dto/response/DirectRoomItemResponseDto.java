@@ -21,19 +21,28 @@ public class DirectRoomItemResponseDto {
     private String opponentNickname;
 
     public static DirectRoomItemResponseDto from(
-            Long itemId, String title, String description, String category, String status,
-            Long ownerId, String ownerNickname,
-            String exchangeStatus, Long opponentId, String opponentNickname) {
+        Long itemId,
+        String title,
+        String description,
+        String category,
+        String status,
+        Long ownerId,
+        String ownerNickname,
+        String exchangeStatus,
+        Long opponentId,
+        String opponentNickname
+    ) {
         return new DirectRoomItemResponseDto(
-                itemId,
-                title,
-                description,
-                category,
-                status,
-                ownerId,
-                ownerNickname,
-                exchangeStatus,
-                opponentId,
-                opponentNickname);
+            itemId,
+            title,
+            description,
+            category,
+            status,
+            ownerId,
+            ownerNickname,
+            exchangeStatus,
+            opponentId,
+            opponentNickname
+        );
     }
 }

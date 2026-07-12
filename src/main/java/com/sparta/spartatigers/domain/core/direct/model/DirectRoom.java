@@ -1,10 +1,7 @@
 package com.sparta.spartatigers.domain.core.direct.model;
 
-import java.time.LocalDateTime;
-
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
 import com.sparta.spartatigers.domain.foundation.user.account.model.User;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -13,6 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -45,7 +43,11 @@ public class DirectRoom extends BaseEntity {
 
     private LocalDateTime completedAt;
 
-    public static DirectRoom create(Long exchangeRequestId, User sender, User receiver) {
+    public static DirectRoom create(
+        Long exchangeRequestId,
+        User sender,
+        User receiver
+    ) {
         DirectRoom room = new DirectRoom();
         room.exchangeRequestId = exchangeRequestId;
         room.sender = sender;

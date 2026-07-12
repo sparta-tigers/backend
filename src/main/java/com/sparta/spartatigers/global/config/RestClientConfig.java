@@ -13,8 +13,12 @@ public class RestClientConfig {
 
     @Bean
     public RestClient restClient(RestClient.Builder builder) {
-        return builder.defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .build();
+        return builder
+            .defaultHeader(
+                HttpHeaders.CONTENT_TYPE,
+                MediaType.APPLICATION_JSON_VALUE
+            )
+            .build();
     }
 
     /**
@@ -28,7 +32,8 @@ public class RestClientConfig {
      */
     @Bean(name = "weatherRestTemplate")
     public RestTemplate weatherRestTemplate() {
-        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        SimpleClientHttpRequestFactory factory =
+            new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(3_000);
         factory.setReadTimeout(5_000);
         return new RestTemplate(factory);

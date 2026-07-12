@@ -38,17 +38,18 @@ public class LatLonToGrid {
         double slat2 = SLAT2 * DEGRAD;
         double olat = OLAT * DEGRAD;
 
-        double sn = Math.tan(Math.PI * 0.25 + slat2 * 0.5)
-                / Math.tan(Math.PI * 0.25 + slat1 * 0.5);
+        double sn =
+            Math.tan(Math.PI * 0.25 + slat2 * 0.5) /
+            Math.tan(Math.PI * 0.25 + slat1 * 0.5);
         sn = Math.log(Math.cos(slat1) / Math.cos(slat2)) / Math.log(sn);
         SN = sn;
 
         double sf = Math.tan(Math.PI * 0.25 + slat1 * 0.5);
-        sf = Math.pow(sf, sn) * Math.cos(slat1) / sn;
+        sf = (Math.pow(sf, sn) * Math.cos(slat1)) / sn;
         SF = sf;
 
         double ro = Math.tan(Math.PI * 0.25 + olat * 0.5);
-        RO = (RE / GRID) * SF / Math.pow(ro, SN);
+        RO = ((RE / GRID) * SF) / Math.pow(ro, SN);
     }
 
     /**
@@ -60,13 +61,11 @@ public class LatLonToGrid {
      */
     public static int[] toGrid(double lat, double lon) {
         double ra = Math.tan(Math.PI * 0.25 + lat * DEGRAD * 0.5);
-        ra = (RE / GRID) * SF / Math.pow(ra, SN);
+        ra = ((RE / GRID) * SF) / Math.pow(ra, SN);
 
         double theta = lon * DEGRAD - OLON * DEGRAD;
-        if (theta > Math.PI)
-            theta -= 2.0 * Math.PI;
-        if (theta < -Math.PI)
-            theta += 2.0 * Math.PI;
+        if (theta > Math.PI) theta -= 2.0 * Math.PI;
+        if (theta < -Math.PI) theta += 2.0 * Math.PI;
         theta *= SN;
 
         int nx = (int) (ra * Math.sin(theta) + XO + 0.5);

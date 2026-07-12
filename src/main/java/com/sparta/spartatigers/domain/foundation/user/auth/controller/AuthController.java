@@ -3,18 +3,16 @@ package com.sparta.spartatigers.domain.foundation.user.auth.controller;
 import com.sparta.spartatigers.domain.foundation.user.auth.dto.LogoutRequest;
 import com.sparta.spartatigers.domain.foundation.user.auth.dto.OauthLoginRequest;
 import com.sparta.spartatigers.domain.foundation.user.auth.dto.RefreshRequest;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.sparta.spartatigers.domain.foundation.user.auth.dto.UserLoginRequest;
 import com.sparta.spartatigers.domain.foundation.user.auth.model.Token;
 import com.sparta.spartatigers.domain.foundation.user.auth.service.AuthService;
 import com.sparta.spartatigers.global.response.ApiResponse;
-
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController

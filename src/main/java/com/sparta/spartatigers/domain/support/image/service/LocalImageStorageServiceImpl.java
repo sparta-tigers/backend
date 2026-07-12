@@ -1,5 +1,7 @@
 package com.sparta.spartatigers.domain.support.image.service;
 
+import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
+import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -13,17 +15,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
-
 import javax.imageio.ImageIO;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import com.sparta.spartatigers.global.exception.enums.ExceptionCode;
-import com.sparta.spartatigers.global.exception.internal.InvalidRequestException;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -31,14 +27,19 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
 
     // 허용된 이미지 MIME 타입
     private static final Set<String> ALLOWED_MIME_TYPES = Set.of(
-            "image/jpeg",
-            "image/jpg",
-            "image/png",
-            "image/gif");
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/gif"
+    );
 
     // 허용된 파일 확장자
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
-            "jpg", "jpeg", "png", "gif");
+        "jpg",
+        "jpeg",
+        "png",
+        "gif"
+    );
 
     // 설정 가능한 영구 저장 경로
     private final String uploadDir;
@@ -48,12 +49,18 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
     private final Path uploadDirPath;
 
     // 안전한 파일명 패턴 (영숫자와 일부 특수문자만 허용)
-    private static final Pattern SAFE_FILENAME_PATTERN = Pattern.compile("[^a-zA-Z0-9._-]");
+    private static final Pattern SAFE_FILENAME_PATTERN = Pattern.compile(
+        "[^a-zA-Z0-9._-]"
+    );
 
-    public LocalImageStorageServiceImpl(@Value("${image.storage.path:./uploads}") String uploadPath) {
+    public LocalImageStorageServiceImpl(
+        @Value("${image.storage.path:./uploads}") String uploadPath
+    ) {
         // 생성자에서 디렉토리 경로 설정 및 생성 (절대 경로로 변환하여 Tomcat 등의 임시 경로 혼선 방지)
         try {
-            Path uploadDirectory = Paths.get(uploadPath).toAbsolutePath().normalize();
+            Path uploadDirectory = Paths.get(uploadPath)
+                .toAbsolutePath()
+                .normalize();
             this.uploadDir = uploadDirectory.toString();
             this.uploadDirPath = uploadDirectory; // [FIX] 필드에 캐싱
 
@@ -61,18 +68,26 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
 
             // 쓰기 권한 확인
             if (!Files.isWritable(uploadDirectory)) {
-                throw new RuntimeException("업로드 디렉토리에 쓰기 권한이 없습니다: " + uploadDir);
+                throw new RuntimeException(
+                    "업로드 디렉토리에 쓰기 권한이 없습니다: " + uploadDir
+                );
             }
 
             log.info("업로드 디렉토리 초기화 완료: {}", uploadDir);
         } catch (IOException e) {
-            throw new RuntimeException("업로드 디렉토리 생성 실패: " + uploadPath, e);
+            throw new RuntimeException(
+                "업로드 디렉토리 생성 실패: " + uploadPath,
+                e
+            );
         }
     }
 
     @Override
     public List<String> uploadImages(List<MultipartFile> images) {
-        log.info("=== 이미지 업로드 시작 (파일 수: {}) ===", images != null ? images.size() : 0);
+        log.info(
+            "=== 이미지 업로드 시작 (파일 수: {}) ===",
+            images != null ? images.size() : 0
+        );
         log.debug("images 파라미터: {}", images);
         log.debug("uploadDir: {}", uploadDir);
 
@@ -89,31 +104,54 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
 
         try {
             for (MultipartFile file : images) {
-                log.debug("처리 중인 파일: {}, 크기: {}, isEmpty: {}",
-                        file.getOriginalFilename(), file.getSize(), file.isEmpty());
+                log.debug(
+                    "처리 중인 파일: {}, 크기: {}, isEmpty: {}",
+                    file.getOriginalFilename(),
+                    file.getSize(),
+                    file.isEmpty()
+                );
 
-                if (file.isEmpty())
-                    continue;
+                if (file.isEmpty()) continue;
 
                 // 안전한 파일명 생성
                 String originalFilename = file.getOriginalFilename();
-                if (originalFilename == null || originalFilename.trim().isEmpty()) {
+                if (
+                    originalFilename == null ||
+                    originalFilename.trim().isEmpty()
+                ) {
                     log.warn("파일명이 비어있어 건너뜁니다");
                     continue;
                 }
 
                 // 보안 검증: MIME 타입 확인
                 String contentType = file.getContentType();
-                if (contentType == null || !ALLOWED_MIME_TYPES.contains(contentType.toLowerCase())) {
-                    log.error("허용되지 않는 MIME 타입: {} (파일: {})", contentType, originalFilename);
-                    throw new InvalidRequestException(ExceptionCode.INVALID_FILE_FORMAT);
+                if (
+                    contentType == null ||
+                    !ALLOWED_MIME_TYPES.contains(contentType.toLowerCase())
+                ) {
+                    log.error(
+                        "허용되지 않는 MIME 타입: {} (파일: {})",
+                        contentType,
+                        originalFilename
+                    );
+                    throw new InvalidRequestException(
+                        ExceptionCode.INVALID_FILE_FORMAT
+                    );
                 }
 
                 // 보안 검증: 파일 확장자 확인
-                String fileExtension = getFileExtension(originalFilename).toLowerCase();
+                String fileExtension = getFileExtension(
+                    originalFilename
+                ).toLowerCase();
                 if (!ALLOWED_EXTENSIONS.contains(fileExtension)) {
-                    log.error("허용되지 않는 파일 확장자: {} (파일: {})", fileExtension, originalFilename);
-                    throw new InvalidRequestException(ExceptionCode.INVALID_FILE_EXTENSION);
+                    log.error(
+                        "허용되지 않는 파일 확장자: {} (파일: {})",
+                        fileExtension,
+                        originalFilename
+                    );
+                    throw new InvalidRequestException(
+                        ExceptionCode.INVALID_FILE_EXTENSION
+                    );
                 }
 
                 // 보안 검증: 실제 이미지 파일인지 확인
@@ -121,9 +159,15 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
                     BufferedImage image = ImageIO.read(inputStream);
                     if (image == null) {
                         log.error("이미지 디코딩 실패: {}", originalFilename);
-                        throw new InvalidRequestException(ExceptionCode.INVALID_FILE_FORMAT);
+                        throw new InvalidRequestException(
+                            ExceptionCode.INVALID_FILE_FORMAT
+                        );
                     }
-                    log.info("이미지 검증 성공: {}x{}", image.getWidth(), image.getHeight());
+                    log.info(
+                        "이미지 검증 성공: {}x{}",
+                        image.getWidth(),
+                        image.getHeight()
+                    );
                 }
 
                 // 파일명에서 디렉토리 경로 제거 및 안전한 문자만 남기기
@@ -136,7 +180,9 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
                 // 보안 검증: 경로 순회 공격 방지
                 if (!destinationPath.startsWith(uploadDirPath)) {
                     log.error("경로 순회 공격 시도 감지: {}", destinationPath);
-                    throw new InvalidRequestException(ExceptionCode.INVALID_FILE_FORMAT);
+                    throw new InvalidRequestException(
+                        ExceptionCode.INVALID_FILE_FORMAT
+                    );
                 }
 
                 // [FIX] 문제 2: UUID prefix로 충돌 가능성은 극히 낮지만,
@@ -166,19 +212,29 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
                         log.info("롤백: 파일 삭제 성공 - {}", savedFile);
                     }
                 } catch (IOException deleteException) {
-                    log.error("롤백: 파일 삭제 실패 - {}", savedFile, deleteException);
+                    log.error(
+                        "롤백: 파일 삭제 실패 - {}",
+                        savedFile,
+                        deleteException
+                    );
                 }
             }
 
             // [FIX] 문제 2: 예외 원인 보존 및 인터럽트 복구
             if (e instanceof InterruptedException) {
                 Thread.currentThread().interrupt();
-                throw new RuntimeException("이미지 저장 중 인터럽트가 발생했습니다.", e);
+                throw new RuntimeException(
+                    "이미지 저장 중 인터럽트가 발생했습니다.",
+                    e
+                );
             }
             if (e instanceof InvalidRequestException) {
                 throw (InvalidRequestException) e;
             }
-            throw new RuntimeException("이미지 저장 중 오류가 발생했습니다.", e);
+            throw new RuntimeException(
+                "이미지 저장 중 오류가 발생했습니다.",
+                e
+            );
         }
 
         log.debug("최종 imageUrls: {}", imageUrls);
@@ -207,11 +263,14 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
 
         // 확장자 분리
         int dotIndex = baseName.lastIndexOf('.');
-        String nameWithoutExt = dotIndex > 0 ? baseName.substring(0, dotIndex) : baseName;
+        String nameWithoutExt =
+            dotIndex > 0 ? baseName.substring(0, dotIndex) : baseName;
         String extension = dotIndex > 0 ? baseName.substring(dotIndex) : "";
 
         // 안전하지 않은 문자 제거 (영숫자, 점, 언더스코어, 하이픈만 허용)
-        nameWithoutExt = SAFE_FILENAME_PATTERN.matcher(nameWithoutExt).replaceAll("");
+        nameWithoutExt = SAFE_FILENAME_PATTERN.matcher(
+            nameWithoutExt
+        ).replaceAll("");
 
         // 길이 제한 (너무 긴 파일명 방지)
         if (nameWithoutExt.length() > 50) {
@@ -240,9 +299,10 @@ public class LocalImageStorageServiceImpl implements ImageStorageService {
 
         for (String imageUrl : imageUrls) {
             try {
-                if (imageUrl == null)
-                    continue;
-                String fileName = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+                if (imageUrl == null) continue;
+                String fileName = imageUrl.substring(
+                    imageUrl.lastIndexOf('/') + 1
+                );
                 // [FIX] 문제 3: 캐싱된 uploadDirPath 사용
                 Path filePath = uploadDirPath.resolve(fileName).normalize();
 

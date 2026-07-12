@@ -6,5 +6,5 @@ public enum MatchResult {
     DRAW,
     CANCEL,
     NOT_PLAYED,
-    PROCEEDING
+    PROCEEDING,
 }

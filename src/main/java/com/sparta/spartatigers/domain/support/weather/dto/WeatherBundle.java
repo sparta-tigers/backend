@@ -1,8 +1,7 @@
 package com.sparta.spartatigers.domain.support.weather.dto;
 
-import java.util.List;
-
 import com.sparta.spartatigers.domain.support.weather.model.WeatherApiStatus;
+import java.util.List;
 
 /**
  * NowCast + ForeCast + 상태 묶음 전달 객체
@@ -12,7 +11,7 @@ import com.sparta.spartatigers.domain.support.weather.model.WeatherApiStatus;
  * status는 세 API 중 가장 심각한 상태를 대표값으로 전달한다.
  */
 public record WeatherBundle(
-        WeatherApiStatus status,
-        NowCastResponseDto nowCast,
-        List<ForeCastResponseDto> foreCast) {
-}
+    WeatherApiStatus status,
+    NowCastResponseDto nowCast,
+    List<ForeCastResponseDto> foreCast
+) {}

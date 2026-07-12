@@ -17,7 +17,6 @@ package com.sparta.spartatigers.domain.support.weather.model;
  * - 10~99: 인증/파라미터/할당량 등 클라이언트·서버 오류
  */
 public enum WeatherApiStatus {
-
     /** 정상 응답 + 데이터 존재 */
     SUCCESS,
     /** 정상 응답이지만 데이터가 비어있음(00 + item 없음, 또는 03 NODATA_ERROR) */

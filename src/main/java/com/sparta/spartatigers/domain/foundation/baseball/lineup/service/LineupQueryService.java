@@ -1,16 +1,13 @@
 package com.sparta.spartatigers.domain.foundation.baseball.lineup.service;
 
-import java.util.List;
-
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Service;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.spartatigers.domain.foundation.baseball.lineup.dto.LineupCacheDto;
 import com.sparta.spartatigers.domain.foundation.baseball.lineup.dto.LineupResponseDto;
-
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
 
 /**
  * 라인업 조회 전용 서비스
@@ -41,16 +38,24 @@ public class LineupQueryService {
         try {
             Object cached = redisTemplate.opsForValue().get(cacheKey);
             if (cached != null) {
-                LineupCacheDto cacheDto = objectMapper.convertValue(cached, LineupCacheDto.class);
+                LineupCacheDto cacheDto = objectMapper.convertValue(
+                    cached,
+                    LineupCacheDto.class
+                );
                 return LineupResponseDto.from(cacheDto);
             }
         } catch (Exception e) {
-            log.warn("Failed to get or parse lineup cache for matchId: {}, falling back to DB", matchId, e);
+            log.warn(
+                "Failed to get or parse lineup cache for matchId: {}, falling back to DB",
+                matchId,
+                e
+            );
         }
 
         // Redis 캐시가 없거나 오류 발생 시 DB Fallback
-        List<com.sparta.spartatigers.domain.foundation.baseball.lineup.model.StartingLineup> lineups = startingLineupRepository
-                .findByMatchId(matchId);
+        List<
+            com.sparta.spartatigers.domain.foundation.baseball.lineup.model.StartingLineup
+        > lineups = startingLineupRepository.findByMatchId(matchId);
         if (!lineups.isEmpty()) {
             return LineupResponseDto.fromEntities(matchId, lineups);
         }

@@ -1,19 +1,16 @@
 package com.sparta.spartatigers.domain.foundation.baseball.match.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sparta.spartatigers.domain.foundation.baseball.match.model.LiveBoardData;
+import java.time.Duration;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sparta.spartatigers.domain.foundation.baseball.match.model.LiveBoardData;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import java.time.Duration;
-
 /**
  * 실시간 중계 데이터(문자중계 등)를 Redis 캐시에 저장하고 조회하는 서비스
- * 
+ *
  * Why: WebSocket으로 발행되는 데이터를 REST API에서도 초기 로드용으로 제공하기 위함.
  */
 @Slf4j
@@ -31,8 +28,7 @@ public class LiveBoardDataService {
      * 실시간 중계 데이터 캐싱
      */
     public void cacheLiveBoardData(LiveBoardData data) {
-        if (data == null || data.getMatchId() == null)
-            return;
+        if (data == null || data.getMatchId() == null) return;
 
         String key = DATA_CACHE_PREFIX + data.getMatchId();
         redisTemplate.opsForValue().set(key, data, CACHE_TTL);
@@ -52,7 +48,11 @@ public class LiveBoardDataService {
                 return objectMapper.convertValue(cached, LiveBoardData.class);
             }
         } catch (Exception e) {
-            log.warn("Failed to retrieve liveboard data cache for matchId: {}", matchId, e);
+            log.warn(
+                "Failed to retrieve liveboard data cache for matchId: {}",
+                matchId,
+                e
+            );
         }
         return null;
     }

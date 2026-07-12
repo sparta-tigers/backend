@@ -65,12 +65,8 @@ dependencies {
     // Firebase Admin SDK
     implementation "com.google.firebase:firebase-admin:${firebaseAdminSDKVersion}"
 
-    // S3
-    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
-    implementation 'javax.xml.bind:jaxb-api:2.3.1'
-    implementation 'com.sun.xml.bind:jaxb-impl:2.3.3'
-    implementation 'com.sun.xml.bind:jaxb-core:2.3.0.1'
-    implementation 'javax.activation:activation:1.1.1'
+    // S3 (AWS SDK v2 via awspring) - 3.4.x는 Spring Boot 3.5.x 공식 호환 버전
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.4.2'
 
     // flyway
     implementation 'org.flywaydb:flyway-core'
@@ -83,16 +79,12 @@ dependencies {
     // 기상청 API
     implementation 'com.googlecode.json-simple:json-simple:1.1.1'
 
-    // dotenv
-//    implementation("io.github.cdimascio:dotenv-java:3.0.0")
-    implementation("me.paulschwarz:spring-dotenv:4.0.0")
-
     testImplementation 'com.h2database:h2'
 
     // Google Cloud Vision API
-    implementation 'com.google.cloud:google-cloud-vision:3.34.0'
+    implementation 'com.google.cloud:google-cloud-vision:3.92.0'
     
-    testImplementation 'com.tngtech.archunit:archunit-junit5:1.3.0'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.2'
 }
 
 def querydslDir = "$buildDir/generated/querydsl"
@@ -115,6 +107,10 @@ clean {
 
 tasks.named('test') {
     useJUnitPlatform()
+    environment "AWS_REGION", "ap-northeast-2"
+    environment "AWS_S3_ACCESS_KEY", "dummy"
+    environment "AWS_S3_SECRET_KEY", "dummy"
+    environment "AWS_S3_BUCKET_NAME", "dummy-bucket"
 }
 
 // Firebase 키 파일을 리소스로 포함하기 위한 설정

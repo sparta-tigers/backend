@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum MessageCode {
-
     // 인증/인가
 
     // 회원
@@ -30,10 +29,8 @@ public enum MessageCode {
     // 아이템
     ITEM_DELETE_SUCCESS("아이템이 성공적으로 삭제되었습니다."),
     // 직관 기록
-    WATCH_LIST_DELETED("직관 기록이 삭제되었습니다.")
+    WATCH_LIST_DELETED("직관 기록이 삭제되었습니다.");
 
     // 공통
-    ;
-
     private final String message;
 }

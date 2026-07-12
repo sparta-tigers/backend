@@ -11,10 +11,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UpdateTicketAlarmRequestDto {
 
-	@Min(1)
-	@Max(180)
-	Integer preAlarmTime;
+    @Min(1)
+    @Max(180)
+    Integer preAlarmTime;
 
-	String membership;
-
+    String membership;
 }

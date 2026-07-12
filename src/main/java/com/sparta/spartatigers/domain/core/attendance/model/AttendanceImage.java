@@ -1,7 +1,6 @@
 package com.sparta.spartatigers.domain.core.attendance.model;
 
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -32,14 +31,21 @@ public class AttendanceImage extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private AttendanceImageType imageType;
 
-    private AttendanceImage(MatchAttendance attendance, String imageUrl, AttendanceImageType imageType) {
+    private AttendanceImage(
+        MatchAttendance attendance,
+        String imageUrl,
+        AttendanceImageType imageType
+    ) {
         this.attendance = attendance;
         this.imageUrl = imageUrl;
         this.imageType = imageType;
     }
 
-    public static AttendanceImage create(MatchAttendance attendance, String imageUrl, AttendanceImageType imageType) {
+    public static AttendanceImage create(
+        MatchAttendance attendance,
+        String imageUrl,
+        AttendanceImageType imageType
+    ) {
         return new AttendanceImage(attendance, imageUrl, imageType);
     }
-
 }

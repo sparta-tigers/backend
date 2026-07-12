@@ -1,11 +1,8 @@
 package com.sparta.spartatigers.domain.core.ticketalarm.model;
 
-import java.time.LocalDateTime;
-
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
 import com.sparta.spartatigers.domain.foundation.baseball.match.model.Match;
 import com.sparta.spartatigers.domain.foundation.user.account.model.User;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -15,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -53,12 +51,13 @@ public class TicketAlarm extends BaseEntity {
     private LocalDateTime openBookingTime;
 
     public TicketAlarm(
-            User user,
-            Match match,
-            TeamBookingPolicy policy,
-            Integer minusBefore,
-            LocalDateTime alarmTime,
-            LocalDateTime openBookingTime) {
+        User user,
+        Match match,
+        TeamBookingPolicy policy,
+        Integer minusBefore,
+        LocalDateTime alarmTime,
+        LocalDateTime openBookingTime
+    ) {
         this.user = user;
         this.match = match;
         this.teamBookingPolicy = policy;
@@ -67,19 +66,30 @@ public class TicketAlarm extends BaseEntity {
         this.openBookingTime = openBookingTime;
     }
 
-    public static TicketAlarm of(User user, Match match, TeamBookingPolicy policy, Integer minusBefore,
-            LocalDateTime alarmTime, LocalDateTime openBookingTime) {
+    public static TicketAlarm of(
+        User user,
+        Match match,
+        TeamBookingPolicy policy,
+        Integer minusBefore,
+        LocalDateTime alarmTime,
+        LocalDateTime openBookingTime
+    ) {
         return new TicketAlarm(
-                user,
-                match,
-                policy,
-                minusBefore,
-                alarmTime,
-                openBookingTime);
+            user,
+            match,
+            policy,
+            minusBefore,
+            alarmTime,
+            openBookingTime
+        );
     }
 
-    public void update(TeamBookingPolicy newBookingPolicy, Integer minusBefore, LocalDateTime alarmTime,
-            LocalDateTime openBookingTime) {
+    public void update(
+        TeamBookingPolicy newBookingPolicy,
+        Integer minusBefore,
+        LocalDateTime alarmTime,
+        LocalDateTime openBookingTime
+    ) {
         this.teamBookingPolicy = newBookingPolicy;
         this.minusBefore = minusBefore;
         this.alarmTime = alarmTime;

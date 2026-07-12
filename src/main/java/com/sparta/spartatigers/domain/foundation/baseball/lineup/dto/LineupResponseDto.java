@@ -1,14 +1,12 @@
 package com.sparta.spartatigers.domain.foundation.baseball.lineup.dto;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import com.sparta.spartatigers.domain.foundation.baseball.match.model.Match;
 import com.sparta.spartatigers.domain.foundation.baseball.lineup.model.LineupBatter;
 import com.sparta.spartatigers.domain.foundation.baseball.lineup.model.LineupPlayer;
 import com.sparta.spartatigers.domain.foundation.baseball.lineup.model.StartingLineup;
-
+import com.sparta.spartatigers.domain.foundation.baseball.match.model.Match;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -21,6 +19,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class LineupResponseDto {
+
     private Long matchId;
     private String homeTeamName;
     private String homeTeamCode;
@@ -34,14 +33,14 @@ public class LineupResponseDto {
      */
     public static LineupResponseDto empty(Long matchId) {
         return LineupResponseDto.builder()
-                .matchId(matchId)
-                .homeTeamName(null)
-                .homeTeamCode(null)
-                .awayTeamName(null)
-                .awayTeamCode(null)
-                .homeBatters(Collections.emptyList())
-                .awayBatters(Collections.emptyList())
-                .build();
+            .matchId(matchId)
+            .homeTeamName(null)
+            .homeTeamCode(null)
+            .awayTeamName(null)
+            .awayTeamCode(null)
+            .homeBatters(Collections.emptyList())
+            .awayBatters(Collections.emptyList())
+            .build();
     }
 
     /**
@@ -49,29 +48,35 @@ public class LineupResponseDto {
      */
     public static LineupResponseDto from(LineupCacheDto cache) {
         return LineupResponseDto.builder()
-                .matchId(cache.getMatchId())
-                .homeTeamName(null)
-                .homeTeamCode(null)
-                .awayTeamName(null)
-                .awayTeamCode(null)
-                .homeBatters(toBatterResponses(cache.getHomeBatters()))
-                .awayBatters(toBatterResponses(cache.getAwayBatters()))
-                .build();
+            .matchId(cache.getMatchId())
+            .homeTeamName(null)
+            .homeTeamCode(null)
+            .awayTeamName(null)
+            .awayTeamCode(null)
+            .homeBatters(toBatterResponses(cache.getHomeBatters()))
+            .awayBatters(toBatterResponses(cache.getAwayBatters()))
+            .build();
     }
 
-    private static List<LineupBatterResponse> toBatterResponses(List<LineupBatter> batters) {
+    private static List<LineupBatterResponse> toBatterResponses(
+        List<LineupBatter> batters
+    ) {
         if (batters == null || batters.isEmpty()) {
             return Collections.emptyList();
         }
-        return batters.stream()
-                .map(LineupBatterResponse::from)
-                .collect(Collectors.toList());
+        return batters
+            .stream()
+            .map(LineupBatterResponse::from)
+            .collect(Collectors.toList());
     }
 
     /**
      * DB 엔티티로부터 응답 DTO 생성 (Fallback 용)
      */
-    public static LineupResponseDto fromEntities(Long matchId, List<StartingLineup> lineups) {
+    public static LineupResponseDto fromEntities(
+        Long matchId,
+        List<StartingLineup> lineups
+    ) {
         StartingLineup home = null;
         StartingLineup away = null;
 
@@ -85,26 +90,39 @@ public class LineupResponseDto {
         }
 
         return LineupResponseDto.builder()
-                .matchId(matchId)
-                .homeTeamName(home != null ? home.getTeam().getName() : null)
-                .homeTeamCode(home != null ? home.getTeam().getCode().name() : null)
-                .awayTeamName(away != null ? away.getTeam().getName() : null)
-                .awayTeamCode(away != null ? away.getTeam().getCode().name() : null)
-                .homeBatters(home != null ? fromPlayers(home.getLineupPlayers()) : Collections.emptyList())
-                .awayBatters(away != null ? fromPlayers(away.getLineupPlayers()) : Collections.emptyList())
-                .build();
+            .matchId(matchId)
+            .homeTeamName(home != null ? home.getTeam().getName() : null)
+            .homeTeamCode(home != null ? home.getTeam().getCode().name() : null)
+            .awayTeamName(away != null ? away.getTeam().getName() : null)
+            .awayTeamCode(away != null ? away.getTeam().getCode().name() : null)
+            .homeBatters(
+                home != null
+                    ? fromPlayers(home.getLineupPlayers())
+                    : Collections.emptyList()
+            )
+            .awayBatters(
+                away != null
+                    ? fromPlayers(away.getLineupPlayers())
+                    : Collections.emptyList()
+            )
+            .build();
     }
 
-    private static List<LineupBatterResponse> fromPlayers(List<LineupPlayer> players) {
+    private static List<LineupBatterResponse> fromPlayers(
+        List<LineupPlayer> players
+    ) {
         if (players == null || players.isEmpty()) {
             return Collections.emptyList();
         }
-        return players.stream()
-                .map((LineupPlayer p) -> LineupBatterResponse.builder()
-                        .name(p.getPlayerName())
-                        .position(p.getPosition().getKoreanName())
-                        .battingOrder(String.valueOf(p.getBattingOrder()))
-                        .build())
-                .collect(Collectors.toList());
+        return players
+            .stream()
+            .map((LineupPlayer p) ->
+                LineupBatterResponse.builder()
+                    .name(p.getPlayerName())
+                    .position(p.getPosition().getKoreanName())
+                    .battingOrder(String.valueOf(p.getBattingOrder()))
+                    .build()
+            )
+            .collect(Collectors.toList());
     }
 }

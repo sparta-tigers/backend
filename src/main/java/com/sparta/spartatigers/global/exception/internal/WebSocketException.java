@@ -9,20 +9,20 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public class WebSocketException extends BaseException {
 
-	private final ExceptionCode exceptionCode;
+    private final ExceptionCode exceptionCode;
 
-	public WebSocketException(ExceptionCode code, Throwable cause) {
-		super(cause);
-		this.exceptionCode = code;
-	}
+    public WebSocketException(ExceptionCode code, Throwable cause) {
+        super(cause);
+        this.exceptionCode = code;
+    }
 
-	@Override
-	public HttpStatus getStatus() {
-		return exceptionCode.getHttpStatus();
-	}
+    @Override
+    public HttpStatus getStatus() {
+        return exceptionCode.getHttpStatus();
+    }
 
-	@Override
-	public String getMessage() {
-		return exceptionCode.getMessage();
-	}
+    @Override
+    public String getMessage() {
+        return exceptionCode.getMessage();
+    }
 }

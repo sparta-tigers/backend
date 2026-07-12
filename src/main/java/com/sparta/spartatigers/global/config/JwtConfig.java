@@ -1,9 +1,8 @@
 package com.sparta.spartatigers.global.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Getter
 @AllArgsConstructor
@@ -14,10 +13,7 @@ public class JwtConfig {
 
     private final RefreshToken refreshToken;
 
-    public record AccessToken(String secret, long expire) {
-    }
+    public record AccessToken(String secret, long expire) {}
 
-    public record RefreshToken(String secret, long expire) {
-    }
-
+    public record RefreshToken(String secret, long expire) {}
 }

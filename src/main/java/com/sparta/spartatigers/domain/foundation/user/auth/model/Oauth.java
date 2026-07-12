@@ -2,7 +2,6 @@ package com.sparta.spartatigers.domain.foundation.user.auth.model;
 
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
 import com.sparta.spartatigers.domain.foundation.user.account.model.User;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

@@ -1,7 +1,6 @@
 package com.sparta.spartatigers.domain.foundation.baseball.match.model;
 
 import com.fasterxml.jackson.annotation.JsonValue;
-
 import lombok.RequiredArgsConstructor;
 
 /**

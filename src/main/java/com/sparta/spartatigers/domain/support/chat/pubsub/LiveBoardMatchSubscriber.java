@@ -1,24 +1,20 @@
 package com.sparta.spartatigers.domain.support.chat.pubsub;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sparta.spartatigers.domain.foundation.baseball.lineup.dto.LineupCacheDto;
+import com.sparta.spartatigers.domain.foundation.baseball.match.model.LiveBoardData;
+import com.sparta.spartatigers.domain.foundation.baseball.match.service.LiveBoardDataService;
+import com.sparta.spartatigers.domain.foundation.baseball.match.service.LiveBoardMatchService;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sparta.spartatigers.domain.foundation.baseball.lineup.dto.LineupCacheDto;
-import com.sparta.spartatigers.domain.foundation.baseball.match.model.LiveBoardData;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import com.sparta.spartatigers.domain.foundation.baseball.match.service.LiveBoardDataService;
-import com.sparta.spartatigers.domain.foundation.baseball.match.service.LiveBoardMatchService;
 
 @Slf4j
 @Component
@@ -39,18 +35,28 @@ public class LiveBoardMatchSubscriber implements MessageListener {
     public void onMessage(Message message, byte[] pattern) {
         try {
             String body = new String(message.getBody(), StandardCharsets.UTF_8);
-            LiveBoardData liveBoardData = objectMapper.readValue(body, LiveBoardData.class);
+            LiveBoardData liveBoardData = objectMapper.readValue(
+                body,
+                LiveBoardData.class
+            );
 
             // 1. 실시간 매치 정보 STOMP 발행
             messagingTemplate.convertAndSend(
-                    "/server/liveboard/room/" + liveBoardData.getMatchId() + "/match", liveBoardData);
+                "/server/liveboard/room/" +
+                    liveBoardData.getMatchId() +
+                    "/match",
+                liveBoardData
+            );
 
             // 2. 실시간 데이터 캐싱 (REST API 초기 로드용)
             try {
                 liveBoardDataService.cacheLiveBoardData(liveBoardData);
             } catch (Exception e) {
-                log.warn("Failed to cache liveboard data for matchId: {}. Continuing message flow.",
-                        liveBoardData.getMatchId(), e);
+                log.warn(
+                    "Failed to cache liveboard data for matchId: {}. Continuing message flow.",
+                    liveBoardData.getMatchId(),
+                    e
+                );
             }
 
             // 3. 라인업 데이터 경량화 및 캐싱 (Phase 13)
@@ -60,12 +66,18 @@ public class LiveBoardMatchSubscriber implements MessageListener {
             try {
                 liveBoardMatchService.updateMatchScore(liveBoardData);
             } catch (Exception e) {
-                log.error("Failed to update match score for matchId: {}. DB may be inconsistent with live broadcast.",
-                        liveBoardData.getMatchId(), e);
+                log.error(
+                    "Failed to update match score for matchId: {}. DB may be inconsistent with live broadcast.",
+                    liveBoardData.getMatchId(),
+                    e
+                );
             }
-
         } catch (JsonProcessingException e) {
-            log.error("Failed to parse LiveBoardData from Redis message: {}", e.getMessage(), e);
+            log.error(
+                "Failed to parse LiveBoardData from Redis message: {}",
+                e.getMessage(),
+                e
+            );
         }
     }
 
@@ -74,14 +86,13 @@ public class LiveBoardMatchSubscriber implements MessageListener {
      * 🚨 앙드레 카파시: 무거운 전체 데이터를 피하고 필요한 정보만 선별적으로 캐싱하여 메모리 절약.
      */
     private void cacheLineupData(LiveBoardData data) {
-        if (data.getMatchId() == null)
-            return;
+        if (data.getMatchId() == null) return;
 
         LineupCacheDto newCache = LineupCacheDto.builder()
-                .matchId(data.getMatchId())
-                .awayBatters(data.getAwayBatters())
-                .homeBatters(data.getHomeBatters())
-                .build();
+            .matchId(data.getMatchId())
+            .awayBatters(data.getAwayBatters())
+            .homeBatters(data.getHomeBatters())
+            .build();
 
         // 빈 배열이거나 데이터가 아예 없는 경우 업데이트 건너뜀
         if (!newCache.isNotEmpty()) {
@@ -95,25 +106,36 @@ public class LiveBoardMatchSubscriber implements MessageListener {
         if (existingData != null) {
             try {
                 // 🚨 앙드레 카파시: 안전한 역직렬화 (단순 캐스팅 금지)
-                LineupCacheDto cached = objectMapper.convertValue(existingData, LineupCacheDto.class);
+                LineupCacheDto cached = objectMapper.convertValue(
+                    existingData,
+                    LineupCacheDto.class
+                );
                 if (newCache.equals(cached)) {
-
                     return; // 변경사항 없음
                 }
             } catch (IllegalArgumentException e) {
-                log.warn("Failed to compare existing lineup cache, proceeding with update", e);
+                log.warn(
+                    "Failed to compare existing lineup cache, proceeding with update",
+                    e
+                );
             }
         }
 
         redisTemplate.opsForValue().set(cacheKey, newCache, CACHE_TTL);
-        log.info("Successfully updated lineup cache for matchId: {}", data.getMatchId());
+        log.info(
+            "Successfully updated lineup cache for matchId: {}",
+            data.getMatchId()
+        );
 
         // 3. DB 영속화 (Fallback 대응)
         try {
             startingLineupService.saveLineupFromCache(newCache);
         } catch (Exception e) {
-            log.error("Failed to save lineup to DB for matchId: {}", data.getMatchId(), e);
+            log.error(
+                "Failed to save lineup to DB for matchId: {}",
+                data.getMatchId(),
+                e
+            );
         }
     }
-
 }

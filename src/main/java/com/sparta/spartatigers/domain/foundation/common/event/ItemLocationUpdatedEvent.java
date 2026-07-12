@@ -4,6 +4,7 @@ import lombok.Getter;
 
 @Getter
 public class ItemLocationUpdatedEvent {
+
     private final Long userId;
     private final String action;
     private final Object data;

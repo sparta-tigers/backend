@@ -13,5 +13,4 @@ public class SpartatigersApiApplication {
     public static void main(String[] args) {
         SpringApplication.run(SpartatigersApiApplication.class, args);
     }
-
 }

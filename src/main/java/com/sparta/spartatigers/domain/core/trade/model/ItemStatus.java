@@ -4,5 +4,5 @@ public enum ItemStatus {
     REGISTERED,
     COMPLETED,
     FAILED,
-    DELETED
+    DELETED,
 }

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LineupBatter {
+
     private String battingOrder; // 순서
     private String position; // 포지션
     private String name; // 이름

@@ -5,7 +5,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
  * 비동기 처리를 위한 Spring 설정 클래스
- * 
+ *
  * @EnableAsync 어노테이션을 통해 애플리케이션 전역에서
  * @Async 어노테이션을 사용한 비동기 처리를 활성화합니다.
  */

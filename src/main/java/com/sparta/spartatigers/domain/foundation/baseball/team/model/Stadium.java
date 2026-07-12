@@ -1,7 +1,6 @@
 package com.sparta.spartatigers.domain.foundation.baseball.team.model;
 
 import com.sparta.spartatigers.domain.common.entity.BaseEntity;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -36,5 +35,4 @@ public class Stadium extends BaseEntity {
 
     @Column
     private int ny;
-
 }

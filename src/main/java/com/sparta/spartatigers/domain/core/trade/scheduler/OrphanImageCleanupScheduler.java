@@ -1,5 +1,8 @@
 package com.sparta.spartatigers.domain.core.trade.scheduler;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sparta.spartatigers.domain.core.trade.repository.ItemRepository;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,18 +14,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import com.sparta.spartatigers.domain.core.trade.repository.ItemRepository;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * 고아(Orphan) 이미지 파일을 주기적으로 정리하는 스케줄러.
@@ -49,9 +45,10 @@ public class OrphanImageCleanupScheduler {
     private static final long ORPHAN_THRESHOLD_HOURS = 24;
 
     public OrphanImageCleanupScheduler(
-            ItemRepository itemRepository,
-            ObjectMapper objectMapper,
-            @Value("${image.storage.path:./uploads}") String uploadPath) {
+        ItemRepository itemRepository,
+        ObjectMapper objectMapper,
+        @Value("${image.storage.path:./uploads}") String uploadPath
+    ) {
         this.itemRepository = itemRepository;
         this.objectMapper = objectMapper;
         this.uploadDirPath = Paths.get(uploadPath).toAbsolutePath().normalize();
@@ -62,49 +59,71 @@ public class OrphanImageCleanupScheduler {
      */
     @Scheduled(cron = "0 0 3 * * *", zone = "Asia/Seoul")
     public void cleanupOrphanImages() {
-        log.info("[OrphanImageCleanup] 고아 이미지 정리 시작 - 디렉토리: {}", uploadDirPath);
+        log.info(
+            "[OrphanImageCleanup] 고아 이미지 정리 시작 - 디렉토리: {}",
+            uploadDirPath
+        );
 
         if (!Files.isDirectory(uploadDirPath)) {
-            log.warn("[OrphanImageCleanup] 업로드 디렉토리가 존재하지 않음: {}", uploadDirPath);
+            log.warn(
+                "[OrphanImageCleanup] 업로드 디렉토리가 존재하지 않음: {}",
+                uploadDirPath
+            );
             return;
         }
 
         // 1. DB에서 참조 중인 모든 파일명 수집
         Set<String> referencedFileNames = collectReferencedFileNames();
-        log.info("[OrphanImageCleanup] DB 참조 파일 수: {}", referencedFileNames.size());
+        log.info(
+            "[OrphanImageCleanup] DB 참조 파일 수: {}",
+            referencedFileNames.size()
+        );
 
         // 2. 디스크 파일 스캔 및 고아 파일 삭제
-        Instant threshold = Instant.now().minus(ORPHAN_THRESHOLD_HOURS, ChronoUnit.HOURS);
+        Instant threshold = Instant.now().minus(
+            ORPHAN_THRESHOLD_HOURS,
+            ChronoUnit.HOURS
+        );
         int deletedCount = 0;
         int scannedCount = 0;
 
         try (Stream<Path> files = Files.list(uploadDirPath)) {
             for (Path file : (Iterable<Path>) files::iterator) {
-                if (!Files.isRegularFile(file))
-                    continue;
+                if (!Files.isRegularFile(file)) continue;
                 scannedCount++;
 
                 String fileName = file.getFileName().toString();
 
                 // DB에 참조되어 있으면 건너뛰기
-                if (referencedFileNames.contains(fileName))
-                    continue;
+                if (referencedFileNames.contains(fileName)) continue;
 
                 // [FIX] 문제 4: creationTime()은 리눅스 파일시스템에서 신뢰성이 낮음 (lastModifiedTime과 동일하거나
                 // epoch 반환 가능)
                 // 안전을 위해 생성 시간과 수정 시간 중 더 최근 시각을 기준으로 24시간이 경과했는지 판단
                 try {
-                    BasicFileAttributes attrs = Files.readAttributes(file, BasicFileAttributes.class);
+                    BasicFileAttributes attrs = Files.readAttributes(
+                        file,
+                        BasicFileAttributes.class
+                    );
                     Instant created = attrs.creationTime().toInstant();
                     Instant modified = attrs.lastModifiedTime().toInstant();
-                    Instant referenceTime = created.isAfter(modified) ? created : modified;
+                    Instant referenceTime = created.isAfter(modified)
+                        ? created
+                        : modified;
 
                     if (referenceTime.isAfter(threshold)) {
-                        log.debug("[OrphanImageCleanup] 최근 파일이므로 건너뜀: {}", fileName);
+                        log.debug(
+                            "[OrphanImageCleanup] 최근 파일이므로 건너뜀: {}",
+                            fileName
+                        );
                         continue;
                     }
                 } catch (IOException e) {
-                    log.warn("[OrphanImageCleanup] 파일 속성 읽기 실패: {}", fileName, e);
+                    log.warn(
+                        "[OrphanImageCleanup] 파일 속성 읽기 실패: {}",
+                        fileName,
+                        e
+                    );
                     continue;
                 }
 
@@ -112,16 +131,27 @@ public class OrphanImageCleanupScheduler {
                 try {
                     Files.delete(file);
                     deletedCount++;
-                    log.info("[OrphanImageCleanup] 고아 파일 삭제: {}", fileName);
+                    log.info(
+                        "[OrphanImageCleanup] 고아 파일 삭제: {}",
+                        fileName
+                    );
                 } catch (IOException e) {
-                    log.error("[OrphanImageCleanup] 파일 삭제 실패: {}", fileName, e);
+                    log.error(
+                        "[OrphanImageCleanup] 파일 삭제 실패: {}",
+                        fileName,
+                        e
+                    );
                 }
             }
         } catch (IOException e) {
             log.error("[OrphanImageCleanup] 디렉토리 스캔 실패", e);
         }
 
-        log.info("[OrphanImageCleanup] 정리 완료 - 스캔: {}건, 삭제: {}건", scannedCount, deletedCount);
+        log.info(
+            "[OrphanImageCleanup] 정리 완료 - 스캔: {}건, 삭제: {}건",
+            scannedCount,
+            deletedCount
+        );
     }
 
     /**
@@ -131,21 +161,33 @@ public class OrphanImageCleanupScheduler {
     @Transactional(readOnly = true)
     private Set<String> collectReferencedFileNames() {
         Set<String> fileNames = new HashSet<>();
-        try (java.util.stream.Stream<String> allImageUrls = itemRepository.findAllImageUrls()) {
+        try (
+            java.util.stream.Stream<String> allImageUrls =
+                itemRepository.findAllImageUrls()
+        ) {
             allImageUrls.forEach(imageField -> {
                 if (imageField != null && !imageField.isBlank()) {
                     // JSON 배열 형태인 경우
                     if (imageField.startsWith("[")) {
                         try {
-                            List<String> urls = objectMapper.readValue(imageField, new TypeReference<List<String>>() {
-                            });
+                            List<String> urls = objectMapper.readValue(
+                                imageField,
+                                new TypeReference<List<String>>() {}
+                            );
                             for (String url : urls) {
                                 extractFileName(url, fileNames);
                             }
                         } catch (Exception e) {
                             // JSON 파싱 실패 시 콤마 분리 폴백 시도 (대괄호/따옴표 제거 후 split)
-                            log.warn("[OrphanImageCleanup] JSON 파싱 실패, 콤마 분리 폴백 시도: {}", imageField);
-                            String cleaned = imageField.replace("[", "").replace("]", "").replace("\"", "").trim();
+                            log.warn(
+                                "[OrphanImageCleanup] JSON 파싱 실패, 콤마 분리 폴백 시도: {}",
+                                imageField
+                            );
+                            String cleaned = imageField
+                                .replace("[", "")
+                                .replace("]", "")
+                                .replace("\"", "")
+                                .trim();
                             if (!cleaned.isEmpty()) {
                                 for (String url : cleaned.split(",")) {
                                     extractFileName(url.trim(), fileNames);
@@ -173,8 +215,7 @@ public class OrphanImageCleanupScheduler {
      * 예: "/api/images/uuid_file.jpg" → "uuid_file.jpg"
      */
     private void extractFileName(String url, Set<String> fileNames) {
-        if (url == null || url.isBlank())
-            return;
+        if (url == null || url.isBlank()) return;
         int lastSlash = url.lastIndexOf('/');
         String fileName = lastSlash >= 0 ? url.substring(lastSlash + 1) : url;
         if (!fileName.isBlank()) {
