@@ -90,7 +90,7 @@ dependencies {
     testImplementation 'com.h2database:h2'
 
     // Google Cloud Vision API
-    implementation 'com.google.cloud:google-cloud-vision:3.34.0'
+    implementation 'com.google.cloud:google-cloud-vision:3.92.0'
     
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.2'
 }
