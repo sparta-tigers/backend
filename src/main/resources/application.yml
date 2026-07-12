@@ -40,15 +40,7 @@ spring:
       region:
         static: ${AWS_REGION:ap-northeast-2}
       s3:
-        bucket: ${AWS_S3_BUCKET_NAME}
-        folders:
-          team-symbol: team-symbols/
-        upload:
-          max-size: 5242880
-          allowed-extensions:
-            - jpg
-            - jpeg
-            - png
+        bucket: ${AWS_S3_BUCKET_NAME:dummy-bucket}
 
 # ===========================================
 # Spring Boot Actuator Settings (Monitoring)

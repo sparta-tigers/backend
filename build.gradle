@@ -65,8 +65,8 @@ dependencies {
     // Firebase Admin SDK
     implementation "com.google.firebase:firebase-admin:${firebaseAdminSDKVersion}"
 
-    // S3 (AWS SDK v2 via awspring)
-    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.1.1'
+    // S3 (AWS SDK v2 via awspring) - 3.4.x는 Spring Boot 3.5.x 공식 호환 버전
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.4.2'
 
     // flyway
     implementation 'org.flywaydb:flyway-core'
@@ -110,6 +110,7 @@ tasks.named('test') {
     environment "AWS_REGION", "ap-northeast-2"
     environment "AWS_S3_ACCESS_KEY", "dummy"
     environment "AWS_S3_SECRET_KEY", "dummy"
+    environment "AWS_S3_BUCKET_NAME", "dummy-bucket"
 }
 
 // Firebase 키 파일을 리소스로 포함하기 위한 설정

@@ -96,5 +96,11 @@ class MatchTest {
 
         // then
         assertThat(match.getMatchResult()).isEqualTo(MatchResult.CANCEL);
+
+        // when
+        match.updateFinalResult(MatchResult.NOT_PLAYED, 0, 0);
+
+        // then
+        assertThat(match.getMatchResult()).isEqualTo(MatchResult.NOT_PLAYED);
     }
 }
